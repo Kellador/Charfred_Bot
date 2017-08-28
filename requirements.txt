@@ -1,0 +1,6 @@
+#
+### Requirements for Charfred to do his f'in job! ###
+#
+discord.py
+asyncio
+#
