@@ -85,7 +85,27 @@ async def serverCmd(c):
 
 
 async def playerCmd(c):
-    
+    cSplit = c.split()
+    cmd = cSplit[0]
+    response = []
+    for player in cSplit[1:]:
+        if cfg.commands[cmd]['sudo']:
+            sshcmd = "ssh {ssh} sudo {script} {cmd} {player}".format(
+                ssh=cfg.sshName,
+                script=cfg.commands[cmd]['Script'],
+                cmd=cmd,
+                player=player)
+        else:
+            sshcmd = "ssh {ssh} {script} {cmd} {player}".format(
+                ssh=cfg.sshName,
+                script=cfg.commands[cmd]['Script'],
+                cmd=cmd,
+                player=player)
+        # response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+        #                                          cfg.sshPass}))
+        response.append(sshcmd)
+        # await asyncio.sleep(1)
+    return ('\n'.join(response))
 
 
 @charfred.event
