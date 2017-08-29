@@ -108,6 +108,27 @@ async def playerCmd(c):
     return ('\n'.join(response))
 
 
+async def specialCmd(c):
+    cSplit = c.split()
+    cmd = cSplit[0]
+    params = ' '.join(cSplit[1:])
+    if cfg.commands[cmd]['sudo']:
+        sshcmd = "ssh {ssh} sudo {script} {cmd} {params}".format(
+            ssh=cfg.sshName,
+            script=cfg.commands[cmd]['Script'],
+            cmd=cmd,
+            params=params)
+    else:
+        sshcmd = "ssh {ssh} {script} {cmd} {params}".format(
+            ssh=cfg.sshName,
+            script=cfg.commands[cmd]['Script'],
+            cmd=cmd,
+            params=params)
+    # return pexp.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+    #                                             cfg.sshPass}))
+    return sshcmd
+
+
 @charfred.event
 async def on_ready():
     print('Logged in as:')
