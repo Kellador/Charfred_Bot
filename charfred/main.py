@@ -79,8 +79,8 @@ async def serverCmd(c):
             response.append(sshcmd)
             # await asyncio.sleep(1)
         else:
-            print('Invalid target! ' + server)
-            response.append(('Invalid target! ' + server))
+            print('Invalid target! {}'.format(server))
+            response.append(('Invalid target! {}'.format(server)))
     return ('\n'.join(response))
 
 
@@ -106,6 +106,33 @@ async def playerCmd(c):
         response.append(sshcmd)
         # await asyncio.sleep(1)
     return ('\n'.join(response))
+
+
+async def specialCmd(c):
+    cSplit = c.split()
+    cmd = cSplit[0]
+    server = cSplit[1]
+    params = ' '.join(cSplit[2:])
+    if (server in cfg.servers) and (cmd not in cfg.servers[server]):
+        if cfg.commands[cmd]['sudo']:
+            sshcmd = "ssh {ssh} sudo {script} {cmd} {params}".format(
+                ssh=cfg.sshName,
+                script=cfg.commands[cmd]['Script'],
+                cmd=cmd,
+                params=params)
+        else:
+            sshcmd = "ssh {ssh} {script} {cmd} {params}".format(
+                ssh=cfg.sshName,
+                script=cfg.commands[cmd]['Script'],
+                cmd=cmd,
+                params=params)
+        # return pexp.append(pexp.run(sshcmd,
+        #                             events={'(?i)(passphrase|password)':
+        #                                     cfg.sshPass}))
+    else:
+        print('Invalid target! {}'.format(server))
+        return 'Invalid target! {}'.format(server)
+    return sshcmd
 
 
 @charfred.event
