@@ -1,0 +1,82 @@
+#!/usr/bin/env python
+# Charfred Configuration Options
+# ==============================
+# Charfred is an ornery bastard, but you can keep him in line
+# with these nifty configuration options.
+
+# Live-Mode toggle; Setting this to False lets Charfred use
+# the stageBotToken instead of the regular one.
+liveMode = False
+
+# Tokens for Live- and Staging-Environment useage;
+# This way you can, for example, register Charfred under two
+# seperate BotUsers in Discord and invite one to join your
+# Live-Environment, and the other to join a private test group.
+liveBotToken = ""
+stageBotToken = ""
+
+# DevAPIKey, username and password for Pastebin Functionality
+pastebinToken = ""
+pastebinUser = ""
+pastebinPass = ""
+
+# Name of the target SSH-Server;
+# This can be an IP adress, or if you have the server details
+# saved in your .ssh/config, then you can use that name;
+# For example: 'user@myServer', or just 'myServer', if your
+# .ssh/config already defines a user for myServer.
+sshName = "MyServer"
+
+# Password for your SSH Login;
+# If you have set up pubkey authentication (without key passphrase)
+# with your target server, then you can ommit this.
+# If you have set up pubkey auth, but use a passphrase with your key,
+# then that goes in here.
+# If you do not have pubkey auth set up, then just put your users
+# password in here, if you're comfortable with that.
+sshPass = "" + '\n'
+
+# Minecraft Servers (names only) that will be serviced,
+# and the commands which are not allowed to be executed on the given server.
+# Be sure to match up the names and commands with those
+# defined in your server control script(s), these are case-sensitive!
+servers = {'Hub': {'stop': False},
+           'Sky': {},
+           'Hardmode': {},
+           }
+
+# Helper variables; You can define these however you like, or even add more,
+# so you can save some writing time in this config.
+scModDefaults = {'Type': 'serverCmd',
+                 'MinRank': 'Moderator',
+                 'Pattern': '{cmd} {server}',
+                 'Script': 'path/to/some/script',
+                 'sudo': True}
+
+pcStaffDefaults = {'Type': 'playerCmd',
+                   'MinRank': 'Staff',
+                   'Pattern': '{cmd} {player}',
+                   'Script': 'path/to/some/other/script',
+                   'sudo': False}
+
+# Command Dictionary: All the commands that can be passed and their details.
+# Each command comes with the following information in this order:
+# Type of Command, Minimum Discord role required to run it,
+# the command pattern, the target script (with full path)
+# and whether it requires sudo.
+commands = {'start': scModDefaults,
+            'stop': scModDefaults,
+            'restart': scModDefaults,
+            'ban': pcStaffDefaults,
+            'pass': {'Type': 'specialCmd',
+                     'MinRank': 'Staff',
+                     'Pattern': '{cmd} {server} command {passedCmd}',
+                     'Script': 'path/to/some/script',
+                     'sudo': True},
+            }
+
+# Discord Roles: All the Discord Roles in your Group, or at least
+# the ones that matter, in order of least permissions to most.
+# Make sure these match the Roles you've listed for the commands above!
+roles = ['Moderator',
+         'Staff']
