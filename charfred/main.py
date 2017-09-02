@@ -62,18 +62,11 @@ async def serverCmd(c):
     response = []
     for server in cSplit[1:]:
         if (server in cfg.servers) and (cmd not in cfg.servers[server]):
-            if cfg.commands[cmd]['sudo']:
-                sshcmd = "ssh {ssh} sudo {script} {cmd} {server}".format(
-                    ssh=cfg.sshName,
-                    script=cfg.commands[cmd]['Script'],
-                    cmd=cmd,
-                    server=server)
-            else:
-                sshcmd = "ssh {ssh} {script} {cmd} {server}".format(
-                    ssh=cfg.sshName,
-                    script=cfg.commands[cmd]['Script'],
-                    cmd=cmd,
-                    server=server)
+            sshcmd = cfg.commands[cmd]['Pattern'].format(
+                ssh=cfg.sshName,
+                script=cfg.commands[cmd]['Script'],
+                cmd=cmd,
+                args=server)
             # response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
             #                                          cfg.sshPass}))
             response.append(sshcmd)
@@ -91,64 +84,29 @@ async def playerCmd(c):
         argument = " " + cSplit[2]
     else:
         argument = ""
-    if cfg.commands[cmd]['sudo']:
-        sshcmd = "ssh {ssh} sudo {script} {cmd} {player}{argument}".format(
-            ssh=cfg.sshName,
-            script=cfg.commands[cmd]['Script'],
-            cmd=cmd,
-            player=player,
-            argument=argument)
-    else:
-        sshcmd = "ssh {ssh} {script} {cmd} {player}{argument}".format(
-            ssh=cfg.sshName,
-            script=cfg.commands[cmd]['Script'],
-            cmd=cmd,
-            player=player,
-            argument=argument)
+    sshcmd = cfg.commands[cmd]['Pattern'].format(
+        ssh=cfg.sshName,
+        script=cfg.commands[cmd]['Script'],
+        cmd=cmd,
+        args=cSplit[1] + argument)
     # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-    #                                          cfg.sshPass})
+    #                                     cfg.sshPass})
     response = sshcmd
-    # await asyncio.sleep(1)
     return response
 
 
 async def specialCmd(c):
     cSplit = c.split()
     cmd = cSplit[0]
-    response = []
-    if cmd == 'pass':
-        # TODO: Implement pass logic
-    elif cmd == 'crashreport':
-        # TODO: Implement crashreport logic
-    else:
-        print('Command not recognized!')
-
-
-async def specialCmd(c):
-    cSplit = c.split()
-    cmd = cSplit[0]
-    server = cSplit[1]
-    params = ' '.join(cSplit[2:])
-    if (server in cfg.servers) and (cmd not in cfg.servers[server]):
-        if cfg.commands[cmd]['sudo']:
-            sshcmd = "ssh {ssh} sudo {script} {cmd} {params}".format(
-                ssh=cfg.sshName,
-                script=cfg.commands[cmd]['Script'],
-                cmd=cmd,
-                params=params)
-        else:
-            sshcmd = "ssh {ssh} {script} {cmd} {params}".format(
-                ssh=cfg.sshName,
-                script=cfg.commands[cmd]['Script'],
-                cmd=cmd,
-                params=params)
-        # return pexp.append(pexp.run(sshcmd,
-        #                             events={'(?i)(passphrase|password)':
-        #                                     cfg.sshPass}))
-    else:
-        print('Invalid target! {}'.format(server))
-        return 'Invalid target! {}'.format(server)
-    return sshcmd
+    sshcmd = cfg.commands[cmd]['Pattern'].format(
+        ssh=cfg.sshName,
+        script=cfg.commands[cmd]['Script'],
+        cmd=cmd,
+        args=cSplit[1:])
+    # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+    #                                     cfg.sshPass})
+    response = sshcmd
+    return response
 
 
 @charfred.event
