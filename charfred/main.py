@@ -123,9 +123,17 @@ async def specialCmd(c):
     return response
 
 
-# async def reportCmd(c):
-#     cSplit = c.split()
-#     cmd = cSplit[0]
+async def reportCmd(c):
+    cSplit = c.split()
+    cmd = cSplit[0]
+    sshcmd = cfg.commands[cmd]['Pattern'].format(
+        ssh=cfg.sshName,
+        script=cfg.commands[cmd]['Script'],
+        cmd=cmd,
+        args=' '.join(cSplit[1:]))
+    # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+    #                                     cfg.sshPass})
+    response = sshcmd
 
 
 @charfred.event
