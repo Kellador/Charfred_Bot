@@ -89,7 +89,7 @@ async def serverCmd(c):
         else:
             print('Invalid target! {}'.format(server))
             response.append(('Invalid target! {}'.format(server)))
-    return ('\n'.join('```', response, '```'))
+    return ('```' + '\n'.join(response) + '```')
 
 
 async def playerCmd(c):
@@ -107,7 +107,7 @@ async def playerCmd(c):
     response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
                                         cfg.sshPass})
     # response = sshcmd
-    return ('\n'.join('```', response, '```'))
+    return ('```' + '\n'.join(response) + '```')
 
 
 async def specialCmd(c):
@@ -121,7 +121,7 @@ async def specialCmd(c):
     response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
                                         cfg.sshPass})
     # response = sshcmd
-    return ('\n'.join('```', response, '```'))
+    return ('```' + '\n'.join(response) + '```')
 
 
 async def reportCmd(c):
