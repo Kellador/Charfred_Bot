@@ -53,3 +53,12 @@ replies = ["A message for you, sir!: ",
            "I need a vacation...",
            "*hmmpf*",
            "*an envelope slides in under the door*"]
+
+# Deposit Prefixes; Charfred will use one of these as a prefix for
+# posts that mention the commandCh.
+deposits = ["Please follow me to the study, sir!",
+            "Please follow me to the study, ma\'am!",
+            "I have prepared the dungeon for you, sir!",
+            "I have prepared the study for you, sir!",
+            "The study is ready for you.",
+            "GET TO THE CHOPPAH!"]

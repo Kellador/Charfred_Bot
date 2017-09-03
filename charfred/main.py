@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import discord
-from discord.ext import commands
 import configs as cfg
 import keywords
 import re
@@ -10,7 +9,7 @@ import asyncio
 import pexpect as pexp
 
 serverRX = re.compile(('|'.join(map(re.escape, list(cfg.servers.keys())))))
-rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*\W*$)|(?=\s*({}))|(?=\s*,?\s*({})$)))'.format(
+rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w+\-\d]*$)|(?=\s*({}))|(?=\s*,?\s*({})$)))'.format(
     '|'.join(list(cfg.commands.keys())),
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
@@ -20,8 +19,7 @@ cmdPattern = re.compile(rawPattern)
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
                ' He can be quite rude however.')
-charfred = commands.Bot(command_prefix='#', description=description,
-                        pm_help=True)
+charfred = discord.Client()
 
 
 def roleCall(user, requiredRole):
@@ -32,7 +30,19 @@ def roleCall(user, requiredRole):
 
 
 async def cmdResolution(message, c):
-    if re.search('[^\w, ]', c):
+    if message.server.id in cfg.commandCh.keys():
+        searchCh = cfg.commandCh[message.server.id]
+        for ch in message.server.channels:
+            if ch.id == searchCh:
+                targetCh = ch
+                break
+    else:
+        print('ERROR: No valid commandCh found!')
+        await charfred.send_message(message.channel,
+                                    (random.choice(keywords.errormsgs) +
+                                     '\n' + c))
+        return
+    if re.search('[^\w,+\- ]', c):
         print('Buggery detected! ' + c + ' by ' + message.author.name)
         await charfred.send_message(message.channel,
                                     (random.choice(keywords.errormsgs) +
@@ -44,11 +54,15 @@ async def cmdResolution(message, c):
                                     random.choice(keywords.acks))
         await charfred.send_typing(message.channel)
         response = await globals()[cfg.commands[c.split()[0]]['Type']](c)
-        await charfred.send_message(message.channel,
+        await charfred.send_message(targetCh,
                                     (random.choice(keywords.replies) +
                                      '\n```\n' +
                                      response +
                                      '\n```'))
+        if message.channel.id != targetCh:
+            await charfred.send_message(message.channel,
+                                        (random.choice(keywords.deposits) +
+                                         ' ' + targetCh.mention))
     else:
         print('No permission! ' + c)
         await charfred.send_message(message.channel,
@@ -102,11 +116,16 @@ async def specialCmd(c):
         ssh=cfg.sshName,
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
-        args=cSplit[1:])
+        args=' '.join(cSplit[1:]))
     # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
     #                                     cfg.sshPass})
     response = sshcmd
     return response
+
+
+# async def reportCmd(c):
+#     cSplit = c.split()
+#     cmd = cSplit[0]
 
 
 @charfred.event
@@ -119,19 +138,20 @@ async def on_ready():
 
 @charfred.event
 async def on_message(message):
-    msg = message.content
-    cmds = cmdPattern.findall(msg)
-    if (msg.startswith('Charfred,') and len(cmds) > 0):
-        # cmdList = [re.sub('[^\w ]', '', n[0]) for n in cmds]
-        cmdList = [n[0] for n in cmds]
-        print('Command recieved!')
-        print(*cmdList, sep='\n')
-        print(message.author.name)
-        for c in cmdList:
-            await cmdResolution(message, c)
-    elif (msg.startswith('Charfred,')):
-        await charfred.send_message(message.channel,
-                                    random.choice(keywords.nacks))
+    if message.channel.id in cfg.allowedCh:
+        msg = message.content
+        cmds = cmdPattern.findall(msg)
+        if (msg.startswith('Charfred,') and len(cmds) > 0):
+            # cmdList = [re.sub('[^\w ]', '', n[0]) for n in cmds]
+            cmdList = [n[0] for n in cmds]
+            print('Command recieved!')
+            print(*cmdList, sep='\n')
+            print(message.author.name)
+            for c in cmdList:
+                await cmdResolution(message, c)
+        elif (msg.startswith('Charfred,')):
+            await charfred.send_message(message.channel,
+                                        random.choice(keywords.nacks))
 
 
 if cfg.liveMode:
