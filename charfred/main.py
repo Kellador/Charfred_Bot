@@ -74,7 +74,7 @@ async def cmdResolution(message, c):
 async def serverCmd(c):
     cSplit = c.split()
     cmd = cSplit[0]
-    response = ['```']
+    response = []
     for server in cSplit[1:]:
         if (server in cfg.servers) and (cmd not in cfg.servers[server]):
             sshcmd = cfg.commands[cmd]['Pattern'].format(
@@ -89,14 +89,12 @@ async def serverCmd(c):
         else:
             print('Invalid target! {}'.format(server))
             response.append(('Invalid target! {}'.format(server)))
-    response.append('```')
     return ('\n'.join(response))
 
 
 async def playerCmd(c):
     cSplit = c.split()
     cmd = cSplit[0]
-    response = ['```']
     if len(cSplit) > 2:
         argument = " " + cSplit[2]
     else:
@@ -106,26 +104,23 @@ async def playerCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=cSplit[1] + argument)
-    response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                             cfg.sshPass}))
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                        cfg.sshPass})
     # response = sshcmd
-    response.append('```')
     return ('\n'.join(response))
 
 
 async def specialCmd(c):
     cSplit = c.split()
     cmd = cSplit[0]
-    response = ['```']
     sshcmd = cfg.commands[cmd]['Pattern'].format(
         ssh=cfg.sshName,
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                             cfg.sshPass}))
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                        cfg.sshPass})
     # response = sshcmd
-    response.append('```')
     return ('\n'.join(response))
 
 
