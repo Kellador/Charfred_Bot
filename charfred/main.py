@@ -82,8 +82,9 @@ async def serverCmd(c):
                 script=cfg.commands[cmd]['Script'],
                 cmd=cmd,
                 args=server)
-            response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                                     cfg.sshPass}))
+            sshreturn = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                                 cfg.sshPass})
+            response.append(sshreturn)
             # response.append(sshcmd)
             # await asyncio.sleep(1)
         else:
