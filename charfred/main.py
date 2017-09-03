@@ -5,7 +5,7 @@ import configs as cfg
 import keywords
 import re
 import random
-import asyncio
+import requests
 import pexpect as pexp
 
 serverRX = re.compile(('|'.join(map(re.escape, list(cfg.servers.keys())))))
@@ -14,12 +14,15 @@ rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w+\-\d]*$)|(?=\s*({}))|(?=\s*,?\
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
 cmdPattern = re.compile(rawPattern)
-
-
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
                ' He can be quite rude however.')
 charfred = discord.Client()
+pastebin_user_key = requests.post('https://pastebin.com/api/api_login.php',
+                                  data={'api_dev_key': cfg.pastebinToken,
+                                        'api_user_name': cfg.pastebinUser,
+                                        'api_user_password': cfg.pastebinPass}).text
+print(pastebin_user_key)
 
 
 def roleCall(user, requiredRole):
@@ -56,10 +59,8 @@ async def cmdResolution(message, c):
         response = await globals()[cfg.commands[c.split()[0]]['Type']](c)
         await charfred.send_message(targetCh,
                                     (random.choice(keywords.replies) +
-                                     '\n```\n' +
-                                     response +
-                                     '\n```'))
-        if message.channel.id != targetCh:
+                                     response))
+        if message.channel.id != targetCh.id:
             await charfred.send_message(message.channel,
                                         (random.choice(keywords.deposits) +
                                          ' ' + targetCh.mention))
@@ -81,14 +82,14 @@ async def serverCmd(c):
                 script=cfg.commands[cmd]['Script'],
                 cmd=cmd,
                 args=server)
-            # response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-            #                                          cfg.sshPass}))
-            response.append(sshcmd)
+            response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                                     cfg.sshPass}))
+            # response.append(sshcmd)
             # await asyncio.sleep(1)
         else:
             print('Invalid target! {}'.format(server))
             response.append(('Invalid target! {}'.format(server)))
-    return ('\n'.join(response))
+    return ('\n'.join('```', response, '```'))
 
 
 async def playerCmd(c):
@@ -103,10 +104,10 @@ async def playerCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=cSplit[1] + argument)
-    # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-    #                                     cfg.sshPass})
-    response = sshcmd
-    return response
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                        cfg.sshPass})
+    # response = sshcmd
+    return ('\n'.join('```', response, '```'))
 
 
 async def specialCmd(c):
@@ -117,10 +118,10 @@ async def specialCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-    #                                     cfg.sshPass})
-    response = sshcmd
-    return response
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                        cfg.sshPass})
+    # response = sshcmd
+    return ('\n'.join('```', response, '```'))
 
 
 async def reportCmd(c):
@@ -131,9 +132,16 @@ async def reportCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    # response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-    #                                     cfg.sshPass})
-    response = sshcmd
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                        cfg.sshPass})
+    # response = sshcmd
+    data = {'api_dev_key': cfg.pastebinToken,
+            'api_option': 'paste',
+            'api_paste_code': response,
+            'api_user_key': pastebin_user_key,
+            'api_paste_private': '2',
+            'api_paste_expire_date': '10M'}
+    return requests.post('https://pastebin.com/api/api_post.php', data=data).text
 
 
 @charfred.event
