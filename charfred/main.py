@@ -14,6 +14,7 @@ rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w+\-\d]*$)|(?=\s*({}))|(?=\s*,?\
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
 cmdPattern = re.compile(rawPattern)
+sshReplyPattern = re.compile('\[Timestamp\].*')
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
                ' He can be quite rude however.')
@@ -82,8 +83,10 @@ async def serverCmd(c):
                 script=cfg.commands[cmd]['Script'],
                 cmd=cmd,
                 args=server)
-            response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                                     cfg.sshPass}).decode())
+            sshRpl = sshReplyPattern.search(
+                pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                         cfg.sshPass}).decode()).group(0)
+            response.append(sshRpl)
             # response.append(sshcmd)
             # await asyncio.sleep(1)
         else:
@@ -106,8 +109,10 @@ async def playerCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=cSplit[1] + argument)
-    response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                             cfg.sshPass}).decode())
+    sshRpl = sshReplyPattern.search(
+        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                 cfg.sshPass}).decode()).group(0)
+    response.append(sshRpl)
     # response = sshcmd
     response.append('```')
     return ('\n'.join(response))
@@ -122,8 +127,10 @@ async def specialCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    response.append(pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                             cfg.sshPass}).decode())
+    sshRpl = sshReplyPattern.search(
+        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                 cfg.sshPass}).decode()).group(0)
+    response.append(sshRpl)
     # response = sshcmd
     response.append('```')
     return ('\n'.join(response))
@@ -137,8 +144,9 @@ async def reportCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                        cfg.sshPass}).decode()
+    response = sshReplyPattern.search(
+        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                                 cfg.sshPass}).decode()).group(0)
     # response = sshcmd
     data = {'api_dev_key': cfg.pastebinToken,
             'api_option': 'paste',
