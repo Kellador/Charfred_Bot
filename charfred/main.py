@@ -7,9 +7,11 @@ import re
 import random
 import requests
 import pexpect as pexp
+from mcuser import getUUID, MCUser, mojException
+from ttldict import TTLOrderedDict
 
 serverRX = re.compile(('|'.join(map(re.escape, list(cfg.servers.keys())))))
-rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w+\-\d]*$)|(?=\s*({}))|(?=\s*,?\s*({})$)))'.format(
+rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w\+\-\d]*$)|(?=\s*({}))|(?=\s*,?\s*({})$)))'.format(
     '|'.join(list(cfg.commands.keys())),
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
@@ -18,12 +20,13 @@ sshReplyPattern = re.compile('\[Timestamp\].*')
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
                ' He can be quite rude however.')
-charfred = discord.Client()
+charfred = discord.Client(max_messages=1000)
 pastebin_user_key = requests.post('https://pastebin.com/api/api_login.php',
                                   data={'api_dev_key': cfg.pastebinToken,
                                         'api_user_name': cfg.pastebinUser,
                                         'api_user_password': cfg.pastebinPass}).text
-print(pastebin_user_key)
+print('Pastebin user key is: ' + pastebin_user_key)
+playerCache = TTLOrderedDict(default_ttl=60)
 
 
 def roleCall(user, requiredRole):
@@ -58,9 +61,14 @@ async def cmdResolution(message, c):
                                     random.choice(keywords.acks))
         await charfred.send_typing(message.channel)
         response = await globals()[cfg.commands[c.split()[0]]['Type']](c)
-        await charfred.send_message(targetCh,
-                                    (random.choice(keywords.replies) +
-                                     response))
+        # if cfg.commands[c.split()[0]]['Type'] == 'stalkCmd':
+        if type(response) is discord.Embed:
+            await charfred.send_message(targetCh,
+                                        embed=response)
+        else:
+            await charfred.send_message(targetCh,
+                                        (random.choice(keywords.replies) +
+                                         response))
         if message.channel.id != targetCh.id:
             await charfred.send_message(message.channel,
                                         (random.choice(keywords.deposits) +
@@ -88,7 +96,6 @@ async def serverCmd(c):
                                          cfg.sshPass}).decode()).group(0)
             response.append(sshRpl)
             # response.append(sshcmd)
-            # await asyncio.sleep(1)
         else:
             print('Invalid target! {}'.format(server))
             response.append(('Invalid target! {}'.format(server)))
@@ -157,6 +164,49 @@ async def reportCmd(c):
     return requests.post('https://pastebin.com/api/api_post.php', data=data).text
 
 
+async def stalkCmd(c):
+    lookupName = c.split()[1]
+    playerCache._purge()
+    if lookupName in playerCache:
+        mcU = playerCache.get(lookupName)
+        print('Cached!')
+    else:
+        try:
+            mcU = MCUser(lookupName)
+        except mojException:
+            print(mojException.message)
+            return discord.Embed(title="ERROR",
+                                 type="rich",
+                                 colour=discord.Colour.dark_red())
+    playerCache[lookupName] = mcU
+    reportCard = discord.Embed(title="Subject: " + mcU.name,
+                               url='http://mcbouncer.com/u/' + mcU.uuid,
+                               type='rich',
+                               color=0x0080c0)
+    reportCard.set_author(name="__Classified Report__",
+                          url='https://google.com/search?q=minecraft%20' + mcU.name)
+    reportCard.set_thumbnail(url='https://crafatar.com/renders/head/' +
+                             mcU.uuid + '?overlay')
+    reportCard.add_field(name="Current Name:",
+                         value="```\n" + mcU.name + "\n```")
+    reportCard.add_field(name="UUID:",
+                         value="```\n" + mcU.uuid + "\n```")
+    if mcU.demo:
+        reportCard.add_field(name="__**DEMO ACCOUNT**__")
+    if mcU.legacy:
+        reportCard.add_field(name="*Legacy*")
+    if mcU.nameHistory is not None:
+        pastNames = ', '.join(mcU.nameHistory)
+        reportCard.add_field(name="Past names:",
+                             value=pastNames)
+    reportCard.set_footer(text="Report compiled by Agent Charfred")
+    return reportCard
+
+
+async def editNBT(msg):
+    True  # TODO
+
+
 @charfred.event
 async def on_ready():
     print('Logged in as:')
@@ -171,13 +221,15 @@ async def on_message(message):
         msg = message.content
         cmds = cmdPattern.findall(msg)
         if (msg.startswith('Charfred,') and len(cmds) > 0):
-            # cmdList = [re.sub('[^\w ]', '', n[0]) for n in cmds]
+            # cmdList = [re.sub('[^\w\+ ]', '', n[0]) for n in cmds]
             cmdList = [n[0] for n in cmds]
             print('Command recieved!')
             print(*cmdList, sep='\n')
             print(message.author.name)
             for c in cmdList:
                 await cmdResolution(message, c)
+        elif (msg.startswith('Charfred,') and 'nbt' in msg):
+            await editNBT(message)
         elif (msg.startswith('Charfred,')):
             await charfred.send_message(message.channel,
                                         random.choice(keywords.nacks))

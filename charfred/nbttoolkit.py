@@ -45,3 +45,11 @@ def addListTAG(nbtobj, name, value):
 def addCompoundTAG(nbtobj, name, value):
     compTag = TAG_Compound(name=name, value=value)
     nbtobj.value.append(compTag)
+
+
+def retrieveTAG(nbtobj, name):
+    for tag in nbtobj:
+        if tag.name == name:
+            return tag
+    print('TAG could not be found!')
+    return None

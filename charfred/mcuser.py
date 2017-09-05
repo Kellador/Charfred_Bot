@@ -43,6 +43,6 @@ def getUserData(name):
     return currName, uuid, demo, legacy, nameHistory
 
 
-class mcUser:
+class MCUser:
     def __init__(self, name, uuid=None, demo=None, legacy=None, nameHistory=None):
         self.name, self.uuid, self.demo, self.legacy, self.nameHistory = getUserData(name)
