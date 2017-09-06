@@ -7,7 +7,10 @@ import re
 import random
 import requests
 import pexpect as pexp
+import os
+from gzip import GzipFile
 from mcuser import getUUID, MCUser, mojException
+from nbt import NBTObj, TAG_List, TAG_Compound
 from ttldict import TTLOrderedDict
 
 serverRX = re.compile(('|'.join(map(re.escape, list(cfg.servers.keys())))))
@@ -179,12 +182,13 @@ async def stalkCmd(c):
                                  type="rich",
                                  colour=discord.Colour.dark_red())
     playerCache[lookupName] = mcU
-    reportCard = discord.Embed(title="Subject: " + mcU.name,
+    reportCard = discord.Embed(title="__Subject: " + mcU.name + "__",
                                url='http://mcbouncer.com/u/' + mcU.uuid,
                                type='rich',
                                color=0x0080c0)
-    reportCard.set_author(name="__Classified Report__",
-                          url='https://google.com/search?q=minecraft%20' + mcU.name)
+    reportCard.set_author(name="Classified Report",
+                          url='https://google.com/search?q=minecraft%20' + mcU.name,
+                          icon_url='https://crafatar.com/avatars/' + mcU.uuid)
     reportCard.set_thumbnail(url='https://crafatar.com/renders/head/' +
                              mcU.uuid + '?overlay')
     reportCard.add_field(name="Current Name:",
@@ -204,7 +208,56 @@ async def stalkCmd(c):
 
 
 async def editNBT(msg):
-    True  # TODO
+    # TODO: (.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})
+    print('Starting interactive NBT session')
+    await charfred.send_message(msg.channel,
+                                'Please reply with the name of the server'
+                                'and the user that you want to work on.')
+    rep = await charfred.wait_for_message(author=msg.author,
+                                          channel=msg.channel)
+    server = rep.content.split()[0]
+    user = rep.content.split()[1]
+    if server not in cfg.servers:
+        await charfred.send_message(msg.channel, 'Sorry, that server name is invalid!')
+        return
+    # NOTE: Test code follows, implement fetching from server later.
+    filepath = os.path.join(cfg.nbtPath, '2bffdcf2-732f-40e2-b024-826475a47f4e.dat')
+    with open(filepath, 'rb') as io:
+        io = GzipFile(fileobj=io)
+        nbt = NBTObj(io=io)
+        io.close()
+    tagnames = []
+    for tag in nbt.value:
+        if type(tag) is TAG_List or type(tag) is TAG_Compound:
+            tagnames.append(tag.name + ' : ' + str(len(tag.value)) + ' Entries')
+        else:
+            tagnames.append(tag.name + ' : ' + str(tag.value))
+        # tagnames.append(tag.name)
+    tagnames = sorted(tagnames, key=str.lower)
+    listTags = '\n'.join(tagnames)
+    while True:
+        await charfred.send_message(msg.channel,
+                                    'Tags:\n```\n' + listTags + '\n```\n' +
+                                    'Please reply with the name of the Tag to edit!')
+        targetTag = await charfred.wait_for_message(author=msg.author,
+                                                    channel=msg.channel)
+        for tag in nbt.value:
+            if tag.name == targetTag:
+                targetTag = tag
+                break
+        if type(targetTag) is TAG_List:
+            await charfred.send_message(msg.channel,
+                                        'Tags to edit:\n```\n' +
+                                        '\n'.join(targetTag.value) +
+                                        '\n```')
+            for tag in targetTag.value:
+                n = 1
+                await charfred.send_message(msg.channel,
+                                            'Please enter the new value for Tag' +
+                                            str(n))
+                n += 1
+                newVal = await charfred.wait_for_message(author=msg.author,
+                                                         channel=msg.channel)
 
 
 @charfred.event
@@ -228,7 +281,7 @@ async def on_message(message):
             print(message.author.name)
             for c in cmdList:
                 await cmdResolution(message, c)
-        elif (msg.startswith('Charfred,') and 'nbt' in msg):
+        elif (msg.startswith('Charfred,') and ' nbt' in msg):
             await editNBT(message)
         elif (msg.startswith('Charfred,')):
             await charfred.send_message(message.channel,
