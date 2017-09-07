@@ -20,7 +20,6 @@ rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w\+\-\d]*$)|(?=\s*({}))|(?=\s*,?
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
 cmdPattern = re.compile(rawPattern)
-sshReplyPattern = re.compile('\[Timestamp\].*')
 uuidPattern = re.compile('(.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})')
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
@@ -96,9 +95,8 @@ async def serverCmd(c):
                 script=cfg.commands[cmd]['Script'],
                 cmd=cmd,
                 args=server)
-            sshRpl = sshReplyPattern.search(
-                pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                         cfg.sshPass}).decode()).group(0)
+            sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                              cfg.sshPass}).decode()
             response.append(sshRpl)
             # response.append(sshcmd)
         else:
@@ -121,9 +119,8 @@ async def playerCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=cSplit[1] + argument)
-    sshRpl = sshReplyPattern.search(
-        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                 cfg.sshPass}).decode()).group(0)
+    sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                      cfg.sshPass}).decode()
     response.append(sshRpl)
     # response = sshcmd
     response.append('```')
@@ -139,9 +136,8 @@ async def specialCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    sshRpl = sshReplyPattern.search(
-        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                 cfg.sshPass}).decode()).group(0)
+    sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                      cfg.sshPass}).decode()
     response.append(sshRpl)
     # response = sshcmd
     response.append('```')
@@ -156,9 +152,8 @@ async def reportCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    response = sshReplyPattern.search(
-        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                                 cfg.sshPass}).decode()).group(0)
+    response = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                        cfg.sshPass}).decode()
     # response = sshcmd
     data = {'api_dev_key': cfg.pastebinToken,
             'api_option': 'paste',
@@ -237,11 +232,9 @@ async def editNBT(msg):
         cmd='fetch',
         args=dashedUUID + ' ' + server
     )
-    print(fetchCmd)
     cmdReply = pexp.run(fetchCmd,
                         events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
-    print(cmdReply)
-    if cmdReply.startswith('[INFO]'):
+    if '[INFO]' in cmdReply:
         fetchCmd = 'scp {ssh}:{uuid}.dat {nbtworkspace}'.format(
             ssh=cfg.sshName,
             uuid=dashedUUID,
@@ -362,7 +355,7 @@ async def editNBT(msg):
     )
     cRepl = pexp.run(putbackCmd,
                      events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
-    if cRepl.startswith('[INFO]'):
+    if '[INFO]' in cRepl:
         await charfred.send_message(msg.channel,
                                     'Playerdata returned successfully!\n'
                                     'Exiting NBT session, have an excellent day!')
