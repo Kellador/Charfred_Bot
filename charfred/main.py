@@ -214,7 +214,7 @@ async def editNBT(msg):
     print('Starting interactive NBT session')
     await charfred.send_message(msg.channel,
                                 'Starting interactive NBT session!\n'
-                                'Please enter the name of the server'
+                                'Please enter the name of the server '
                                 'and player you want to work on.')
     rep = await charfred.wait_for_message(author=msg.author,
                                           channel=msg.channel)
@@ -237,8 +237,10 @@ async def editNBT(msg):
         cmd='fetch',
         args=dashedUUID + ' ' + server
     )
+    print(fetchCmd)
     cmdReply = pexp.run(fetchCmd,
                         events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    print(cmdReply)
     if cmdReply.startswith('[INFO]'):
         fetchCmd = 'scp {ssh}:{uuid}.dat {nbtworkspace}'.format(
             ssh=cfg.sshName,
