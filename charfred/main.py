@@ -21,6 +21,7 @@ rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w\+\-\d]*$)|(?=\s*({}))|(?=\s*,?
     '|'.join(map(re.escape, keywords.keyphrases)))
 cmdPattern = re.compile(rawPattern)
 sshReplyPattern = re.compile('\[Timestamp\].*')
+uuidPattern = re.compile('(.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})')
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
                ' He can be quite rude however.')
@@ -212,18 +213,46 @@ async def editNBT(msg):
     # TODO: (.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})
     print('Starting interactive NBT session')
     await charfred.send_message(msg.channel,
-                                'Please reply with the name of the server\n'
-                                'and the user that you want to work on.\n'
-                                'Remember that your target log out for this!')
+                                'Starting interactive NBT session!\n'
+                                'Please enter the name of the server'
+                                'and player you want to work on.')
     rep = await charfred.wait_for_message(author=msg.author,
                                           channel=msg.channel)
     server = rep.content.split()[0]
     user = rep.content.split()[1]
     if server not in cfg.servers:
-        await charfred.send_message(msg.channel, 'Sorry, that server name is invalid!')
+        await charfred.send_message(msg.channel,
+                                    'Sorry, that server name is invalid!'
+                                    'Session terminated.')
         return
-    # NOTE: Test code follows, implement fetching from server later.
-    filepath = os.path.join(cfg.nbtPath, '2bffdcf2-732f-40e2-b024-826475a47f4e.dat')
+    userUUID = getUUID(user)
+    if userUUID is None:
+        await charfred.send_message(msg.channel,
+                                    'Invalid playername! Session terminated.')
+        return
+    dashedUUID = '-'.join(uuidPattern.match(userUUID).groups())
+    fetchCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
+        ssh=cfg.sshName,
+        script=cfg.spiffyScript,
+        cmd='fetch',
+        args=dashedUUID + ' ' + server
+    )
+    cmdReply = pexp.run(fetchCmd,
+                        events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    if cmdReply.startswith('[INFO]'):
+        fetchCmd = 'scp {ssh}:{uuid}.dat {nbtworkspace}'.format(
+            ssh=cfg.sshName,
+            uuid=dashedUUID,
+            nbtworkspace=cfg.nbtPath
+        )
+        pexp.run(fetchCmd, events={'(?i)(passphrase|password)': cfg.sshPass})
+    else:
+        await charfred.send_message(msg.channel,
+                                    'Could not fetch playerdata,'
+                                    'Session terminated.')
+        return
+    filepath = os.path.join(cfg.nbtPath, dashedUUID + '.dat')
+    # filepath = os.path.join(cfg.nbtPath, '2bffdcf2-732f-40e2-b024-826475a47f4e.dat')
     try:
         with gzip.open(filepath, 'rb') as io:
             nbt = NBTObj(io=io)
@@ -234,6 +263,7 @@ async def editNBT(msg):
             nbt = NBTObj(io=io)
             io.close()
         gzipped = False
+        print('File was not gzipped')
     nbtobj = nbt.value
     while True:
         tagnames = []
@@ -316,6 +346,24 @@ async def editNBT(msg):
         with open(filepath, 'wb') as io:
             nbt.nbtify(io=io)
             io.close()
+        print('No gzip')
+    returnCmd = 'scp {file} {ssh}:.'.format(
+        file=filepath,
+        ssh=cfg.sshName
+    )
+    pexp.run(returnCmd, events={'(?i)(passphrase|password)': cfg.sshPass})
+    putbackCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
+        ssh=cfg.sshName,
+        script=cfg.spiffyScript,
+        cmd='putBack',
+        args=dashedUUID + ' ' + server
+    )
+    cRepl = pexp.run(putbackCmd,
+                     events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    if cRepl.startswith('[INFO]'):
+        await charfred.send_message(msg.channel,
+                                    'Playerdata returned successfully!\n'
+                                    'Exiting NBT session, have an excellent day!')
 
 
 @charfred.event
