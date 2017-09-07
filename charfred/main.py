@@ -247,7 +247,7 @@ async def editNBT(msg):
                                     'Session terminated.')
         return
     filepath = os.path.join(cfg.nbtPath, dashedUUID + '.dat')
-    # filepath = os.path.join(cfg.nbtPath, '2bffdcf2-732f-40e2-b024-826475a47f4e.dat')
+    # filepath = os.path.join(cfg.nbtPath, '8f96d3d0-de2e-4a5e-8670-80ef72be6e7f.dat')
     try:
         with gzip.open(filepath, 'rb') as io:
             nbt = NBTObj(io=io)

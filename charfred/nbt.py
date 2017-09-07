@@ -297,14 +297,25 @@ class TAG_Int_Array:
             self.value = value
         else:
             self.name = decode_name(decode, named)
-            self.value = list(decode("i", decode("i", 4)[0] * 4))
+            arlen = decode("i", 4)
+            arlen = arlen[0]
+            if arlen == 0:
+                self.value = []
+            else:
+                self.value = []
+                while arlen > 0:
+                    self.value.append(decode("i", 4)[0])
+                    arlen -= 1
+            # self.value = list(decode("i", decode("i", 4)[0] * 4))
 
     def nbtify(self, encode, hastag=True):
         if hastag:
             encode("b", 11)
         encode_name(self, encode)
         encode("i", len(self.value))
-        encode("i", *self.value)
+        if len(self.value) != 0:
+            for n in self.value:
+                encode("i", n)
 
     def __repr__(self):
         return "{0} {1}('{2!r}' : {3!r})\n".format(
