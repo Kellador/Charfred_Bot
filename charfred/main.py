@@ -8,7 +8,8 @@ import random
 import requests
 import pexpect as pexp
 import os
-from gzip import GzipFile
+import nbttoolkit
+import gzip
 from mcuser import getUUID, MCUser, mojException
 from nbt import NBTObj, TAG_List, TAG_Compound
 from ttldict import TTLOrderedDict
@@ -211,8 +212,9 @@ async def editNBT(msg):
     # TODO: (.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})
     print('Starting interactive NBT session')
     await charfred.send_message(msg.channel,
-                                'Please reply with the name of the server'
-                                'and the user that you want to work on.')
+                                'Please reply with the name of the server\n'
+                                'and the user that you want to work on.\n'
+                                'Remember that your target log out for this!')
     rep = await charfred.wait_for_message(author=msg.author,
                                           channel=msg.channel)
     server = rep.content.split()[0]
@@ -222,42 +224,98 @@ async def editNBT(msg):
         return
     # NOTE: Test code follows, implement fetching from server later.
     filepath = os.path.join(cfg.nbtPath, '2bffdcf2-732f-40e2-b024-826475a47f4e.dat')
-    with open(filepath, 'rb') as io:
-        io = GzipFile(fileobj=io)
-        nbt = NBTObj(io=io)
-        io.close()
-    tagnames = []
-    for tag in nbt.value:
-        if type(tag) is TAG_List or type(tag) is TAG_Compound:
-            tagnames.append(tag.name + ' : ' + str(len(tag.value)) + ' Entries')
-        else:
-            tagnames.append(tag.name + ' : ' + str(tag.value))
-        # tagnames.append(tag.name)
-    tagnames = sorted(tagnames, key=str.lower)
-    listTags = '\n'.join(tagnames)
+    try:
+        with gzip.open(filepath, 'rb') as io:
+            nbt = NBTObj(io=io)
+            io.close()
+        gzipped = True
+    except OSError:
+        with open(filepath, 'rb') as io:
+            nbt = NBTObj(io=io)
+            io.close()
+        gzipped = False
+    nbtobj = nbt.value
     while True:
-        await charfred.send_message(msg.channel,
-                                    'Tags:\n```\n' + listTags + '\n```\n' +
-                                    'Please reply with the name of the Tag to edit!')
-        targetTag = await charfred.wait_for_message(author=msg.author,
-                                                    channel=msg.channel)
-        for tag in nbt.value:
-            if tag.name == targetTag:
-                targetTag = tag
-                break
-        if type(targetTag) is TAG_List:
+        tagnames = []
+        for tag in nbtobj:
+            if type(tag) is TAG_List or type(tag) is TAG_Compound:
+                if tag.name is not None:
+                    tagnames.append(tag.name + ' : ' + str(len(tag.value)) + ' Entries')
+                else:
+                    tagnames.append('Index: ' + str(nbtobj.index(tag)) +
+                                    ' : ' + str(len(tag.value)) + ' Entries')
+            else:
+                if tag.name is not None:
+                    tagnames.append(tag.name + ' : ' + str(tag.value))
+                else:
+                    tagnames.append('Index: ' + str(nbtobj.index(tag)) +
+                                    ' : ' + str(tag.value))
+            # tagnames.append(tag.name)
+        tagnames = sorted(tagnames, key=str.lower)
+        listTags = '\n'.join(tagnames)
+        await charfred.send_message(msg.channel, 'Tags:\n```\n' + listTags + '\n```\n')
+        await charfred.send_message(msg.channel, 'What do you want to do now?')
+        # new TagType value name, edit TagName, delete TagName, up
+        cmd = await charfred.wait_for_message(author=msg.author,
+                                              channel=msg.channel)
+        cmd = cmd.content.split()
+        if cmd[0] == 'exit':
             await charfred.send_message(msg.channel,
-                                        'Tags to edit:\n```\n' +
-                                        '\n'.join(targetTag.value) +
-                                        '\n```')
-            for tag in targetTag.value:
-                n = 1
+                                        'Exiting interactive NBT session, '
+                                        'have an excellent day, sir!')
+            break
+        if cmd[0] == 'new' and cmd[1] in nbttoolkit.tagFuncs:
+            if cmd[1] in nbttoolkit.simpleTags:
+                if len(cmd) == 3:
+                    nbttoolkit.addTagFuncs[cmd[1]](nbtobj, cmd[2])
+                elif len(cmd) == 4:
+                    nbttoolkit.addTagFuncs[cmd[1]](nbtobj, cmd[2], cmd[3])
+            else:
+                if len(cmd) == 2:
+                    nbttoolkit.addTagFuncs[cmd[1]](nbtobj)
+                    nbtobj = nbtobj[-1].value
+                    await charfred.send_message(msg.channel,
+                                                'Stepping into new Tag')
+                elif len(cmd) == 3:
+                    nbttoolkit.addTagFuncs[cmd[1]](nbtobj, name=cmd[2])
+                    nbtobj = nbtobj[-1].value
+                    await charfred.send_message(msg.channel,
+                                                'Stepping into new Tag')
+        elif cmd[0] == 'edit':
+            editThis = None
+            if nbtobj[0].name is not None:
+                for tag in nbtobj:
+                    if tag.name == cmd[1]:
+                        editThis = tag
+                        break
+            else:
+                editThis = nbtobj[int(cmd[1])]
+            if type(editThis) is TAG_List or type(editThis) is TAG_Compound:
+                nbtobj = editThis.value
                 await charfred.send_message(msg.channel,
-                                            'Please enter the new value for Tag' +
-                                            str(n))
-                n += 1
-                newVal = await charfred.wait_for_message(author=msg.author,
-                                                         channel=msg.channel)
+                                            'Stepping into selected Tag')
+            else:
+                nbttoolkit.editTagFuncs[type(editThis)](editThis, cmd[2])
+        elif cmd[0] == 'delete':
+            delThis = None
+            if nbtobj[0].name is not None:
+                for tag in nbtobj:
+                    if tag.name == cmd[1]:
+                        delThis = tag
+                        break
+            else:
+                delThis = nbtobj[int(cmd[1])]
+            nbtobj.remove(delThis)
+        elif cmd[0] == 'up':
+            nbtobj = nbt.value
+    if gzipped:
+        with gzip.open(filepath, 'wb') as io:
+            nbt.nbtify(io=io)
+            io.close()
+    else:
+        with open(filepath, 'wb') as io:
+            nbt.nbtify(io=io)
+            io.close()
 
 
 @charfred.event
@@ -281,7 +339,8 @@ async def on_message(message):
             print(message.author.name)
             for c in cmdList:
                 await cmdResolution(message, c)
-        elif (msg.startswith('Charfred,') and ' nbt' in msg):
+        elif (msg.startswith('Charfred,') and ' nbt' in msg and roleCall(
+              message.author, cfg.nbtMinRank)):
             await editNBT(message)
         elif (msg.startswith('Charfred,')):
             await charfred.send_message(message.channel,
