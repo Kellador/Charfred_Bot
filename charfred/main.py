@@ -215,43 +215,43 @@ async def editNBT(msg):
                                 'Starting interactive NBT session!\n'
                                 'Please enter the name of the server '
                                 'and player you want to work on.')
-    rep = await charfred.wait_for_message(author=msg.author,
-                                          channel=msg.channel)
-    server = rep.content.split()[0]
-    user = rep.content.split()[1]
-    if server not in cfg.servers:
-        await charfred.send_message(msg.channel,
-                                    'Sorry, that server name is invalid!'
-                                    'Session terminated.')
-        return
-    userUUID = getUUID(user)
-    if userUUID is None:
-        await charfred.send_message(msg.channel,
-                                    'Invalid playername! Session terminated.')
-        return
-    dashedUUID = '-'.join(uuidPattern.match(userUUID).groups())
-    fetchCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
-        ssh=cfg.sshName,
-        script=cfg.spiffyScript,
-        cmd='fetch',
-        args=dashedUUID + ' ' + server
-    )
-    cmdReply = pexp.run(fetchCmd,
-                        events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
-    if '[INFO]' in cmdReply:
-        fetchCmd = 'scp {ssh}:{uuid}.dat {nbtworkspace}'.format(
-            ssh=cfg.sshName,
-            uuid=dashedUUID,
-            nbtworkspace=cfg.nbtPath
-        )
-        pexp.run(fetchCmd, events={'(?i)(passphrase|password)': cfg.sshPass})
-    else:
-        await charfred.send_message(msg.channel,
-                                    'Could not fetch playerdata,'
-                                    'Session terminated.')
-        return
-    filepath = os.path.join(cfg.nbtPath, dashedUUID + '.dat')
-    # filepath = os.path.join(cfg.nbtPath, '8f96d3d0-de2e-4a5e-8670-80ef72be6e7f.dat')
+    # rep = await charfred.wait_for_message(author=msg.author,
+    #                                       channel=msg.channel)
+    # server = rep.content.split()[0]
+    # user = rep.content.split()[1]
+    # if server not in cfg.servers:
+    #     await charfred.send_message(msg.channel,
+    #                                 'Sorry, that server name is invalid!'
+    #                                 'Session terminated.')
+    #     return
+    # userUUID = getUUID(user)
+    # if userUUID is None:
+    #     await charfred.send_message(msg.channel,
+    #                                 'Invalid playername! Session terminated.')
+    #     return
+    # dashedUUID = '-'.join(uuidPattern.match(userUUID).groups())
+    # fetchCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
+    #     ssh=cfg.sshName,
+    #     script=cfg.spiffyScript,
+    #     cmd='fetch',
+    #     args=dashedUUID + ' ' + server
+    # )
+    # cmdReply = pexp.run(fetchCmd,
+    #                     events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    # if '[INFO]' in cmdReply:
+    #     fetchCmd = 'scp {ssh}:{uuid}.dat {nbtworkspace}'.format(
+    #         ssh=cfg.sshName,
+    #         uuid=dashedUUID,
+    #         nbtworkspace=cfg.nbtPath
+    #     )
+    #     pexp.run(fetchCmd, events={'(?i)(passphrase|password)': cfg.sshPass})
+    # else:
+    #     await charfred.send_message(msg.channel,
+    #                                 'Could not fetch playerdata,'
+    #                                 'Session terminated.')
+    #     return
+    # filepath = os.path.join(cfg.nbtPath, dashedUUID + '.dat')
+    filepath = os.path.join(cfg.nbtPath, 'hairyt.dat')
     try:
         with gzip.open(filepath, 'rb') as io:
             nbt = NBTObj(io=io)
@@ -349,18 +349,18 @@ async def editNBT(msg):
     )
     scpRep = pexp.run(returnCmd, events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
     print(scpRep)
-    putbackCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
-        ssh=cfg.sshName,
-        script=cfg.spiffyScript,
-        cmd='putBack',
-        args=dashedUUID + ' ' + server
-    )
-    cRepl = pexp.run(putbackCmd,
-                     events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
-    if '[INFO]' in cRepl:
-        await charfred.send_message(msg.channel,
-                                    'Playerdata returned successfully!\n'
-                                    'Exiting NBT session, have an excellent day!')
+    # putbackCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
+    #     ssh=cfg.sshName,
+    #     script=cfg.spiffyScript,
+    #     cmd='putBack',
+    #     args=dashedUUID + ' ' + server
+    # )
+    # cRepl = pexp.run(putbackCmd,
+    #                  events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    # if '[INFO]' in cRepl:
+    #     await charfred.send_message(msg.channel,
+    #                                 'Playerdata returned successfully!\n'
+    #                                 'Exiting NBT session, have an excellent day!')
 
 
 @charfred.event
