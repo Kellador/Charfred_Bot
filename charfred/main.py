@@ -20,6 +20,7 @@ rawPattern = '(({})\s*.*?((?=\s*and|,)|(?=\s*[^\w\+\-\d]*$)|(?=\s*({}))|(?=\s*,?
     '|'.join(list(cfg.commands.keys())),
     '|'.join(map(re.escape, keywords.keyphrases)))
 cmdPattern = re.compile(rawPattern)
+sshReplyPattern = re.compile('(?<=\[Timestamp\])(.*\n?\r?)*')
 uuidPattern = re.compile('(.{8})-?(.{4})-?(.{4})-?(.{4})-?(.{12})')
 description = ('Charfred is a gentleman through and through,'
                ' he will do almost anything you ask of him.'
@@ -95,8 +96,9 @@ async def serverCmd(c):
                 script=cfg.commands[cmd]['Script'],
                 cmd=cmd,
                 args=server)
-            sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                              cfg.sshPass}).decode()
+            sshRpl = sshReplyPattern.match(
+                pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                         cfg.sshPass}).decode()).group[0]
             response.append(sshRpl)
             # response.append(sshcmd)
         else:
@@ -119,8 +121,9 @@ async def playerCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=cSplit[1] + argument)
-    sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                      cfg.sshPass}).decode()
+    sshRpl = sshReplyPattern.match(
+        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                 cfg.sshPass}).decode()).group[0]
     response.append(sshRpl)
     # response = sshcmd
     response.append('```')
@@ -136,8 +139,9 @@ async def specialCmd(c):
         script=cfg.commands[cmd]['Script'],
         cmd=cmd,
         args=' '.join(cSplit[1:]))
-    sshRpl = pexp.run(sshcmd, events={'(?i)(passphrase|password)':
-                      cfg.sshPass}).decode()
+    sshRpl = sshReplyPattern.match(
+        pexp.run(sshcmd, events={'(?i)(passphrase|password)':
+                 cfg.sshPass}).decode()).group[0]
     response.append(sshRpl)
     # response = sshcmd
     response.append('```')
@@ -285,9 +289,6 @@ async def editNBT(msg):
                                               channel=msg.channel)
         cmd = cmd.content.split()
         if cmd[0] == 'exit':
-            await charfred.send_message(msg.channel,
-                                        'Exiting interactive NBT session, '
-                                        'have an excellent day, sir!')
             break
         if cmd[0] == 'new' and cmd[1] in nbttoolkit.tagFuncs:
             if cmd[1] in nbttoolkit.simpleTags:
@@ -346,7 +347,8 @@ async def editNBT(msg):
         file=filepath,
         ssh=cfg.sshName
     )
-    pexp.run(returnCmd, events={'(?i)(passphrase|password)': cfg.sshPass})
+    scpRep = pexp.run(returnCmd, events={'(?i)(passphrase|password)': cfg.sshPass}).decode()
+    print(scpRep)
     putbackCmd = 'ssh {ssh} sudo {script} {cmd} {args}'.format(
         ssh=cfg.sshName,
         script=cfg.spiffyScript,
