@@ -38,13 +38,13 @@ nacks = ["That doesn't look like anything to me.",
 # Command Error; Charfred will let you know with one of these, that
 # the command entered cannot be executed because of some error or
 # insufficient permissions.
-errormsgs = ["Sorry, you're not allowed to use: ",
-             "I cannot let you do this: ",
-             "Stop screwing around!: ",
+errormsgs = ["Sorry, you're not allowed to use that!",
+             "I cannot let you do this!",
+             "Stop screwing around!",
              "Uplinks underground, uplinks underground.\n"
              "If you guys don't shut up, I'll uplink your ass,\n"
-             "and you'll be underground!: ",
-             "STAHP IT!: "]
+             "and you'll be underground!",
+             "STAHP IT!"]
 
 # Reply Prefixes; Charfred will use one of these as a prefix for
 # responses returned from commands.
