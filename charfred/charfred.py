@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
-import discord
 import sys
 import traceback
 import datetime
 import random
 import aiohttp
 from keywords import nacks, errormsgs
+from utils.miscutils import getPasteKey
 import configs as cfg
 from ttldict import TTLOrderedDict
 
@@ -40,22 +40,28 @@ class Charfred(commands.Bot):
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
-            await ctx.author.send(random.choice(errormsgs))
+            await ctx.send(random.choice(errormsgs))
+        elif isinstance(error, commands.CheckFailure):
+            await ctx.send(random.choice(errormsgs))
+            print(f'{ctx.author.name} attempted to use {ctx.command.name}!')
         elif isinstance(error, commands.CommandNotFound):
-            await ctx.author.send(random.choice(nacks))
+            await ctx.send(random.choice(nacks))
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.author.send('Sorry lass, that command\'s on cooldown!')
+            await ctx.send('Sorry lass, that command\'s on cooldown!')
         elif isinstance(error, commands.CommandInvokeError):
-            await ctx.author.send(random.choice(nacks))
+            await ctx.send(random.choice(nacks))
             print(f'{ctx.command.qualified_name}:', file=sys.stderr)
             traceback.print_tb(error.original.__traceback__)
             print(f'{error.original.__class__.__name__}: {error.original}',
                   file=sys.stderr)
 
     async def on_ready(self):
+        print(f'{self.user} reporting for duty!\nID: {self.user.id}')
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
-        print(f'{self.user} reporting for duty!\nID: {self.user.id}')
+        if not hasattr(self, 'pasteKey'):
+            self.pasteKey = await getPasteKey(self.session)
+            print(f'Pastebin user key recieved: {self.pasteKey}')
 
     async def on_message(self, message):
         if message.author.bot:

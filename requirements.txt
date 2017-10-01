@@ -1,11 +1,13 @@
-aiohttp==1.0.5
+aiohttp==2.2.5
 async-timeout==1.3.0
 certifi==2017.7.27.1
 chardet==3.0.4
+click==6.7
 cymem==1.31.2
 cytoolz==0.8.2
 dill==0.2.7.1
-discord.py==0.16.11
+git+https://github.com/Rapptz/discord.py@rewrite
+en-core-web-sm==1.2.0
 flake8==3.4.1
 ftfy==4.4.3
 html5lib==0.999999999
@@ -15,7 +17,6 @@ mccabe==0.6.1
 multidict==3.1.3
 murmurhash==0.26.4
 numpy==1.13.1
-Pastebin==1.1.2
 pathlib==1.0.1
 pep8==1.7.0
 pexpect==4.2.1
@@ -33,9 +34,11 @@ termcolor==1.1.0
 thinc==6.5.2
 toolz==0.8.2
 tqdm==4.15.0
+ttldict==0.3.0
 ujson==1.35
 urllib3==1.22
 wcwidth==0.1.7
 webencodings==0.5.1
 websockets==3.4
 wrapt==1.10.11
+yarl==0.12.0
