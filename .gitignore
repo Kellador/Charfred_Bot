@@ -101,4 +101,5 @@ ENV/
 #Project Specific
 charfred/configs.py
 default_config.txt
+old_main.py
 .flake8
