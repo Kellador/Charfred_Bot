@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
+import re
 from ..utils.discoutils import has_perms, sendReply, valid_servertarget
 from ..utils.executors import exec_cmd
 from .. import configs as cfg
@@ -10,21 +11,23 @@ class crashReporter:
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=['report', 'crashreports'])
+    @commands.command(aliases=['report', 'crashreports'], ignore_extra=False)
     @has_perms()
     @valid_servertarget()
-    async def crashreport(self, ctx):
-        if ctx.args.len() > 1:
+    async def crashreport(self, ctx, server: str):
+        if ctx.args.len() == 2 and re.match('^\d$', ctx.args[1]):
             report = await exec_cmd(
                 ctx,
                 cfg.commands['crashreport']['Script'],
-                ctx.args[0], ctx.args[1]
+                'crashreport',
+                server, ctx.args[1]
             )
         else:
             report = await exec_cmd(
                 ctx,
                 cfg.commands['crashreport']['Script'],
-                ctx.args[0]
+                'crashreport',
+                server
             )
         params = {
             'api_dev_key': cfg.pastebinToken,

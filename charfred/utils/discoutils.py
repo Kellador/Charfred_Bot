@@ -14,6 +14,7 @@ targetsPattern = re.compile(
 
 
 async def roleCall(ctx):
+    print(ctx.command.name)
     requiredRole = cfg.commands[ctx.command.name]['MinRank']
     for role in ctx.author.roles:
         if role.name in cfg.roles:
@@ -51,6 +52,13 @@ def is_cmdChannel(ctx):
     if ctx.channel.id in cfg.commandCh.keys():
         return True
     return False
+
+
+# for decorator use only
+def _is_cmdChannel(ctx):
+    async def predicate(ctx):
+        return is_cmdChannel(ctx)
+    return commands.check(predicate)
 
 
 def get_cmdCh(ctx):
