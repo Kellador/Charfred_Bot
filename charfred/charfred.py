@@ -22,7 +22,8 @@ prime_cogs = ()
 
 def prefix_callable(bot, msg):
     bot_id = bot.user.id
-    prefixes = [f'<@{bot_id}> ', '.', '‽']
+    prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}>']
+    prefixes.extend(cfg.prefixes)
     return prefixes
 
 
