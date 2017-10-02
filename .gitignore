@@ -100,7 +100,7 @@ ENV/
 
 #Project Specific
 charfred/configs.py
-charfred/mcscripts/spiffyConfigs.py
+charfred/spiffyScripts/spiffyConfigs.py
 default_config.txt
 old_main.py
 .flake8
