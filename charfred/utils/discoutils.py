@@ -55,7 +55,7 @@ def is_cmdChannel(ctx):
 
 
 # for decorator use only
-def _is_cmdChannel(ctx):
+def _is_cmdChannel():
     async def predicate(ctx):
         return is_cmdChannel(ctx)
     return commands.check(predicate)

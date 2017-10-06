@@ -1,73 +1,87 @@
 #!/usr/bin/env python
 
-import click
-from spiffyUtils import isUp, sendCmd
+import logging as log
+import spiffyConfigs as cfg
+from spiffyUtils import isUp, sendCmd, sendCmds
 
 
-@click.group()
-async def whitelist():
-    pass
-
-
-@whitelist.command()
-@whitelist.argument('player')
-async def add(player: str):
+async def whitelist(player):
     """Whitelists a player."""
-    True
+    for server in iter(cfg.servers):
+        if isUp(server):
+            log.info(f'Whitelisting {player} on {server}.')
+            await sendCmd(server, f'whitelist add {player}')
+        else:
+            log.warning(f'Could not whitelist {player} on {server}.')
 
 
-@whitelist.command()
-@whitelist.argument('player')
-async def remove(player: str):
+async def unwhitelist(player):
     """Removes a player from whitelist."""
-    True
+    for server in iter(cfg.servers):
+        if isUp(server):
+            log.info(f'Unwhitelisting {player} on {server}.')
+            await sendCmd(server, f'whitelist remove {player}')
+        else:
+            log.warning(f'Could not unwhitelist {player} on {server}.')
 
 
-@whitelist.command()
-@whitelist.argument('player')
-async def check(player: str):
+async def checkwhitelist(player):
     """Checks whether a player is whitelisted or not."""
     True
 
 
-@click.command()
-@click.argument('player')
-async def kick(player: str):
-    """Kicks a player."""
-    True
+async def kick(player, server):
+    """Kicks a player from a given server."""
+    if server in cfg.servers and isUp(server):
+        log.info(f'Kicking {player} from {server}.')
+        await sendCmd(server, f'kick {player}')
 
 
-@click.command()
-@click.argument('player')
-async def ban(player: str):
+async def ban(player):
     """Bans a player and removes him/her from the whitelist."""
-    True
+    for server in iter(cfg.servers):
+        if isUp(server):
+            log.info(f'Banning {player} on {server}.')
+            await sendCmd(server, f'ban {player}')
+            log.info(f'Unwhitelisting {player} on {server}.')
+            await sendCmd(server, f'whitelist remove {player}')
+        else:
+            log.warning(f'Could not ban {player} from {server}.')
 
 
-@click.command()
-@click.argument('player')
-@click.argument('rank')
-async def promote(player: str, rank: str):
+async def promote(player, rank):
     """Promotes a player to the given rank."""
-    True
+    for server in iter(cfg.servers):
+        if isUp(server):
+            log.info(f'Promoting {player} to {rank}.')
+            await sendCmds(
+                server,
+                'lp user {player} parent add {rank}',
+                'pex user {player} group set {rank}'
+            )
+        else:
+            log.warning(f'Could not promote {player} on {server}.')
 
 
-@click.command()
-@click.argument('player')
-@click.argument('rank')
-async def demote(player: str, rank: str):
+async def demote(player, rank):
     """Demotes a player to the given rank."""
-    True
+    # TODO: This isn't quite right, implement rank commands from cfg.
+    for server in iter(cfg.servers):
+        if isUp(server):
+            log.info(f'Demoting {player} to {rank}.')
+            await sendCmds(
+                server,
+                'lp user {player} parent set {rank}',
+                'pex user {player} group set {rank}'
+            )
+        else:
+            log.warning(f'Could not demote {player} on {server}.')
 
 
-@click.command()
-@click.argument('server')
-@click.argument('command')
-async def passThrough(server: str, command: str):
-    """Passes a command to the given server's screen."""
-    True
-
-
-if __name__ == '__main__':
-    # TODO: Implement standalone use with click.
-    True
+async def relay(server, command):
+    """Relays a command to the given server's screen."""
+    if isUp(server):
+        log.info(f'Relaying \"{command}\" to {server}.')
+        await sendCmd(server, command)
+    else:
+        log.warning(f'Could not relay \"{command}\" to {server}.')
