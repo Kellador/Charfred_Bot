@@ -15,6 +15,7 @@ class crashReporter:
     @has_perms()
     @valid_servertarget()
     async def crashreport(self, ctx, server: str):
+        # TODO: Replace this with the implementation in spiffyManagement!
         if ctx.args.len() == 2 and re.match('^\d$', ctx.args[1]):
             report = await exec_cmd(
                 ctx,

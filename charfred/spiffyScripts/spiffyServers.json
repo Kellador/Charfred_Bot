@@ -1,0 +1,12 @@
+{
+    "Sky":{
+      "invocation":"java -server -Xmx6G -Xms4G -XX:+UseConcMarkSweepGC -XX:+ExplicitGCInvokesConcurrent -Djava.net.preferIPv4Stack=true -jar Sky.jar",
+      "backup":true,
+      "worldname":"world"
+    },
+    "Pickle":{
+      "invocation":"java -server -Xmx6G -Xms4G -XX:+UseConcMarkSweepGC -XX:+ExplicitGCInvokesConcurrent -Djava.net.preferIPv4Stack=true -jar Pickle.jar",
+      "backup":true,
+      "worldname":"world"
+    }
+}
