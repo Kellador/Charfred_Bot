@@ -7,20 +7,21 @@ import tarfile
 import datetime
 import logging as log
 from spiffyUtils import isUp, sendCmd, sendCmds
-import spiffyConfigs as cfg
 
 
-async def start(server):
+async def start(cfg, server):
     """Starts a server, if it is not running already."""
     if isUp(server):
         log.info(f'{server} appears to be running already!')
     else:
+        cwd = os.getcwd()
+        os.chdir(f'{cfg.serverspath}/{server}')
         log.info(f'Starting {server}')
         await asyncio.create_subprocess_exec(
             'screen', '-h', '5000', '-dmS', server,
-            f'{cfg.serverspath}/{server}',
             cfg.servers[server]['Invocation'], 'nogui'
         )
+        os.chdir(cwd)
         if isUp(server):
             log.info(f'{server} is now running!')
             return True
@@ -57,7 +58,7 @@ async def stop(server):
         return True
 
 
-async def restart(server, countdown=None):
+async def restart(cfg, server, countdown=None):
     """Restarts a server with a countdown, if it is currently running."""
     if isUp(server):
         if countdown is None:
@@ -92,7 +93,7 @@ async def status(server):
         return False
 
 
-async def cleanBackups():
+async def cleanBackups(cfg):
     """Deletes all backups older than the configured age."""
     cwd = os.getcwd()
     for server in iter(cfg.servers):
@@ -100,7 +101,7 @@ async def cleanBackups():
         True
 
 
-async def backup(*servers):
+async def backup(cfg, *servers):
     """Backs up all given servers."""
     # TODO: Try this out!
     cwd = os.getcwd()
@@ -131,12 +132,12 @@ async def backup(*servers):
         os.chdir(cwd)
 
 
-async def keepBack(*server):
+async def keepBack(cfg, *server):
     """Moves latest backup of given servers to configured location."""
     True
 
 
-async def getReport(server, age=None):
+async def getReport(cfg, server, age=None):
     """Retrieves the last crashreport for the given server;
     Takes a relative age parameter, 0 for the newest report,
     1 for the one before, etc.
