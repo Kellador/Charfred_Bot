@@ -36,13 +36,12 @@ def has_perms():
 
 
 async def targetCheck(ctx):
-    if ctx.args[0] in cfg.servers.keys():
-        if ctx.command.name not in cfg.servers[ctx.args[0]]:
-            return True
+    if ctx.args[0] in iter(ctx.bot.servercfg['servers']):
+        return True
     return False
 
 
-def valid_servertarget():
+def valid_server():
     async def predicate(ctx):
         return await targetCheck(ctx)
     return commands.check(predicate)
@@ -73,24 +72,28 @@ async def sendReply(ctx, msg):
         await get_cmdCh(ctx).send(f'{random.choice(keywords.replies)}\n{msg}')
         await ctx.send(
             f'{random.choice(keywords.deposits)}\n{get_cmdCh(ctx).mention}',
-            delete_after=60
+            delete_after=30
         )
 
 
-async def sendReply_codeblocked(ctx, msg):
+async def sendReply_codeblocked(ctx, msg, encoding=None):
+    if encoding is None:
+        mesg = f'\n```{cfg.blockEncoding}\n{msg}\n```'
+    else:
+        mesg = f'\n```{encoding}\n{msg}\n```'
     if is_cmdChannel(ctx):
         await ctx.send(
             f'{random.choice(keywords.replies)}',
-            f'\n```{cfg.blockEncoding}\n{msg}\n```'
+            mesg
         )
     else:
         await get_cmdCh(ctx).send(
             f'{random.choice(keywords.replies)}',
-            f'\n```{cfg.blockEncoding}\n{msg}\n```'
+            mesg
         )
         await ctx.send(
             f'{random.choice(keywords.deposits)}\n{get_cmdCh(ctx).mention}',
-            delete_after=60
+            delete_after=30
         )
 
 
@@ -107,5 +110,5 @@ async def sendEmbed(ctx, emb):
         )
         await ctx.send(
             f'{random.choice(keywords.deposits)}\n{get_cmdCh(ctx).mention}',
-            delete_after=60
+            delete_after=30
         )

@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
-import sys
+import os
+import logging as log
 import traceback
 import datetime
 import random
 import aiohttp
-from keywords import nacks, errormsgs
-from utils.miscutils import getPasteKey
-import configs as cfg
+from .keywords import nacks, errormsgs
+from .utils.miscutils import getPasteKey
+from .utils.config import Config
+import configs
 from ttldict import TTLOrderedDict
 
 description = """
@@ -23,7 +25,7 @@ prime_cogs = ()
 def prefix_callable(bot, msg):
     bot_id = bot.user.id
     prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}>']
-    prefixes.extend(cfg.prefixes)
+    prefixes.extend(configs.prefixes)
     return prefixes
 
 
@@ -33,28 +35,29 @@ class Charfred(commands.Bot):
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.stalkdict = TTLOrderedDict(default_ttl=60)
+        self.dir = os.path.dirname(os.path.realpath(__file__))
+        self.servercfg = Config(f'{self.dir}/serverCfgs.json', load=True, loop=self.loop)
         for cog in prime_cogs:
             try:
                 self.load_extension(cog)
             except Exception as e:
-                print(f'Failed to load cog {cog}!')
+                log.error(f'Failed to load cog {cog}!')
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
             await ctx.send(random.choice(errormsgs))
         elif isinstance(error, commands.CheckFailure):
             await ctx.send(random.choice(errormsgs))
-            print(f'{ctx.author.name} attempted to use {ctx.command.name}!')
+            log.warning(f'{ctx.author.name} attempted to use {ctx.command.name}!')
         elif isinstance(error, commands.CommandNotFound):
             await ctx.send(random.choice(nacks))
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send('Sorry lass, that command\'s on cooldown!')
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send(random.choice(nacks))
-            print(f'{ctx.command.qualified_name}:', file=sys.stderr)
+            log.error(f'{ctx.command.qualified_name}:')
             traceback.print_tb(error.original.__traceback__)
-            print(f'{error.original.__class__.__name__}: {error.original}',
-                  file=sys.stderr)
+            log.error(f'{error.original.__class__.__name__}: {error.original}')
 
     async def on_ready(self):
         print(f'{self.user} reporting for duty!\nID: {self.user.id}')
@@ -62,7 +65,7 @@ class Charfred(commands.Bot):
             self.uptime = datetime.datetime.utcnow()
         if not hasattr(self, 'pasteKey'):
             self.pasteKey = await getPasteKey(self.session)
-            print(f'Pastebin user key recieved: {self.pasteKey}')
+            log.info(f'Pastebin user key recieved: {self.pasteKey}')
 
     async def on_message(self, message):
         if message.author.bot:
@@ -75,10 +78,10 @@ class Charfred(commands.Bot):
         await self.session.close()
 
     def run(self):
-        if cfg.liveMode:
-            token = cfg.liveBotToken
+        if configs.liveMode:
+            token = configs.liveBotToken
         else:
-            token = cfg.stageBotToken
+            token = configs.stageBotToken
         super().run(token, reconnect=True)
 
 

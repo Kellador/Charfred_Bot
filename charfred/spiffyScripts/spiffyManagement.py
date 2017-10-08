@@ -2,11 +2,10 @@
 
 import asyncio
 import os
-import glob
 import tarfile
 import datetime
 import logging as log
-from .spiffyUtils import isUp, sendCmd, sendCmds
+from ..utils.miscutils import isUp, sendCmd, sendCmds
 
 
 async def start(cfg, server):
@@ -133,37 +132,3 @@ async def backup(cfg, server):
 async def keepBack(cfg, server):
     """Moves latest backup of given servers to configured location."""
     True
-
-
-async def getReport(cfg, server, age=None):
-    """Retrieves the last crashreport for the given server;
-    Takes a relative age parameter, 0 for the newest report,
-    1 for the one before, etc.
-    """
-    if age is None:
-        reportFile = sorted(
-            glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
-            key=os.path.getmtime,
-            reverse=True
-        )[0]
-    else:
-        reportFile = sorted(
-            glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
-            key=os.path.getmtime,
-            reverse=True
-        )[age]
-    # TODO: Work out a python solution for this.
-    # proc = await asyncio.create_subprocess_exec(
-    #     'awk',
-    #     '/^Time: /{e=1}/^-- Head/{e=1}/^-- Block/{e=1}/^-- Affected/{e=1}/^-- System/{e=0}/^A detailed/{e=0}{if(e==1){print}}',
-    #     reportFile
-    #     stdout=asyncio.subprocess.PIPE,
-    #     stderr=asyncio.subprocess.PIPE
-    # )
-    # log.info(f'Getting report for {server}.')
-    # stdout, stderr = await proc.communicate()
-    # if proc.returncode == 0:
-    #     log.info(f'Report retrieved successfully.')
-    # else:
-    #     log.warning('Failed to retrieve report!')
-    # return stdout.decode().strip()

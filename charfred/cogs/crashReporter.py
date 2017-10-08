@@ -15,7 +15,38 @@ class crashReporter:
     @has_perms()
     @valid_servertarget()
     async def crashreport(self, ctx, server: str):
-        # TODO: Replace this with the implementation in spiffyManagement!
+        # TODO:
+        # """Retrieves the last crashreport for the given server;
+        # Takes a relative age parameter, 0 for the newest report,
+        # 1 for the one before, etc.
+        # """
+        # if age is None:
+        #     reportFile = sorted(
+        #         glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
+        #         key=os.path.getmtime,
+        #         reverse=True
+        #     )[0]
+        # else:
+        #     reportFile = sorted(
+        #         glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
+        #         key=os.path.getmtime,
+        #         reverse=True
+        #     )[age]
+        # TODO: Work out a python solution for this.
+        # proc = await asyncio.create_subprocess_exec(
+        #     'awk',
+        #     '/^Time: /{e=1}/^-- Head/{e=1}/^-- Block/{e=1}/^-- Affected/{e=1}/^-- System/{e=0}/^A detailed/{e=0}{if(e==1){print}}',
+        #     reportFile
+        #     stdout=asyncio.subprocess.PIPE,
+        #     stderr=asyncio.subprocess.PIPE
+        # )
+        # log.info(f'Getting report for {server}.')
+        # stdout, stderr = await proc.communicate()
+        # if proc.returncode == 0:
+        #     log.info(f'Report retrieved successfully.')
+        # else:
+        #     log.warning('Failed to retrieve report!')
+        # return stdout.decode().strip()
         if ctx.args.len() == 2 and re.match('^\d$', ctx.args[1]):
             report = await exec_cmd(
                 ctx,

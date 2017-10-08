@@ -3,12 +3,16 @@
         "Sky":{
           "invocation":"java -server -Xmx6G -Xms4G -XX:+UseConcMarkSweepGC -XX:+ExplicitGCInvokesConcurrent -Djava.net.preferIPv4Stack=true -jar Sky.jar",
           "backup":true,
-          "worldname":"world"
+          "worldname":"world",
+          "promotecmd":"lp user {player} parent add {rank}",
+          "demotecmd":"lp user {player} parent set {rank}"
         },
         "Pickle":{
           "invocation":"java -server -Xmx6G -Xms4G -XX:+UseConcMarkSweepGC -XX:+ExplicitGCInvokesConcurrent -Djava.net.preferIPv4Stack=true -jar Pickle.jar",
           "backup":true,
-          "worldname":"world"
+          "worldname":"world",
+          "promotecmd":"pex user {player} group set {rank}",
+          "demotecmd":"pex user {player} group set {rank}"
         }
     },
     "serverspath":"/home/Servers",
