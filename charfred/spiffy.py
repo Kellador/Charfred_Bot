@@ -2,7 +2,7 @@ import click
 import os
 import asyncio
 from functools import update_wrapper
-from .spiffyScripts import spiffyManagement
+import spiffyScripts.spiffyManagement as spiffyManagement
 from ..utils.config import Config
 
 
