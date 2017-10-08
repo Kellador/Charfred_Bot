@@ -6,7 +6,7 @@ import glob
 import tarfile
 import datetime
 import logging as log
-from spiffyUtils import isUp, sendCmd, sendCmds
+from .spiffyUtils import isUp, sendCmd, sendCmds
 
 
 async def start(cfg, server):

@@ -3,7 +3,7 @@ import os
 import asyncio
 from functools import update_wrapper
 import spiffyScripts.spiffyManagement as spiffyManagement
-from ..utils.config import Config
+from utils.config import Config
 
 
 pass_cfg = click.make_pass_decorator(Config, ensure=True)

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import logging as log
-from spiffyUtils import isUp, sendCmd, sendCmds
+from .spiffyUtils import isUp, sendCmd, sendCmds
 
 
 async def whitelist(cfg, player):
