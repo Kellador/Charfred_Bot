@@ -2,6 +2,7 @@
 
 import psutil
 import asyncio
+import logging as log
 
 
 def isUp(server):
@@ -14,6 +15,7 @@ def isUp(server):
 
 async def sendCmd(server, cmd):
     """Passes a given command string to a server's screen."""
+    log.info(f'Sending \"{cmd}\" to {server}.')
     await asyncio.create_subprocess_exec(
         'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)'
     )
@@ -22,6 +24,7 @@ async def sendCmd(server, cmd):
 async def sendCmds(server, *cmds):
     """Passes all given command strings to a server's screen."""
     for cmd in cmds:
+        log.info(f'Sending \"{cmd}\" to {server}.')
         await asyncio.create_subprocess_exec(
             'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)'
         )

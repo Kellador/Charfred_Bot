@@ -15,11 +15,11 @@ async def start(cfg, server):
         log.info(f'{server} appears to be running already!')
     else:
         cwd = os.getcwd()
-        os.chdir(f'{cfg.serverspath}/{server}')
+        os.chdir(cfg['serverspath'] + f'/{server}')
         log.info(f'Starting {server}')
         await asyncio.create_subprocess_exec(
             'screen', '-h', '5000', '-dmS', server,
-            cfg.servers[server]['Invocation'], 'nogui'
+            cfg['servers'][server]['invocation'], 'nogui'
         )
         os.chdir(cwd)
         if isUp(server):
@@ -63,13 +63,13 @@ async def restart(cfg, server, countdown=None):
     if isUp(server):
         if countdown is None:
             log.info(f'Restarting {server} with default countdown.')
-            cntd = cfg.restartCountdowns['default']
+            cntd = cfg['restartCountdowns']['default']
         else:
-            if countdown not in cfg.restartCountdowns:
+            if countdown not in cfg['restartCountdowns']:
                 log.error(f'{countdown} is undefined under restartCountdowns!')
                 return False
             log.info(f'Restarting {server} with {countdown}-countdown.')
-            cntd = cfg.restartCountdowns[countdown]
+            cntd = cfg['restartCountdowns'][countdown]
         for step in cntd:
             # TODO
             True
@@ -96,43 +96,41 @@ async def status(server):
 async def cleanBackups(cfg):
     """Deletes all backups older than the configured age."""
     cwd = os.getcwd()
-    for server in iter(cfg.servers):
+    for server in iter(cfg['servers']):
         # TODO
         True
 
 
-async def backup(cfg, *servers):
+async def backup(cfg, server):
     """Backs up all given servers."""
     # TODO: Try this out!
     cwd = os.getcwd()
-    for server in servers:
-        if server in iter(cfg.servers) and cfg.servers[server]['backup']:
-            if not isUp(server):
-                log.warning(f'Skipping backup of {server} because it is offline. '
-                            'Maybe it is currently restarting?')
-                continue
-            try:
-                os.mkdir(f'{cfg.backupspath}/{server}')
-                log.info(f'Created directory for {server} backup.')
-            except OSError:
-                pass
-            try:
-                os.chdir(f'{cfg.serverspath}/{server}')
-            except OSError as e:
-                log.error(f'Could not backup {server}:\n{e.message}')
-                continue
-            bfilename = (
-                f'{cfg.backupspath}/{server}/' +
-                datetime.datetime.now().strftime('%Y.%m.%d-%H:%M') +
-                f'-{server}-' + cfg.servers[server]['worldname']
-            )
-            with tarfile.open(bfilename, 'w:gz') as tars:
-                tars.add(cfg.servers[server]['worldname'])
-    else:
-        os.chdir(cwd)
+    if cfg['servers'][server]['backup']:
+        if not isUp(server):
+            log.warning(f'Skipping backup of {server} because it is offline. '
+                        'Maybe it is currently restarting?')
+            return
+        try:
+            os.mkdir(cfg['backupspath'] + f'/{server}')
+            log.info(f'Created directory for {server} backup.')
+        except OSError:
+            pass
+        try:
+            os.chdir(cfg['serverspath'] + f'/{server}')
+        except OSError as e:
+            log.error(f'Could not backup {server}:\n{e.message}')
+            return
+        bfilename = (
+            cfg['serverspath'] + f'/{server}/' +
+            datetime.datetime.now().strftime('%Y.%m.%d-%H:%M') +
+            f'-{server}-' + cfg['servers'][server]['worldname']
+        )
+        with tarfile.open(bfilename, 'w:gz') as tars:
+            tars.add(cfg['servers'][server]['worldname'])
+    os.chdir(cwd)
 
 
-async def keepBack(cfg, *server):
+async def keepBack(cfg, server):
     """Moves latest backup of given servers to configured location."""
     True
 
@@ -144,13 +142,13 @@ async def getReport(cfg, server, age=None):
     """
     if age is None:
         reportFile = sorted(
-            glob.iglob(f'{cfg.serverspath}/{server}/crash-reports/*'),
+            glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
             key=os.path.getmtime,
             reverse=True
         )[0]
     else:
         reportFile = sorted(
-            glob.iglob(f'{cfg.serverspath}/{server}/crash-reports/*'),
+            glob.iglob(cfg['serverspath'] + f'/{server}/crash-reports/*'),
             key=os.path.getmtime,
             reverse=True
         )[age]
