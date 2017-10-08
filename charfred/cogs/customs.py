@@ -31,7 +31,7 @@ class customs:
 
     @consolecmd.command(hidden=True, aliases=['edit', 'modify'])
     async def add(self, ctx, name: str, *cmds: str):
-        self.servercmds[name] = *cmds
+        self.servercmds[name] = cmds
         log.info(f'Added \"{cmds}\" to your custom console commands library.')
         await sendReply(ctx, f'Added \"{cmds}\" to your custom console commands library.')
 
