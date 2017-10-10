@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
-from ..utils.discoutils import has_perms, _is_cmdChannel
+from ..utils.discoutils import has_permission, _is_cmdChannel
 
 
 class nbteditor:
@@ -10,7 +10,7 @@ class nbteditor:
 
     @commands.group(invoke_without_command=True)
     @_is_cmdChannel()
-    @has_perms()
+    @has_permission('nbt')
     async def nbt(self, ctx):
         True
 

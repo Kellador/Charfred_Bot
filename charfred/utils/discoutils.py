@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import discord
 from discord.ext import commands
 import random
 import re
+import functools
 from .. import configs as cfg
 from .. import keywords
 
@@ -13,14 +15,14 @@ targetsPattern = re.compile(
 )
 
 
-async def roleCall(ctx):
-    print(ctx.command.name)
-    requiredRole = cfg.commands[ctx.command.name]['MinRank']
-    for role in ctx.author.roles:
-        if role.name in cfg.roles:
-            if cfg.roles.index(role.name) >= cfg.roles.index(requiredRole):
-                return True
-    return False
+def has_permission(cmd):
+    def predicate(ctx):
+        if not isinstance(ctx.channel, discord.abc.GuildChannel):
+            return False
+        names = cfg.commands[cmd]
+        getter = functools.partial(discord.utils.get, ctx.author.roles)
+        return any(getter(name=name) is not None for name in names)
+    return commands.check(predicate)
 
 
 def is_owner():
@@ -29,14 +31,8 @@ def is_owner():
     return commands.check(predicate)
 
 
-def has_perms():
-    async def predicate(ctx):
-        return await roleCall(ctx)
-    return commands.check(predicate)
-
-
 async def targetCheck(ctx):
-    if ctx.args[0] in iter(ctx.bot.servercfg['servers']):
+    if ctx.args[0] in ctx.bot.servercfg['servers']:
         return True
     return False
 
@@ -48,7 +44,7 @@ def valid_server():
 
 
 def is_cmdChannel(ctx):
-    if ctx.channel.id in cfg.commandCh.keys():
+    if ctx.channel.id in cfg.commandCh.values():
         return True
     return False
 

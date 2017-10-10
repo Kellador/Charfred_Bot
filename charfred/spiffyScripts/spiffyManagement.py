@@ -41,7 +41,7 @@ async def stop(server):
             'save-all',
         )
         asyncio.sleep(5)
-        await sendCmd(
+        await sendCmd(self.loop,
             server,
             'stop'
         )

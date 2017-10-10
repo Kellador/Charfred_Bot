@@ -2,8 +2,7 @@
 
 from discord.ext import commands
 import re
-from ..utils.discoutils import has_perms, sendReply, valid_servertarget
-from ..utils.executors import exec_cmd
+from ..utils.discoutils import has_permission, sendReply, valid_servertarget
 from .. import configs as cfg
 
 
@@ -12,7 +11,7 @@ class crashReporter:
         self.bot = bot
 
     @commands.command(aliases=['report', 'crashreports'], ignore_extra=False)
-    @has_perms()
+    @has_permission('crashreport')
     @valid_servertarget()
     async def crashreport(self, ctx, server: str):
         # TODO:

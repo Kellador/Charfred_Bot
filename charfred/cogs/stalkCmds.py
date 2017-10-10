@@ -2,7 +2,7 @@
 
 import discord
 from discord.ext import commands
-from ..utils.discoutils import has_perms, sendEmbed
+from ..utils.discoutils import has_permission, sendEmbed
 from ..utils.mcuser import MCUser, mojException
 
 
@@ -12,7 +12,7 @@ class stalkCmds:
         self.stalkdict = bot.stalkdict
 
     @commands.command(aliases=['backgroundcheck', 'check', 'creep'])
-    @has_perms()
+    @has_permission('stalk')
     async def stalk(self, ctx, lookupName: str):
         print(f'Stalking {lookupName}...')
         self.stalkdict._purge()

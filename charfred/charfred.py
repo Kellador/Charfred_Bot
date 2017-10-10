@@ -36,7 +36,8 @@ class Charfred(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.stalkdict = TTLOrderedDict(default_ttl=60)
         self.dir = os.path.dirname(os.path.realpath(__file__))
-        self.servercfg = Config(f'{self.dir}/serverCfgs.json', load=True, loop=self.loop)
+        self.servercfg = Config(f'{self.dir}/serverCfgs.json',
+                                load=True, loop=self.loop)
         for cog in prime_cogs:
             try:
                 self.load_extension(cog)
@@ -48,7 +49,7 @@ class Charfred(commands.Bot):
             await ctx.send(random.choice(errormsgs))
         elif isinstance(error, commands.CheckFailure):
             await ctx.send(random.choice(errormsgs))
-            log.warning(f'{ctx.author.name} attempted to use {ctx.command.name}!')
+            log.warning(f'{ctx.author.name} attempted to use {ctx.command.name} in {ctx.channel.name}!')
         elif isinstance(error, commands.CommandNotFound):
             await ctx.send(random.choice(nacks))
         elif isinstance(error, commands.CommandOnCooldown):

@@ -2,23 +2,24 @@
 
 from discord.ext import commands
 import logging as log
-from ..utils.discoutils import has_perms, sendReply_codeblocked, valid_server
+from ..utils.discoutils import sendReply_codeblocked, valid_server, has_permission
 from ..utils.miscutils import isUp, sendCmd
 
 
 class consoleCmds:
     def __init__(self, bot):
         self.bot = bot
+        self.loop = bot.loop
         self.servercfg = bot.servercfg
 
     @commands.group(invoke_without_command=True)
-    @has_perms()
+    @has_permission('whitelist')
     async def whitelist(self, ctx, player: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Whitelisting {player} on {server}.')
-                await sendCmd(server, f'whitelist add {player}')
+                await sendCmd(self.loop, server, f'whitelist add {player}')
                 msg.append(f'[Info] Whitelisted {player} on {server}.')
             else:
                 log.warning(f'Could not whitelist {player} on {server}.')
@@ -26,13 +27,13 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @whitelist.command()
-    @has_perms()
+    @has_permission('whitelist')
     async def add(self, ctx, player: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Whitelisting {player} on {server}.')
-                await sendCmd(server, f'whitelist add {player}')
+                await sendCmd(self.loop, server, f'whitelist add {player}')
                 msg.append(f'[Info] Whitelisted {player} on {server}.')
             else:
                 log.warning(f'Could not whitelist {player} on {server}.')
@@ -40,13 +41,13 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @whitelist.command()
-    @has_perms()
+    @has_permission('unwhitelist')
     async def remove(self, ctx, player: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Unwhitelisting {player} on {server}.')
-                await sendCmd(server, f'whitelist remove {player}')
+                await sendCmd(self.loop, server, f'whitelist remove {player}')
                 msg.append(f'[Info] Unwhitelisting {player} on {server}.')
             else:
                 log.warning(f'Could not unwhitelist {player} on {server}.')
@@ -54,10 +55,10 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @whitelist.command()
-    @has_perms()
+    @has_permission('whitelistcheck')
     async def check(self, ctx, player: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             with open(
                 self.servercfg['serverspath'] + f'/{server}/whitelist.json', 'r'
             ) as whitelist:
@@ -68,28 +69,28 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command()
-    @has_perms()
+    @has_permission('kick')
     @valid_server()
     async def kick(self, ctx, server: str, player: str):
         msg = ['Command Log', '==========']
         if isUp(server):
             log.info(f'Kicking {player} from {server}.')
-            await sendCmd(server, f'kick {player}')
+            await sendCmd(self.loop, server, f'kick {player}')
             msg.append(f'[Info] Kicked {player} from {server}.')
         else:
             msg.append(f'[Error] {server} is not online!')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command()
-    @has_perms()
+    @has_permission('ban')
     async def ban(self, ctx, player: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Banning {player} on {server}.')
-                await sendCmd(server, f'ban {player}')
+                await sendCmd(self.loop, server, f'ban {player}')
                 log.info(f'Unwhitelisting {player} on {server}.')
-                await sendCmd(server, f'whitelist remove {player}')
+                await sendCmd(self.loop, server, f'whitelist remove {player}')
                 msg.append(f'[Info] Banned {player} from {server}.')
             else:
                 log.warning(f'Could not ban {player} from {server}.')
@@ -97,13 +98,14 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command()
-    @has_perms()
+    @has_permission('promote')
     async def promote(self, ctx, player: str, rank: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Promoting {player} to {rank}.')
                 await sendCmd(
+                    self.loop,
                     server,
                     self.servercfg['servers'][server]['promotecmd'].format(
                         player=player, rank=rank
@@ -116,13 +118,14 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command()
-    @has_perms()
+    @has_permission('demote')
     async def demote(self, ctx, player: str, rank: str):
         msg = ['Command Log', '==========']
-        for server in iter(self.servercfg['servers']):
+        for server in self.servercfg['servers']:
             if isUp(server):
                 log.info(f'Demoting {player} to {rank}.')
                 await sendCmd(
+                    self.loop,
                     server,
                     self.servercfg['servers'][server]['demotecmd'].format(
                         player=player, rank=rank
@@ -135,13 +138,13 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command(aliases=['pass'])
-    @has_perms()
+    @has_permission('relay')
     @valid_server()
     async def relay(self, ctx, server: str, command: str):
         msg = ['Command Log', '==========']
         if isUp(server):
             log.info(f'Relaying \"{command}\" to {server}.')
-            await sendCmd(server, command)
+            await sendCmd(self.loop, server, command)
             msg.append(f'[Info] Relayed \"{command}\" to {server}.')
         else:
             log.warning(f'Could not relay \"{command}\" to {server}.')
