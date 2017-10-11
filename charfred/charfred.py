@@ -2,7 +2,8 @@
 
 from discord.ext import commands
 import os
-import logging as log
+import logging
+import coloredlogs
 import traceback
 import datetime
 import random
@@ -12,6 +13,9 @@ from .utils.miscutils import getPasteKey
 from .utils.config import Config
 import configs
 from ttldict import TTLOrderedDict
+
+log = logging.getLogger(__name__)
+coloredlogs.install(level='DEBUG', logger=log)
 
 description = """
 Charfred is a gentleman and a scholar,
