@@ -4,11 +4,9 @@ from discord.ext import commands
 import asyncio
 import os
 import re
-import tarfile
-import datetime
 import logging as log
-from ..utils.discoutils import sendReply, valid_server, has_permission, _is_cmdChannel
-from ..utils.miscutils import isUp, sendCmd, sendCmds
+from ..utils.discoutils import has_permission, _is_cmdChannel
+from ..utils.miscutils import isUp, termProc, sendCmd, sendCmds
 
 
 class serverCmds:
@@ -42,7 +40,7 @@ class serverCmds:
                 self.servercfg['servers'][server]['invocation'], 'nogui',
                 loop=self.loop
             )
-            await proc.communicate()
+            await proc.wait()
             os.chdir(cwd)
             await asyncio.sleep(5, loop=self.loop)
             if isUp(server):
@@ -133,7 +131,7 @@ class serverCmds:
                 server,
                 'save-all'
             )
-            await asyncio.sleep(3, loop=self.loop)
+            await asyncio.sleep(5, loop=self.loop)
             await sendCmd(
                 self.loop,
                 server,
@@ -156,7 +154,7 @@ class serverCmds:
                     self.servercfg['servers'][server]['invocation'], 'nogui',
                     loop=self.loop
                 )
-                await proc.communicate()
+                await proc.wait()
                 os.chdir(cwd)
                 await asyncio.sleep(5, loop=self.loop)
                 if isUp(server):
@@ -178,6 +176,16 @@ class serverCmds:
         else:
             log.info(f'{server} is not running.')
             await ctx.send(f'{server} is not running.')
+
+    @server.command()
+    @has_permission('terminate')
+    async def terminate(self, ctx, server: str):
+        if termProc(server):
+            log.info(f'Terminating {server}.')
+            await ctx.send(f'Terminating {server}.')
+        else:
+            log.info(f'Could not terminate, {server} process not found.')
+            await ctx.send(f'Could not terminate, {server} process not found.')
 
 
 def setup(bot):

@@ -25,6 +25,15 @@ def isUp(server):
     return False
 
 
+def termProc(server):
+    """Finds the process for a given server and terminates it."""
+    for process in psutil.process_iter(attrs=['cmdline']):
+        if f'{server}.jar' in process.info['cmdline']:
+            process.terminate()
+            return True
+    return False
+
+
 async def sendCmd(loop, server, cmd):
     """Passes a given command string to a server's screen."""
     log.info(f'Sending \"{cmd}\" to {server}.')
@@ -32,7 +41,7 @@ async def sendCmd(loop, server, cmd):
         'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)',
         loop=loop
     )
-    await proc.communicate()
+    await proc.wait()
 
 
 async def sendCmds(loop, server, *cmds):
@@ -43,7 +52,7 @@ async def sendCmds(loop, server, *cmds):
             'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)',
             loop=loop
         )
-        await proc.communicate()
+        await proc.wait()
 
 
 async def exec_cmd(loop, ctx, *args):
