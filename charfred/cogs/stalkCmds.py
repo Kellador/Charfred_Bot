@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import discord
+import logging as log
 from discord.ext import commands
 from ..utils.discoutils import has_permission, sendEmbed
 from ..utils.mcuser import MCUser, mojException
@@ -12,19 +13,20 @@ class stalkCmds:
         self.stalkdict = bot.stalkdict
 
     @commands.command(aliases=['backgroundcheck', 'check', 'creep'])
+    @commands.cooldown(60, 60)
     @has_permission('stalk')
     async def stalk(self, ctx, lookupName: str):
-        print(f'Stalking {lookupName}...')
+        log.info(f'Stalking {lookupName}...')
         self.stalkdict._purge()
         if lookupName in self.stalkdict:
             mcU = self.stalkdict.get(lookupName)
-            print(f'Retrieved {lookupName} from cache.')
+            log.info(f'Retrieved {lookupName} from cache.')
         else:
             mcU = MCUser(lookupName)
             try:
                 await mcU._init(self.bot.session)
             except mojException as e:
-                print(mojException.message)
+                log.warning(mojException.message)
                 reportCard = discord.Embed(
                     title="ERROR",
                     type="rich",
@@ -66,6 +68,7 @@ class stalkCmds:
                     reportCard.add_field(name="Past names:",
                                          value=pastNames)
                 reportCard.set_footer(text="Report compiled by Agent Charfred")
+                log.info('Sent Reportcard.')
                 await sendEmbed(ctx, reportCard)
 
 
