@@ -22,9 +22,8 @@ class stalkCmds:
             mcU = self.stalkdict.get(lookupName)
             log.info(f'Retrieved {lookupName} from cache.')
         else:
-            mcU = MCUser(lookupName)
             try:
-                await mcU._init(self.bot.session)
+                mcU = await MCUser.create(lookupName, self.bot.session)
             except mojException as e:
                 log.warning(mojException.message)
                 reportCard = discord.Embed(

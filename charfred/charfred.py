@@ -24,7 +24,7 @@ he will do whatever you ask of him to the best of his abilities,
 however he can be quite rude sometimes.
 """
 
-prime_cogs = ('cogs.stalkCmds')
+prime_cogs = ['cogs.stalkCmds']
 
 
 def prefix_callable(bot, msg):
@@ -50,6 +50,7 @@ class Charfred(commands.Bot):
                 log.error(f'Failed to load cog {cog}!')
             except ImportError as e:
                 log.error(f'{cog} could not be imported!')
+                traceback.print_exc()
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
@@ -68,7 +69,8 @@ class Charfred(commands.Bot):
             log.error(f'{error.original.__class__.__name__}: {error.original}')
 
     async def on_ready(self):
-        log.info(f'{self.user} reporting for duty!\nID: {self.user.id}')
+        log.info(f'{self.user} reporting for duty!')
+        log.info(f'ID: {self.user.id}')
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
         if not hasattr(self, 'pasteKey'):

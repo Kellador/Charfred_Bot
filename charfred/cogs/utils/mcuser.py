@@ -19,7 +19,7 @@ async def getUserData(name, session):
     async with session.get('https://api.mojang.com/users/profiles/minecraft/' +
                            name + '?at=' + str(int(time.time()))) as r:
         if r.status != 204:
-            d = r.json()
+            d = await r.json()
         else:
             raise mojException("Either the username does not exist or Mojang has troubles!")
     currName = d['name']
@@ -34,7 +34,7 @@ async def getUserData(name, session):
         legacy = None
     async with session.get('https://api.mojang.com/user/profiles/' + uuid +
                            '/names') as r:
-        d = r.json()
+        d = await r.json()
     if len(d) > 1:
         nameHistory = []
         for names in d[1:]:
@@ -48,6 +48,8 @@ class MCUser:
     def __init__(self, name):
         self.name = name
 
-    async def _init(self, session):
-        self.currName, self.uuid, self.demo,
-        self.legacy, self.nameHistory = await getUserData(self.name, session)
+    @classmethod
+    async def create(cls, name, session):
+        self = MCUser(name)
+        self.currName, self.uuid, self.demo, self.legacy, self.nameHistory = await getUserData(self.name, session)
+        return self
