@@ -62,15 +62,6 @@ class gearbox:
         else:
             await ctx.send(f'Could not unload \"{cogname}\"!')
 
-    @commands.command(hidden=True)
-    @is_owner()
-    async def takeavacation(self, ctx):
-        await ctx.send('As you wish sir!')
-        try:
-            self.loop.run_until_complete(self.bot.logout())
-        finally:
-            self.loop.close()
-
 
 def setup(bot):
     bot.add_cog(gearbox(bot))
