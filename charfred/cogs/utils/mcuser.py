@@ -1,4 +1,7 @@
 import time
+import logging
+
+log = logging.getLogger('charfred')
 
 
 class mojException(Exception):
@@ -12,6 +15,7 @@ async def getUUID(name, session):
         if r.status != 204:
             return await r.json()['id']
         else:
+            log.warning(f'Could not retrieve UUID for {name}.')
             return None
 
 
@@ -21,6 +25,7 @@ async def getUserData(name, session):
         if r.status != 204:
             d = await r.json()
         else:
+            log.warning(f'Could not retrieve UserData for {name}.')
             raise mojException("Either the username does not exist or Mojang has troubles!")
     currName = d['name']
     uuid = d['id']

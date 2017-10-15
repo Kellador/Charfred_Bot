@@ -1,8 +1,10 @@
 import asyncio
 import os
 import json
-import logging as log
+import logging
 from collections.abc import MutableMapping
+
+log = logging.getLogger('charfred')
 
 
 class Config(MutableMapping):

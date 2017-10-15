@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
-import logging as log
+import logging
 from .utils.discoutils import sendReply_codeblocked, valid_server, has_permission
 from .utils.miscutils import isUp, sendCmd
+
+log = logging.getLogger('charfred')
 
 
 class consoleCmds:

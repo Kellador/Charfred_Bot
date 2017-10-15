@@ -1,29 +1,32 @@
 #!/usr/bin/env python
 
 import discord
-import logging as log
+import logging
+from ttldict import TTLOrderedDict
 from discord.ext import commands
 from .utils.discoutils import has_permission, sendEmbed
 from .utils.mcuser import MCUser, mojException
+
+log = logging.getLogger('charfred')
 
 
 class stalkCmds:
     def __init__(self, bot):
         self.bot = bot
-        self.stalkdict = bot.stalkdict
+        self.stalkdict = TTLOrderedDict(default_ttl=60)
 
     @commands.command(aliases=['backgroundcheck', 'check', 'creep'])
     @commands.cooldown(60, 60)
     @has_permission('stalk')
     async def stalk(self, ctx, lookupName: str):
-        log.info(f'Stalking {lookupName}...')
-        self.stalkdict._purge()
-        if lookupName in self.stalkdict:
+        log.info(f'Stalking \"{lookupName}\"...')
+        if lookupName in self.stalkdict.keys():
             mcU = self.stalkdict.get(lookupName)
-            log.info(f'Retrieved {lookupName} from cache.')
+            log.info(f'Retrieved data for \"{lookupName}\" from cache.')
         else:
             try:
                 mcU = await MCUser.create(lookupName, self.bot.session)
+                self.stalkdict[lookupName] = mcU
             except mojException as e:
                 log.warning(mojException.message)
                 reportCard = discord.Embed(

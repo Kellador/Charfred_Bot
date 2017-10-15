@@ -4,8 +4,11 @@ import discord
 from discord.ext import commands
 import random
 import functools
+import logging
 from ..configs import configs as cfg
 from ..configs import keywords
+
+log = logging.getLogger('charfred')
 
 
 def has_permission(cmd):

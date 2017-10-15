@@ -4,9 +4,11 @@ from discord.ext import commands
 import os
 import glob
 import asyncio
-import logging as log
+import logging
 from .utils.discoutils import has_permission, sendReply, valid_servertarget
 from .configs import configs as cfg
+
+log = logging.getLogger('charfred')
 
 
 class crashReporter:

@@ -1,10 +1,12 @@
 from discord.ext import commands
 import re
 import json
-import logging as log
+import logging
 from .utils.config import Config
 from .utils.discoutils import has_permission, sendReply_codeblocked, sendReply
 from .utils.miscutils import isUp, sendCmd
+
+log = logging.getLogger('charfred')
 
 
 class customs:

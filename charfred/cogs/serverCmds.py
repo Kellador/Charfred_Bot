@@ -4,9 +4,11 @@ from discord.ext import commands
 import asyncio
 import os
 import re
-import logging as log
+import logging
 from .utils.discoutils import has_permission, _is_cmdChannel
 from .utils.miscutils import isUp, termProc, sendCmd, sendCmds
+
+log = logging.getLogger('charfred')
 
 
 class serverCmds:

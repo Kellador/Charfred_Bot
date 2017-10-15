@@ -13,9 +13,8 @@ from cogs.configs.keywords import nacks, errormsgs
 from cogs.utils.miscutils import getPasteKey
 from cogs.utils.config import Config
 from cogs.configs import configs
-from ttldict import TTLOrderedDict
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('charfred')
 coloredlogs.install(level='DEBUG', logger=log)
 
 description = """
@@ -39,7 +38,6 @@ class Charfred(commands.Bot):
         super().__init__(command_prefix=prefix_callable, description=description,
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.stalkdict = TTLOrderedDict(default_ttl=60)
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.servercfg = Config(f'{self.dir}/cogs/configs/serverCfgs.json',
                                 load=True, loop=self.loop)

@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
+import logging
 from .utils.discoutils import has_permission, _is_cmdChannel
+
+log = logging.getLogger('charfred')
 
 
 class nbteditor:

@@ -2,9 +2,11 @@
 
 import psutil
 import asyncio
-import logging as log
+import logging
 from ..configs import configs as cfg
 from .discoutils import sendReply_codeblocked
+
+log = logging.getLogger('charfred')
 
 
 async def getPasteKey(session):
