@@ -23,7 +23,7 @@ he will do whatever you ask of him to the best of his abilities,
 however he can be quite rude sometimes.
 """
 
-prime_cogs = ['cogs.stalkCmds']
+prime_cogs = ['cogs.gearbox']
 
 
 def prefix_callable(bot, msg):
@@ -45,7 +45,7 @@ class Charfred(commands.Bot):
             try:
                 self.load_extension(cog)
             except ClientException as e:
-                log.error(f'Failed to load cog {cog}!')
+                log.error(f'Could not load \"{cog}\"!')
             except ImportError as e:
                 log.error(f'{cog} could not be imported!')
                 traceback.print_exc()
