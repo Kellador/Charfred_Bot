@@ -99,8 +99,7 @@ ENV/
 .mypy_cache/
 
 #Project Specific
-charfred/configs.py
-charfred/spiffyScripts/spiffyConfigs.py
+charfred/cogs/configs/configs.py
 default_config.txt
 old_main.py
 .flake8
