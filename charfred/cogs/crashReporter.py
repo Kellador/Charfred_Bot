@@ -5,8 +5,8 @@ import os
 import glob
 import asyncio
 import logging as log
-from ..utils.discoutils import has_permission, sendReply, valid_servertarget
-from .. import configs as cfg
+from .utils.discoutils import has_permission, sendReply, valid_servertarget
+from .configs import configs as cfg
 
 
 class crashReporter:

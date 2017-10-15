@@ -2,9 +2,9 @@ from discord.ext import commands
 import re
 import json
 import logging as log
-from ..utils.config import Config
-from ..utils.discoutils import has_permission, sendReply_codeblocked, sendReply
-from ..utils.miscutils import isUp, sendCmd
+from .utils.config import Config
+from .utils.discoutils import has_permission, sendReply_codeblocked, sendReply
+from .utils.miscutils import isUp, sendCmd
 
 
 class customs:
@@ -12,7 +12,7 @@ class customs:
         self.bot = bot
         self.servercfg = bot.servercfg
         self.customcmds = Config(
-            f'{self.bot.dir}/customCmds.json',
+            f'{self.bot.dir}/cogs/configs/customCmds.json',
             loop=self.bot.loop,
             load=True
         )

@@ -3,16 +3,9 @@
 import discord
 from discord.ext import commands
 import random
-import re
 import functools
-from .. import configs as cfg
-from .. import keywords
-
-
-targetsPattern = re.compile(
-    ('|'.join(map(re.escape, list(cfg.servers.keys())))),
-    re.IGNORECASE
-)
+from ..configs import configs as cfg
+from ..configs import keywords
 
 
 def has_permission(cmd):

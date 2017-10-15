@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
-from ..utils.discoutils import has_permission, _is_cmdChannel
+from .utils.discoutils import has_permission, _is_cmdChannel
 
 
 class nbteditor:

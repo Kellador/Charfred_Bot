@@ -5,8 +5,8 @@ import asyncio
 import os
 import re
 import logging as log
-from ..utils.discoutils import has_permission, _is_cmdChannel
-from ..utils.miscutils import isUp, termProc, sendCmd, sendCmds
+from .utils.discoutils import has_permission, _is_cmdChannel
+from .utils.miscutils import isUp, termProc, sendCmd, sendCmds
 
 
 class serverCmds:

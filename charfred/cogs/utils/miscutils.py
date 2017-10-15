@@ -3,18 +3,17 @@
 import psutil
 import asyncio
 import logging as log
-from .. import configs as cfg
+from ..configs import configs as cfg
 from .discoutils import sendReply_codeblocked
 
 
 async def getPasteKey(session):
-    async with session as cs:
-        async with cs.post(
-            'https://pastebin.com/api/api_login.php',
-            params={'api_dev_key': cfg.pastebinToken,
-                    'api_user_name': cfg.pastebinUser,
-                    'api_user_password': cfg.pastebinPass}) as resp:
-            return await resp.text()
+    async with session.post(
+        'https://pastebin.com/api/api_login.php',
+        data={'api_dev_key': cfg.pastebinToken,
+              'api_user_name': cfg.pastebinUser,
+              'api_user_password': cfg.pastebinPass}) as resp:
+        return await resp.text()
 
 
 def isUp(server):

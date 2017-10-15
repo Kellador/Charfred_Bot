@@ -2,8 +2,8 @@
 
 from discord.ext import commands
 import logging as log
-from ..utils.discoutils import sendReply_codeblocked, valid_server, has_permission
-from ..utils.miscutils import isUp, sendCmd
+from .utils.discoutils import sendReply_codeblocked, valid_server, has_permission
+from .utils.miscutils import isUp, sendCmd
 
 
 class consoleCmds:

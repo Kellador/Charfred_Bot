@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from discord.ext import commands
+from discord import ClientException
 import os
 import logging
 import coloredlogs
@@ -8,10 +9,10 @@ import traceback
 import datetime
 import random
 import aiohttp
-from .keywords import nacks, errormsgs
-from .utils.miscutils import getPasteKey
-from .utils.config import Config
-import configs
+from cogs.configs.keywords import nacks, errormsgs
+from cogs.utils.miscutils import getPasteKey
+from cogs.utils.config import Config
+from cogs.configs import configs
 from ttldict import TTLOrderedDict
 
 log = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ he will do whatever you ask of him to the best of his abilities,
 however he can be quite rude sometimes.
 """
 
-prime_cogs = ()
+prime_cogs = ('cogs.stalkCmds')
 
 
 def prefix_callable(bot, msg):
@@ -40,13 +41,15 @@ class Charfred(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.stalkdict = TTLOrderedDict(default_ttl=60)
         self.dir = os.path.dirname(os.path.realpath(__file__))
-        self.servercfg = Config(f'{self.dir}/serverCfgs.json',
+        self.servercfg = Config(f'{self.dir}/cogs/configs/serverCfgs.json',
                                 load=True, loop=self.loop)
         for cog in prime_cogs:
             try:
                 self.load_extension(cog)
-            except Exception as e:
+            except ClientException as e:
                 log.error(f'Failed to load cog {cog}!')
+            except ImportError as e:
+                log.error(f'{cog} could not be imported!')
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
@@ -65,7 +68,7 @@ class Charfred(commands.Bot):
             log.error(f'{error.original.__class__.__name__}: {error.original}')
 
     async def on_ready(self):
-        print(f'{self.user} reporting for duty!\nID: {self.user.id}')
+        log.info(f'{self.user} reporting for duty!\nID: {self.user.id}')
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
         if not hasattr(self, 'pasteKey'):
