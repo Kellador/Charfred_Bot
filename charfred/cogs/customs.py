@@ -51,7 +51,7 @@ class customs:
         await sendReply_codeblocked(ctx, msg, encoding='json')
 
     @custom.command(hidden=True, aliases=['execute', 'exec'])
-    async def run(self, ctx, server: str, cmd: str, *args: str):
+    async def run(self, ctx, cmd: str, server: str, *args: str):
         msg = ['Command Log', '===========']
         if cmd not in self.customcmds:
             log.warning(f'\"{cmd}\" is undefined!')
