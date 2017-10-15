@@ -15,6 +15,7 @@ from cogs.utils.config import Config
 from cogs.configs import configs
 
 log = logging.getLogger('charfred')
+# coloredlogs.install(level='DEBUG')
 coloredlogs.install(level='DEBUG', logger=log)
 
 description = """
@@ -53,13 +54,16 @@ class Charfred(commands.Bot):
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
             await ctx.send(random.choice(errormsgs))
+            log.warning(f'DisabledCommand: {ctx.invoked_with}')
         elif isinstance(error, commands.CheckFailure):
             await ctx.send(random.choice(errormsgs))
             log.warning(f'{ctx.author.name} attempted to use {ctx.command.name} in {ctx.channel.name}!')
         elif isinstance(error, commands.CommandNotFound):
             await ctx.send(random.choice(nacks))
+            log.warning(f'CommandNotFound: {ctx.invoked_with}')
         elif isinstance(error, commands.CommandOnCooldown):
             await ctx.send('Sorry lass, that command\'s on cooldown!')
+            log.warning(f'CommandOnCooldown: {ctx.invoked_with}')
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send(random.choice(nacks))
             log.error(f'{ctx.command.qualified_name}:')

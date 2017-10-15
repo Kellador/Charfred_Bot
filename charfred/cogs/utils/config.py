@@ -22,6 +22,7 @@ class Config(MutableMapping):
         try:
             with open(self.cfgfile, 'r') as cf:
                 self.cfgs = json.load(cf)
+            log.info(f'{self.cfgfile} loaded.')
         except FileNotFoundError as e:
             log.warning(f'{self.cfgfile} does not exist, loading as empty dict.')
             self.cfgs = {}

@@ -28,7 +28,18 @@ class gearbox:
             log.info(f'\"{cog}\" loaded!')
             return True
 
-    @commands.group(aliases=['cogs', 'gears', 'gear'])
+    def _unload(self, cog):
+        try:
+            self.bot.unload_extension(cog)
+        except Exception as e:
+            log.error(f'Could not unload \"{cog}\"!')
+            traceback.print_exc()
+            return False
+        else:
+            log.info(f'\"{cog}\" unloaded!')
+            return True
+
+    @commands.group(hidden=True, aliases=['cogs', 'gears', 'gear'])
     @_is_cmdChannel()
     @is_owner()
     async def cog(self, ctx):
@@ -39,21 +50,17 @@ class gearbox:
     @is_owner()
     async def loadcog(self, ctx, cogname: str):
         if self._loadcog(cogname):
-            ctx.send(f'\"{cogname}\" loaded!')
+            await ctx.send(f'\"{cogname}\" loaded!')
         else:
-            ctx.send(f'Could not load \"{cog}\"!\nMaybe you got the name wrong?')
+            await ctx.send(f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
 
     @cog.command(aliases=['unload', 'remove'])
     @is_owner()
     async def unloadcog(self, ctx, cogname: str):
-        try:
-            self.bot.unload_extension(cogname)
-        except Exception as e:
-            log.error(f'Could not unload \"{cogname}\"!')
-            traceback.print_exc()
-            ctx.send(f'Could not unload \"{cogname}\"!')
+        if self._unload(cogname):
+            await ctx.send(f'\"{cogname}\" unloaded!')
         else:
-            ctx.send(f'\"{cogname}\" unloaded!')
+            await ctx.send(f'Could not unload \"{cogname}\"!')
 
 
 def setup(bot):

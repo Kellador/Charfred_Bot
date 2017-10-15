@@ -28,7 +28,7 @@ class stalkCmds:
                 mcU = await MCUser.create(lookupName, self.bot.session)
                 self.stalkdict[lookupName] = mcU
             except mojException as e:
-                log.warning(mojException.message)
+                log.warning(e.message)
                 reportCard = discord.Embed(
                     title="ERROR",
                     type="rich",
