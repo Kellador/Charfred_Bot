@@ -2,7 +2,6 @@ import logging
 import traceback
 from discord.ext import commands
 from .utils.config import Config
-from .utils.discoutils import is_owner, _is_cmdChannel
 
 log = logging.getLogger('charfred')
 
@@ -39,28 +38,47 @@ class gearbox:
             log.info(f'\"{cog}\" unloaded!')
             return True
 
-    @commands.group(hidden=True, aliases=['cogs', 'gears', 'gear'])
-    @_is_cmdChannel()
-    @is_owner()
+    def _reload(self, cog):
+        try:
+            self.bot.unload_extension(cog)
+            self.bot.load_extension(cog)
+        except Exception as e:
+            log.error(f'Could not reload \"{cog}\"!')
+            traceback.print_exc()
+            return False
+        else:
+            log.info(f'\"{cog}\" reloaded!')
+            return True
+
+    @commands.group(hidden=True, aliases=['gear', 'extension'])
+    @commands.is_owner()
     async def cog(self, ctx):
         if ctx.invoked_subcommand is None:
             pass
 
-    @cog.command(aliases=['load', 'add'])
-    @is_owner()
+    @cog.command(name='load')
+    @commands.is_owner()
     async def loadcog(self, ctx, cogname: str):
         if self._loadcog(cogname):
             await ctx.send(f'\"{cogname}\" loaded!')
         else:
             await ctx.send(f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
 
-    @cog.command(aliases=['unload', 'remove'])
-    @is_owner()
+    @cog.command(name='unload')
+    @commands.is_owner()
     async def unloadcog(self, ctx, cogname: str):
         if self._unload(cogname):
             await ctx.send(f'\"{cogname}\" unloaded!')
         else:
             await ctx.send(f'Could not unload \"{cogname}\"!')
+
+    @cog.command(name='reload')
+    @commands.is_owner()
+    async def reloadcog(self, ctx, cogname: str):
+        if self._reload(cogname):
+            await ctx.send(f'\"{cogname}\" reloaded!')
+        else:
+            await ctx.send(f'Could not reload \"{cogname}\"!')
 
 
 def setup(bot):

@@ -24,32 +24,28 @@ he will do whatever you ask of him to the best of his abilities,
 however he can be quite rude sometimes.
 """
 
-prime_cogs = ['cogs.gearbox']
 
-
-def prefix_callable(bot, msg):
-    bot_id = bot.user.id
-    prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}>']
+def get_prefixes(bot, msg):
+    prefixes = ['‽']
     prefixes.extend(configs.prefixes)
-    return prefixes
+    return commands.when_mentioned_or(*prefixes)(bot, msg)
 
 
 class Charfred(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=prefix_callable, description=description,
+        super().__init__(command_prefix=get_prefixes, description=description,
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.servercfg = Config(f'{self.dir}/cogs/configs/serverCfgs.json',
                                 load=True, loop=self.loop)
-        for cog in prime_cogs:
-            try:
-                self.load_extension(cog)
-            except ClientException as e:
-                log.error(f'Could not load \"{cog}\"!')
-            except ImportError as e:
-                log.error(f'{cog} could not be imported!')
-                traceback.print_exc()
+        try:
+            self.load_extension('cogs.gearbox')
+        except ClientException as e:
+            log.critical(f'Could not load \"Gearbox\"!')
+        except ImportError as e:
+            log.critical(f'Gearbox could not be imported!')
+            traceback.print_exc()
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
@@ -81,6 +77,8 @@ class Charfred(commands.Bot):
 
     async def on_message(self, message):
         if message.author.bot:
+            return
+        elif message.guild.id is None:
             return
         else:
             await self.process_commands(message)

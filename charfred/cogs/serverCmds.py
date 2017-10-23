@@ -22,7 +22,7 @@ class serverCmds:
 
     @commands.group()
     @_is_cmdChannel()
-    @has_permission('start')
+    @has_permission('status')
     async def server(self, ctx):
         if ctx.invoked_subcommand is None:
             pass

@@ -21,12 +21,6 @@ def has_permission(cmd):
     return commands.check(predicate)
 
 
-def is_owner():
-    async def predicate(ctx):
-        return await ctx.bot.is_owner(ctx.author)
-    return commands.check(predicate)
-
-
 async def targetCheck(ctx):
     if ctx.args[0] in ctx.bot.servercfg['servers']:
         return True
@@ -45,7 +39,6 @@ def is_cmdChannel(ctx):
     return False
 
 
-# for decorator use only
 def _is_cmdChannel():
     async def predicate(ctx):
         return is_cmdChannel(ctx)
