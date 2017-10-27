@@ -80,6 +80,20 @@ class gearbox:
         else:
             await ctx.send(f'Could not reload \"{cogname}\"!')
 
+    @cog.command(name='add')
+    @commands.is_owner()
+    async def addcog(self, ctx, cogname: str):
+        self.cogfig['cogs'].append(cogname)
+        await self.cogfig.save()
+        await ctx.send(f'\"{cogname}\" will now be loaded automatically.')
+
+    @cog.command(name='remove')
+    @commands.is_owner()
+    async def removecog(self, ctx, cogname: str):
+        del self.config['cogs'][cogname]
+        await self.cogfig.save()
+        await ctx.send(f'\"{cogname}\" will no longer be loaded automatically.')
+
 
 def setup(bot):
     bot.add_cog(gearbox(bot))
