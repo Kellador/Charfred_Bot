@@ -14,9 +14,9 @@ class gearbox:
         self.cogfig = Config(f'{self.dir}/cogs/configs/cogCfg.json',
                              load=True, loop=self.loop)
         for cog in self.cogfig['cogs']:
-            self._loadcog(cog)
+            self._load(cog)
 
-    def _loadcog(self, cog):
+    def _load(self, cog):
         try:
             self.bot.load_extension(cog)
         except Exception as e:
@@ -59,7 +59,7 @@ class gearbox:
     @cog.command(name='load')
     @commands.is_owner()
     async def loadcog(self, ctx, cogname: str):
-        if self._loadcog(cogname):
+        if self._load(cogname):
             await ctx.send(f'\"{cogname}\" loaded!')
         else:
             await ctx.send(f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
@@ -79,6 +79,14 @@ class gearbox:
             await ctx.send(f'\"{cogname}\" reloaded!')
         else:
             await ctx.send(f'Could not reload \"{cogname}\"!')
+
+    @cog.command(name='reinitiate')
+    @commands.is_owner()
+    async def reinitiatecogs(self, ctx):
+        for cog in self.bot.extensions:
+            self._unload(cog)
+        for cog in self.cogfig['cogs']:
+            self._load(cog)
 
     @cog.command(name='add')
     @commands.is_owner()
