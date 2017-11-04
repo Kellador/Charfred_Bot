@@ -41,9 +41,9 @@ class Charfred(commands.Bot):
                                 load=True, loop=self.loop)
         try:
             self.load_extension('cogs.gearbox')
-        except ClientException as e:
+        except ClientException:
             log.critical(f'Could not load \"Gearbox\"!')
-        except ImportError as e:
+        except ImportError:
             log.critical(f'Gearbox could not be imported!')
             traceback.print_exc()
 

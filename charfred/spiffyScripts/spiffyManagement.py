@@ -12,7 +12,7 @@ from ..utils.miscutils import isUp, termProc
 
 def screenCmd(server, *cmds):
     for cmd in cmds:
-        run(['screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)'])
+        run(['screen', '-S', server, '-X', 'stuff', f'{cmd}\r'])
 
 
 def start(cfg, server):

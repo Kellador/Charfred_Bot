@@ -21,6 +21,9 @@ def has_permission(cmd):
     return commands.check(predicate)
 
 
+# TODO NOTE: ctx.args[0] index out of range
+# I'm guessing that the arguments are consumed upon command resolution.
+# Possibly just do away with this and error if an invalid server was given instead.
 async def targetCheck(ctx):
     if ctx.args[0] in ctx.bot.servercfg['servers']:
         return True
@@ -68,12 +71,12 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
         mesg = f'\n```{encoding}\n{msg}\n```'
     if is_cmdChannel(ctx):
         await ctx.send(
-            f'{random.choice(keywords.replies)}',
+            f'{random.choice(keywords.replies)}' +
             mesg
         )
     else:
         await get_cmdCh(ctx).send(
-            f'{random.choice(keywords.replies)}',
+            f'{random.choice(keywords.replies)}' +
             mesg
         )
         await ctx.send(

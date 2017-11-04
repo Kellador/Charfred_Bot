@@ -2,7 +2,7 @@
 
 from discord.ext import commands
 import logging
-from .utils.discoutils import sendReply_codeblocked, valid_server, has_permission
+from .utils.discoutils import sendReply_codeblocked, has_permission
 from .utils.miscutils import isUp, sendCmd
 
 log = logging.getLogger('charfred')
@@ -72,7 +72,6 @@ class consoleCmds:
 
     @commands.command()
     @has_permission('kick')
-    @valid_server()
     async def kick(self, ctx, server: str, player: str):
         msg = ['Command Log', '==========']
         if isUp(server):
@@ -141,7 +140,6 @@ class consoleCmds:
 
     @commands.command(aliases=['pass'])
     @has_permission('relay')
-    @valid_server()
     async def relay(self, ctx, server: str, command: str):
         msg = ['Command Log', '==========']
         if isUp(server):

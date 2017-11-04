@@ -39,7 +39,7 @@ async def sendCmd(loop, server, cmd):
     """Passes a given command string to a server's screen."""
     log.info(f'Sending \"{cmd}\" to {server}.')
     proc = await asyncio.create_subprocess_exec(
-        'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)',
+        'screen', '-S', server, '-X', 'stuff', f'{cmd}\r',
         loop=loop
     )
     await proc.wait()
@@ -50,7 +50,7 @@ async def sendCmds(loop, server, *cmds):
     for cmd in cmds:
         log.info(f'Sending \"{cmd}\" to {server}.')
         proc = await asyncio.create_subprocess_exec(
-            'screen', '-S', server, '-X', 'stuff', f'{cmd}$(printf \\r)',
+            'screen', '-S', server, '-X', 'stuff', f'{cmd}\r',
             loop=loop
         )
         await proc.wait()

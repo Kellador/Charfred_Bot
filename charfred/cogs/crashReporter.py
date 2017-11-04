@@ -5,7 +5,7 @@ import os
 import glob
 import asyncio
 import logging
-from .utils.discoutils import has_permission, sendReply, valid_servertarget
+from .utils.discoutils import has_permission, sendReply
 from .configs import configs as cfg
 
 log = logging.getLogger('charfred')
@@ -17,7 +17,6 @@ class crashReporter:
 
     @commands.command(aliases=['report', 'crashreports'])
     @has_permission('crashreport')
-    @valid_servertarget()
     async def crashreport(self, ctx, server: str, age: str=None):
         """Retrieves the last crashreport for the given server;
         Takes a relative age parameter, 0 for the newest report,
