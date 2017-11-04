@@ -15,6 +15,7 @@ class Config(MutableMapping):
         self.cfgfile = cfgfile
         self.loop = opts.pop('loop', asyncio.get_event_loop())
         self.lock = asyncio.Lock()
+        self.default = opts.pop('default', False)
         if opts.pop('load', False):
             self._load()
 
@@ -23,11 +24,28 @@ class Config(MutableMapping):
             with open(self.cfgfile, 'r') as cf:
                 self.cfgs = json.load(cf)
             log.info(f'{self.cfgfile} loaded.')
-        except FileNotFoundError as e:
-            log.warning(f'{self.cfgfile} does not exist, loading as empty dict.')
-            self.cfgs = {}
-        except IOError as e:
+        except FileNotFoundError:
+            log.warning(f'{self.cfgfile} does not exist.')
+            if self.default:
+                self._loadDefault()
+                log.info(f'Initiated {self.cfgfile} from {self.default}!')
+            else:
+                self.cfgs = {}
+                log.info('Loaded as empty dict!')
+        except IOError:
             log.critical(f'Could not load {self.cfgfile}!')
+            self.cfgs = {}
+            log.info('Loaded as empty dict!')
+
+    def _loadDefault(self):
+        try:
+            with open(self.default, 'r') as cf:
+                self.cfgs = json.load(cf)
+            self._save()
+        except IOError:
+            log.warning(f'{self.default} does not exist.')
+            self.cfgs = {}
+            log.info('Loaded as empty dict!')
 
     def _save(self):
         with open(f'{self.cfgfile}.tmp', 'w') as tmp:

@@ -100,7 +100,7 @@ ENV/
 
 #Project Specific
 charfred/cogs/configs/configs.py
-charfred/cogs/configs/serverCfgs.json
+charfred/cogs/configs/*.json
 default_config.txt
 old_main.py
 .flake8
