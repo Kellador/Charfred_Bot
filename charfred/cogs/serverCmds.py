@@ -190,6 +190,105 @@ class serverCmds:
             log.info(f'Could not terminate, {server} process not found.')
             await ctx.send(f'Could not terminate, {server} process not found.')
 
+    @server.group()
+    @has_permission('management')
+    async def config(self, ctx):
+        if ctx.invoked_subcommand is None:
+            pass
+
+    @config.command()
+    async def add(self, ctx, server: str):
+        if server in self.servercfg['servers']:
+            await ctx.send(f'{server} is already listed!')
+            return
+
+        def check(m):
+            return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+
+        self.servercfg['servers'][server] = {}
+        await ctx.send(f'Beginning configuration for {server}!'
+                       '\nPlease enter the invocation for {server}:')
+        r1 = await self.bot.wait_for('message', check=check, timeout=120)
+        self.servercfg['servers'][server]['invocation'] = r1.content
+        await ctx.send(f'Do you want to run backups on {server}? [y/n]')
+        r2 = await self.bot.wait_for('message', check=check, timeout=120)
+        if re.match('(y|yes)', r2.content, flags=re.I):
+            self.servercfg['servers'][server]['backup'] = True
+        else:
+            self.servercfg['servers'][server]['backup'] = False
+        await ctx.send(f'Please enter the name of the main world folder for {server}:')
+        r3 = await self.bot.wait_for('message', check=check, timeout=120)
+        self.servercfg['servers'][server]['worldname'] = r3.content
+        await ctx.send(f'You have entered the following for {server}:\n' +
+                       f'Invocation: {r1.content}\n' +
+                       f'Backup: {r2.content}\n' +
+                       f'Worldname: {r3.content}\n' +
+                       'Please confirm! [y/n]')
+        r4 = await self.bot.wait_for('message', check=check, timeout=120)
+        if re.match('(y|yes)', r4.content, flags=re.I):
+            await self.servercfg.save()
+            await ctx.send(f'Serverconfigurations for {server} have been saved!')
+        else:
+            del self.servercfg['servers'][server]
+            await ctx.send(f'Serverconfigurations for {server} have been discarded.')
+
+    @config.command(name='list')
+    async def _list(self, ctx, server: str):
+        if server not in self.servercfg['servers']:
+            ctx.send(f'No configurations for {server} listed!')
+            return
+        ctx.send(f'Configuration entries for {server}:\n')
+        for k, v in self.servercfg['servers'][server].items():
+            ctx.send(f'{k}: {v}\n')
+
+    @config.command()
+    async def edit(self, ctx, server: str):
+        if server not in self.servercfg['servers']:
+            await ctx.send(f'No configurations for {server} listed!')
+            return
+
+        def check(m):
+            return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+
+        await ctx.send(f'Please enter the configuration option for {server}, that you want to edit:')
+        r = await self.bot.wait_for('message', check=check, timeout=120)
+        r = r.content.lower()
+        if r not in self.servercfg['servers'][server]:
+            await ctx.send(f'{r.content.lower()} is not a valid entry!')
+            return
+        await ctx.send(f'Please enter the new value for {r.content}:')
+        r2 = await self.bot.wait_for('message', check=check, timeout=120)
+        await ctx.send(f'You have entered the following for {server}:\n' +
+                       f'{r}: {r2.content}\n' +
+                       'Please confirm! [y/n]')
+        r3 = await self.bot.wait_for('message', check=check, timeout=120)
+        if re.match('(y|yes)', r3.content, flags=re.I):
+            self.servercfg['servers'][server][r] = r2.content
+            await self.servercfg.save()
+            await ctx.send(f'Edit to {server} has been saved!')
+        else:
+            await ctx.send(f'Edit to {server} has been discarded!')
+
+    @config.command()
+    async def delete(self, ctx, server: str):
+        if server not in self.servercfg['servers']:
+            await ctx.send(f'Nothing to delete for {server}!')
+            return
+
+        def check(m):
+            return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+
+        await ctx.send('You are about to delete all configuration options ' +
+                       f'for {server}.\n' +
+                       'Please confirm! [y/n]')
+        r = await self.bot.wait_for('message', check=check, timeout=120)
+        if re.match('(y|yes)', r.content, flags=re.I):
+            del self.servercfg['servers'][server]
+            await self.servercfg.save()
+            await ctx.send(f'Configurations for {server} have been deleted!')
+        else:
+            await ctx.send(f'Deletion of configurations aborted!')
+
 
 def setup(bot):
     bot.add_cog(serverCmds(bot))

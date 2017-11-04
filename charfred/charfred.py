@@ -38,6 +38,7 @@ class Charfred(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.servercfg = Config(f'{self.dir}/cogs/configs/serverCfgs.json',
+                                default=f'{self.dir}/cogs/configs/serverCfgs.json_default',
                                 load=True, loop=self.loop)
         try:
             self.load_extension('cogs.gearbox')
