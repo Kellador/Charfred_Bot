@@ -154,7 +154,7 @@ class serverCmds:
                 os.chdir(self.servercfg['serverspath'] + f'/{server}')
                 proc = await asyncio.create_subprocess_exec(
                     'screen', '-h', '5000', '-dmS', server,
-                    self.servercfg['servers'][server]['invocation'], 'nogui',
+                    *(self.servercfg['servers'][server]['invocation']).split(), 'nogui',
                     loop=self.loop
                 )
                 await proc.wait()
