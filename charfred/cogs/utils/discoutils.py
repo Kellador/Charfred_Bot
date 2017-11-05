@@ -5,7 +5,6 @@ from discord.ext import commands
 import random
 import functools
 import logging
-from ..configs import configs as cfg
 from ..configs import keywords
 
 log = logging.getLogger('charfred')
@@ -15,14 +14,14 @@ def has_permission(cmd):
     def predicate(ctx):
         if not isinstance(ctx.channel, discord.abc.GuildChannel):
             return False
-        names = cfg.commands[cmd]
+        names = ctx.bot.cfg['commands'][cmd]
         getter = functools.partial(discord.utils.get, ctx.author.roles)
         return any(getter(name=name) is not None for name in names)
     return commands.check(predicate)
 
 
 def is_cmdChannel(ctx):
-    if ctx.channel.id in cfg.commandCh.values():
+    if ctx.channel.id in ctx.bot.cfg['commandCh'].values():
         return True
     return False
 
@@ -34,7 +33,7 @@ def _is_cmdChannel():
 
 
 def get_cmdCh(ctx):
-    cmdChID = cfg.commandCh[ctx.guild.id]
+    cmdChID = ctx.bot.cfg['commandCh'][ctx.guild.id]
     return ctx.bot.get_channel(cmdChID)
 
 
@@ -51,7 +50,7 @@ async def sendReply(ctx, msg):
 
 async def sendReply_codeblocked(ctx, msg, encoding=None):
     if encoding is None:
-        mesg = f'\n```{cfg.blockEncoding}\n{msg}\n```'
+        mesg = f'\n```Markdown\n{msg}\n```'
     else:
         mesg = f'\n```{encoding}\n{msg}\n```'
     if is_cmdChannel(ctx):
