@@ -5,6 +5,7 @@ import asyncio
 import os
 import re
 import logging
+from .utils.config import Config
 from .utils.discoutils import has_permission, _is_cmdChannel
 from .utils.miscutils import isUp, termProc, sendCmd, sendCmds
 
@@ -291,4 +292,8 @@ class serverCmds:
 
 
 def setup(bot):
+    if not hasattr(bot, 'servercfg'):
+        bot.servercfg = Config(f'{bot.dir}/cogs/configs/serverCfgs.json',
+                               default=f'{bot.dir}/cogs/configs/serverCfgs.json_default',
+                               load=True, loop=bot.loop)
     bot.add_cog(serverCmds(bot))

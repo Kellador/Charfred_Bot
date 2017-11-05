@@ -7,6 +7,7 @@ import asyncio
 import logging
 from .utils.discoutils import has_permission, sendReply
 from .configs import configs as cfg
+# cfg no longer has serverspath, rebuild to use Config
 
 log = logging.getLogger('charfred')
 

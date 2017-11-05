@@ -21,21 +21,6 @@ def has_permission(cmd):
     return commands.check(predicate)
 
 
-# TODO NOTE: ctx.args[0] index out of range
-# I'm guessing that the arguments are consumed upon command resolution.
-# Possibly just do away with this and error if an invalid server was given instead.
-async def targetCheck(ctx):
-    if ctx.args[0] in ctx.bot.servercfg['servers']:
-        return True
-    return False
-
-
-def valid_server():
-    async def predicate(ctx):
-        return await targetCheck(ctx)
-    return commands.check(predicate)
-
-
 def is_cmdChannel(ctx):
     if ctx.channel.id in cfg.commandCh.values():
         return True

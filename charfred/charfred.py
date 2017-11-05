@@ -12,10 +12,8 @@ import aiohttp
 from cogs.configs.keywords import nacks, errormsgs
 from cogs.utils.miscutils import getPasteKey
 from cogs.utils.config import Config
-from cogs.configs import configs
 
 log = logging.getLogger('charfred')
-# coloredlogs.install(level='DEBUG')
 coloredlogs.install(level='DEBUG', logger=log)
 
 description = """
@@ -25,21 +23,14 @@ however he can be quite rude sometimes.
 """
 
 
-def get_prefixes(bot, msg):
-    prefixes = ['‽']
-    prefixes.extend(configs.prefixes)
-    return commands.when_mentioned_or(*prefixes)(bot, msg)
-
-
 class Charfred(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=get_prefixes, description=description,
+        super().__init__(command_prefix=self.get_prefixes, description=description,
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.dir = os.path.dirname(os.path.realpath(__file__))
-        self.servercfg = Config(f'{self.dir}/cogs/configs/serverCfgs.json',
-                                default=f'{self.dir}/cogs/configs/serverCfgs.json_default',
-                                load=True, loop=self.loop)
+        self.cfg = Config(f'{self.dir}/cogs/configs/botCfg.json',
+                          load=True, loop=self.loop)
         try:
             self.load_extension('cogs.gearbox')
         except ClientException:
@@ -47,6 +38,11 @@ class Charfred(commands.Bot):
         except ImportError:
             log.critical(f'Gearbox could not be imported!')
             traceback.print_exc()
+
+    def get_prefixes(self, bot, msg):
+        prefixes = ['‽']
+        prefixes.extend(self.cfg.prefixes)
+        return commands.when_mentioned_or(*prefixes)(bot, msg)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
@@ -89,10 +85,10 @@ class Charfred(commands.Bot):
         await self.session.close()
 
     def run(self):
-        if configs.liveMode:
-            token = configs.liveBotToken
+        if self.cfg['liveMode']:
+            token = self.cfg['liveBotToken']
         else:
-            token = configs.stageBotToken
+            token = self.cfg['stageBotToken']
         super().run(token, reconnect=True)
 
 

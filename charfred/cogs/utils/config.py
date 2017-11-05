@@ -13,7 +13,7 @@ class Config(MutableMapping):
     """
     def __init__(self, cfgfile, **opts):
         self.cfgfile = cfgfile
-        self.loop = opts.pop('loop', asyncio.get_event_loop())
+        self.loop = opts.pop('loop', None)
         self.lock = asyncio.Lock()
         self.default = opts.pop('default', False)
         if opts.pop('load', False):

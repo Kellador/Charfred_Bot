@@ -2,6 +2,7 @@
 
 from discord.ext import commands
 import logging
+from .utils.config import Config
 from .utils.discoutils import sendReply_codeblocked, has_permission
 from .utils.miscutils import isUp, sendCmd
 
@@ -153,4 +154,8 @@ class consoleCmds:
 
 
 def setup(bot):
+    if not hasattr(bot, 'servercfg'):
+        bot.servercfg = Config(f'{bot.dir}/cogs/configs/serverCfgs.json',
+                               default=f'{bot.dir}/cogs/configs/serverCfgs.json_default',
+                               load=True, loop=bot.loop)
     bot.add_cog(consoleCmds(bot))
