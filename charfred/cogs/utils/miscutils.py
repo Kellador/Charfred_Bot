@@ -3,19 +3,9 @@
 import psutil
 import asyncio
 import logging
-from ..configs import configs as cfg
 from .discoutils import sendReply_codeblocked
 
 log = logging.getLogger('charfred')
-
-
-async def getPasteKey(session):
-    async with session.post(
-        'https://pastebin.com/api/api_login.php',
-        data={'api_dev_key': cfg.pastebinToken,
-              'api_user_name': cfg.pastebinUser,
-              'api_user_password': cfg.pastebinPass}) as resp:
-        return await resp.text()
 
 
 def isUp(server):

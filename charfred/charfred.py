@@ -10,7 +10,6 @@ import datetime
 import random
 import aiohttp
 from cogs.configs.keywords import nacks, errormsgs
-from cogs.utils.miscutils import getPasteKey
 from cogs.utils.config import Config
 
 log = logging.getLogger('charfred')
@@ -68,9 +67,6 @@ class Charfred(commands.Bot):
         log.info(f'ID: {self.user.id}')
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
-        if not hasattr(self, 'pasteKey'):
-            self.pasteKey = await getPasteKey(self.session)
-            log.info(f'Pastebin user key recieved: {self.pasteKey}')
 
     async def on_message(self, message):
         if message.author.bot:

@@ -16,6 +16,17 @@ class crashReporter:
     def __init__(self, bot):
         self.bot = bot
 
+    # TODO: Implement all of this without pastebin,
+    # possibly with some heavier processing of the crashreport itself,
+    # so that it fits into an embedd.
+    async def getPasteKey(session):
+        async with session.post(
+            'https://pastebin.com/api/api_login.php',
+            data={'api_dev_key': cfg.pastebinToken,
+                  'api_user_name': cfg.pastebinUser,
+                  'api_user_password': cfg.pastebinPass}) as resp:
+            return await resp.text()
+
     @commands.command(aliases=['report', 'crashreports'])
     @has_permission('crashreport')
     async def crashreport(self, ctx, server: str, age: str=None):
