@@ -6,7 +6,7 @@ import os
 import re
 import logging
 from .utils.config import Config
-from .utils.discoutils import has_permission, _is_cmdChannel
+from .utils.discoutils import has_permission
 from .utils.miscutils import isUp, termProc, sendCmd, sendCmds
 
 log = logging.getLogger('charfred')
@@ -22,7 +22,6 @@ class serverCmds:
         )
 
     @commands.group()
-    @_is_cmdChannel()
     @has_permission('status')
     async def server(self, ctx):
         if ctx.invoked_subcommand is None:
@@ -297,3 +296,6 @@ def setup(bot):
                                default=f'{bot.dir}/cogs/configs/serverCfgs.json_default',
                                load=True, loop=bot.loop)
     bot.add_cog(serverCmds(bot))
+
+
+permissionNodes = ['start', 'stop', 'status', 'restart']

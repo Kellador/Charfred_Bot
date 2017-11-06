@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from discord.ext import commands
 from discord import ClientException
 import os
@@ -40,7 +38,7 @@ class Charfred(commands.Bot):
 
     def get_prefixes(self, bot, msg):
         prefixes = ['‽']
-        prefixes.extend(self.cfg.prefixes)
+        prefixes.extend(self.cfg['prefixes'])
         return commands.when_mentioned_or(*prefixes)(bot, msg)
 
     async def on_command_error(self, ctx, error):
@@ -81,10 +79,7 @@ class Charfred(commands.Bot):
         await self.session.close()
 
     def run(self):
-        if self.cfg['liveMode']:
-            token = self.cfg['liveBotToken']
-        else:
-            token = self.cfg['stageBotToken']
+        token = self.cfg['botToken']
         super().run(token, reconnect=True)
 
 

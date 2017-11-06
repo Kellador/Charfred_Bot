@@ -2,7 +2,7 @@
 
 from discord.ext import commands
 import logging
-from .utils.discoutils import has_permission, _is_cmdChannel
+from .utils.discoutils import has_permission
 
 log = logging.getLogger('charfred')
 
@@ -12,7 +12,6 @@ class nbteditor:
         self.bot = bot
 
     @commands.group(invoke_without_command=True)
-    @_is_cmdChannel()
     @has_permission('nbt')
     async def nbt(self, ctx):
         True
