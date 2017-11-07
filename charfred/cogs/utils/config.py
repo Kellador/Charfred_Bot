@@ -54,11 +54,11 @@ class Config(MutableMapping):
 
     async def save(self):
         with await self.lock:
-            await self.loop.run_in_executor(None, self._save())
+            await self.loop.run_in_executor(None, self._save)
 
     async def load(self):
         with await self.lock:
-            await self.loop.run_in_executor(None, self._load())
+            await self.loop.run_in_executor(None, self._load)
 
     def __getitem__(self, key):
         return self.cfgs[key]

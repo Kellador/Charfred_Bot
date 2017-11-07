@@ -13,8 +13,12 @@ class gearbox:
         self.loop = bot.loop
         self.cogfig = Config(f'{self.dir}/cogs/configs/cogCfg.json',
                              load=True, loop=self.loop)
-        for cog in self.cogfig['cogs']:
-            self._load(cog)
+        try:
+            for cog in self.cogfig['cogs']:
+                self._load(cog)
+        except KeyError:
+            log.info('No cog configurations exist. Initializing empty config.')
+            self.cogfig['cogs'] = []
 
     def _load(self, cog):
         try:

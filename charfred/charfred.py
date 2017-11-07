@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord import ClientException
 import os
+import click
 import logging
 import coloredlogs
 import traceback
@@ -78,10 +79,20 @@ class Charfred(commands.Bot):
         await super().close()
         await self.session.close()
 
-    def run(self):
-        token = self.cfg['botToken']
+    def run(self, token=None):
+        if token is None:
+            log.info('Using pre-configured Token...')
+            token = self.cfg['botToken']
         super().run(token, reconnect=True)
 
 
-char = Charfred()
-char.run()
+@click.command()
+@click.option('--token', default=None, help='Discord Bot Token')
+def run(token):
+    log.info('Initializing Charfred!')
+    char = Charfred()
+    char.run(token)
+
+
+if __name__ == '__main__':
+    run()
