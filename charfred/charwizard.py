@@ -34,12 +34,15 @@ def _cmds():
                    f'{_cog}!')
         for node in nodes:
             cfg['commands'][node] = {}
+            cfg['commands'][node]['ranks'] = []
             ranks = click.prompt('Please enter all Discord roles which will be '
                                  f'allowed to run \"{node}\", seperated by spaces only!').split()
             cfg['commands'][node]['ranks'] = ranks
+            cfg['commands'][node]['channels'] = []
             channels = click.prompt('Please enter all Discord channels\' IDs where '
                                     f'\"{node}\" is allowed to be run, seperated by '
                                     'spaces only!').split()
+            channels = list(map(int, channels))
             cfg['commands'][node]['channels'] = channels
         else:
             click.echo(f'Done with all permission nodes for {_cog}!')
@@ -93,13 +96,76 @@ def wizard(ctx):
                    'If you have any problems you can just run this wizard again!')
 
 
-@wizard.command()
-def cmds():
+@wizard.group(invoke_without_command=True)
+@click.pass_context
+def cmds(ctx):
     cfg._load()
     click.echo('Loaded existing configs for Charfred.')
-    _cmds()
-    cfg._save()
-    click.echo('Configs for Charfred saved!')
+    if ctx.invoked_subcommand is None:
+        _cmds()
+        cfg._save()
+        click.echo('Configs for Charfred saved!')
+
+
+@cmds.command()
+def edit():
+    while True:
+        for cmd in cfg['commands']:
+            click.echo(cmd)
+        cmd = click.prompt('Which command\'s permissions would you like to edit?\n'
+                           'This will wipe all current permissions for the selected '
+                           'command! You\'ll be shown the current permissions and '
+                           'then asked to enter new permissions.')
+        if cmd not in cfg['commands']:
+            click.echo(f'{cmd} is not a registered command!')
+            return
+        click.echo('Current entries for allowed ranks:\n' +
+                   ' '.join(cfg['commands'][cmd]['ranks']))
+        ranks = click.prompt('Please enter all Discord roles which will be '
+                             f'allowed to run \"{cmd}\", seperated by spaces only!').split()
+        cfg['commands'][cmd]['ranks'] = ranks
+        click.echo('Current entries for allowed channels:\n' +
+                   ' '.join(cfg['commands'][cmd]['channels']))
+        channels = click.prompt('Please enter all Discord channels\' IDs where '
+                                f'\"{cmd}\" is allowed to be run, seperated by '
+                                'spaces only!').split()
+        channels = list(map(int, channels))
+        cfg['commands'][cmd]['channels'] = channels
+        click.echo(f'Done editing permissions for {cmd}!')
+        if not click.confirm('Would you like to edit more?'):
+            break
+
+
+@wizard.command()
+def token():
+    click.echo('Current Token: ' + cfg['botToken'])
+    if click.confirm('Would you like to change it?'):
+        token = click.prompt('Please enter the new Token!')
+        cfg['botToken'] = token
+
+
+@wizard.command()
+def prefixes():
+    click.echo('Current prefixes:\n')
+    for prefix in cfg['prefixes']:
+        click.echo(prefix)
+    if click.confirm('Would you like to enter new prefixes?\n'
+                     'This will replace all current ones!'):
+        cfg['prefixes'] = []
+        prefix = click.prompt('Please enter the first prefix!')
+        cfg['prefixes'].append(prefix)
+        while click.confirm('Wanna add one more?'):
+            prefix = click.prompt('Please enter another prefix!')
+            cfg['prefixes'].append(prefix)
+
+
+@wizard.command()
+def cmdChannel():
+    click.echo('Current default command channel: ' + cfg['defaultCmdCh'])
+    if click.confirm('Would you like to change it?'):
+        cmdCh = click.prompt('Please enter the new default command channel\'s ID!',
+                             type=int)
+        cfg['defaultCmdCh'] = cmdCh
 
 
 @wizard.command()

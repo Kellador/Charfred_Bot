@@ -12,7 +12,6 @@ def has_permission(cmd):
         if not isinstance(ctx.channel, discord.abc.GuildChannel):
             return False
         if ctx.channel.id == ctx.bot.cfg['defaultCmdCh'] or \
-           len(ctx.bot.cfg['commands'][cmd]['channels']) == 0 or \
            ctx.channel.id in ctx.bot.cfg['commands'][cmd]['channels']:
             names = ctx.bot.cfg['commands'][cmd]['ranks']
             getter = functools.partial(discord.utils.get, ctx.author.roles)
