@@ -11,6 +11,8 @@ def has_permission(cmd):
     def predicate(ctx):
         if not isinstance(ctx.channel, discord.abc.GuildChannel):
             return False
+        if ctx.author.id == ctx.bot.owner_id:
+            return True
         if ctx.channel.id == ctx.bot.cfg['defaultCmdCh'] or \
            ctx.channel.id in ctx.bot.cfg['commands'][cmd]['channels']:
             names = ctx.bot.cfg['commands'][cmd]['ranks']

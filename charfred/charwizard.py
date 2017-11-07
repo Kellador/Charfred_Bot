@@ -39,11 +39,13 @@ def _cmds():
                                  f'allowed to run \"{node}\", seperated by spaces only!').split()
             cfg['commands'][node]['ranks'] = ranks
             cfg['commands'][node]['channels'] = []
-            channels = click.prompt('Please enter all Discord channels\' IDs where '
-                                    f'\"{node}\" is allowed to be run, seperated by '
-                                    'spaces only!').split()
-            channels = list(map(int, channels))
-            cfg['commands'][node]['channels'] = channels
+            if click.confirm('Would you like to define specific channels where '
+                             f'{node} will be allowed?\n If you don\'t then '
+                             'it will only work in the default command channel!'):
+                channels = click.prompt('Please enter all channel\' IDs where '
+                                        f'\"{node}\" is allowed to be run, seperated by spaces only!').split()
+                channels = list(map(int, channels))
+                cfg['commands'][node]['channels'] = channels
         else:
             click.echo(f'Done with all permission nodes for {_cog}!')
     else:
@@ -119,18 +121,22 @@ def edit():
         if cmd not in cfg['commands']:
             click.echo(f'{cmd} is not a registered command!')
             return
-        click.echo('Current entries for allowed ranks:\n' +
+        click.echo('Old entries for allowed ranks:\n' +
                    ' '.join(cfg['commands'][cmd]['ranks']))
         ranks = click.prompt('Please enter all Discord roles which will be '
                              f'allowed to run \"{cmd}\", seperated by spaces only!').split()
         cfg['commands'][cmd]['ranks'] = ranks
-        click.echo('Current entries for allowed channels:\n' +
-                   ' '.join(cfg['commands'][cmd]['channels']))
-        channels = click.prompt('Please enter all Discord channels\' IDs where '
-                                f'\"{cmd}\" is allowed to be run, seperated by '
-                                'spaces only!').split()
-        channels = list(map(int, channels))
-        cfg['commands'][cmd]['channels'] = channels
+        if click.confirm('Would you like to define specific channels where '
+                         f'{cmd} will be allowed?\n If you don\'t then '
+                         f'{cmd} will only work in the default command channel!'):
+            click.echo('Old entries for allowed channels:\n' +
+                       ' '.join(cfg['commands'][cmd]['channels']))
+            cfg['commands'][cmd]['channels'] = []
+            channels = click.prompt('Please enter all Discord channels\' IDs where '
+                                    f'\"{cmd}\" is allowed to be run, seperated by '
+                                    'spaces only!').split()
+            channels = list(map(int, channels))
+            cfg['commands'][cmd]['channels'] = channels
         click.echo(f'Done editing permissions for {cmd}!')
         if not click.confirm('Would you like to edit more?'):
             break
