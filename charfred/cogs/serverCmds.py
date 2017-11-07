@@ -250,6 +250,8 @@ class serverCmds:
         def check(m):
             return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
+        await ctx.send(f'Available options for {server}: ' +
+                       ' '.join(self.servercfg['servers'][server].keys()))
         await ctx.send(f'Please enter the configuration option for {server}, that you want to edit:')
         r = await self.bot.wait_for('message', check=check, timeout=120)
         r = r.content.lower()
@@ -298,4 +300,4 @@ def setup(bot):
     bot.add_cog(serverCmds(bot))
 
 
-permissionNodes = ['start', 'stop', 'status', 'restart']
+permissionNodes = ['start', 'stop', 'status', 'restart', 'terminate', 'management']

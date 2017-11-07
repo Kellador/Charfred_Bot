@@ -159,3 +159,7 @@ def setup(bot):
                                default=f'{bot.dir}/cogs/configs/serverCfgs.json_default',
                                load=True, loop=bot.loop)
     bot.add_cog(consoleCmds(bot))
+
+
+permissionNodes = ['whitelist', 'unwhitelist', 'whitelistcheck', 'kick', 'ban',
+                   'promote', 'demote', 'relay']

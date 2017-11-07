@@ -76,3 +76,6 @@ class stalkCmds:
 
 def setup(bot):
     bot.add_cog(stalkCmds(bot))
+
+
+permissionNodes = ['stalk']
