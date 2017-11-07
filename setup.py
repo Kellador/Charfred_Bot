@@ -17,5 +17,11 @@ setup(
     author="Kella",
     author_email="kellador@gmail.com",
     description="Charfred is a modular Discord bot with capabilities to manage your minecraft servers.",
-    keywords="discord-bot discord.py minecraft minecraft-administration"
+    keywords="discord-bot discord.py minecraft minecraft-administration",
+    entry_points={
+        'console_scripts': [
+            'charfred = charfred:run',
+            'charwizard = charwizard:wizard'
+        ]
+    }
 )
