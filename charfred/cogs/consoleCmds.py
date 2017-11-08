@@ -19,7 +19,6 @@ class consoleCmds:
     @commands.guild_only()
     async def player(self, ctx):
         if ctx.invoked_subcommand is None:
-            log.info('No subcommand passed.')
             pass
 
     @player.group()
@@ -94,46 +93,6 @@ class consoleCmds:
             else:
                 log.warning(f'Could not ban {player} from {server}.')
                 msg.append(f'[Error]: Unable to ban {player}, {server} is offline!')
-        await sendReply_codeblocked(ctx, '\n'.join(msg))
-
-    @player.command()
-    @has_permission('promote')
-    async def promote(self, ctx, player: str, rank: str):
-        msg = ['Command Log', '==========']
-        for server in self.servercfg['servers']:
-            if isUp(server):
-                log.info(f'Promoting {player} to {rank}.')
-                await sendCmd(
-                    self.loop,
-                    server,
-                    self.servercfg['servers'][server]['promotecmd'].format(
-                        player=player, rank=rank
-                    )
-                )
-                msg.append(f'[Info] Promoted {player} to {rank} on {server}.')
-            else:
-                log.warning(f'Could not promote {player} on {server}.')
-                msg.append(f'[Error]: Unable to promote {player}, {server} is offline!')
-        await sendReply_codeblocked(ctx, '\n'.join(msg))
-
-    @player.command()
-    @has_permission('demote')
-    async def demote(self, ctx, player: str, rank: str):
-        msg = ['Command Log', '==========']
-        for server in self.servercfg['servers']:
-            if isUp(server):
-                log.info(f'Demoting {player} to {rank}.')
-                await sendCmd(
-                    self.loop,
-                    server,
-                    self.servercfg['servers'][server]['demotecmd'].format(
-                        player=player, rank=rank
-                    )
-                )
-                msg.append(f'[Info] Demoted {player} to {rank} on {server}.')
-            else:
-                log.warning(f'Could not demote {player} on {server}.')
-                msg.append(f'[Error]: Unable to demote {player}, {server} is offline!')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command(aliases=['pass'])
