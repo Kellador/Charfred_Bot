@@ -15,22 +15,20 @@ class consoleCmds:
         self.loop = bot.loop
         self.servercfg = bot.servercfg
 
-    @commands.group(invoke_without_command=True)
+    @commands.group()
+    @commands.guild_only()
+    async def player(self, ctx):
+        if ctx.invoked_subcommand is None:
+            log.info('No subcommand passed.')
+            pass
+
+    @player.group()
     @has_permission('whitelist')
     async def whitelist(self, ctx, player: str):
-        msg = ['Command Log', '==========']
-        for server in self.servercfg['servers']:
-            if isUp(server):
-                log.info(f'Whitelisting {player} on {server}.')
-                await sendCmd(self.loop, server, f'whitelist add {player}')
-                msg.append(f'[Info] Whitelisted {player} on {server}.')
-            else:
-                log.warning(f'Could not whitelist {player} on {server}.')
-                msg.append(f'[Error]: Unable to whitelist {player}, {server} is offline!')
-        await sendReply_codeblocked(ctx, '\n'.join(msg))
+        if ctx.invoked_subcommand is None:
+            ctx.invoke(self.add, player)
 
     @whitelist.command()
-    @has_permission('whitelist')
     async def add(self, ctx, player: str):
         msg = ['Command Log', '==========']
         for server in self.servercfg['servers']:
@@ -44,7 +42,6 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @whitelist.command()
-    @has_permission('unwhitelist')
     async def remove(self, ctx, player: str):
         msg = ['Command Log', '==========']
         for server in self.servercfg['servers']:
@@ -71,7 +68,7 @@ class consoleCmds:
                     msg.append(f'[Warning]: {player} is NOT whitelisted on {server}.')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
-    @commands.command()
+    @player.command()
     @has_permission('kick')
     async def kick(self, ctx, server: str, player: str):
         msg = ['Command Log', '==========']
@@ -83,7 +80,7 @@ class consoleCmds:
             msg.append(f'[Error] {server} is not online!')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
-    @commands.command()
+    @player.command()
     @has_permission('ban')
     async def ban(self, ctx, player: str):
         msg = ['Command Log', '==========']
@@ -99,7 +96,7 @@ class consoleCmds:
                 msg.append(f'[Error]: Unable to ban {player}, {server} is offline!')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
-    @commands.command()
+    @player.command()
     @has_permission('promote')
     async def promote(self, ctx, player: str, rank: str):
         msg = ['Command Log', '==========']
@@ -119,7 +116,7 @@ class consoleCmds:
                 msg.append(f'[Error]: Unable to promote {player}, {server} is offline!')
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
-    @commands.command()
+    @player.command()
     @has_permission('demote')
     async def demote(self, ctx, player: str, rank: str):
         msg = ['Command Log', '==========']
@@ -140,6 +137,7 @@ class consoleCmds:
         await sendReply_codeblocked(ctx, '\n'.join(msg))
 
     @commands.command(aliases=['pass'])
+    @commands.guild_only()
     @has_permission('relay')
     async def relay(self, ctx, server: str, command: str):
         msg = ['Command Log', '==========']
@@ -161,5 +159,5 @@ def setup(bot):
     bot.add_cog(consoleCmds(bot))
 
 
-permissionNodes = ['whitelist', 'unwhitelist', 'whitelistcheck', 'kick', 'ban',
+permissionNodes = ['whitelist', 'whitelistcheck', 'kick', 'ban',
                    'promote', 'demote', 'relay']
