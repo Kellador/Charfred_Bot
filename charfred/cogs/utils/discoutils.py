@@ -9,11 +9,9 @@ from ..configs import keywords
 
 def has_permission(cmd):
     def predicate(ctx):
-        if ctx.author.id == ctx.bot.owner_id:
-            return True
         if ctx.channel.id == ctx.bot.cfg['defaultCmdCh'] or \
-           ctx.channel.id in ctx.bot.cfg['commands'][cmd]['channels']:
-            names = ctx.bot.cfg['commands'][cmd]['ranks']
+           ctx.channel.id in ctx.bot.cfg['nodes'][cmd]['channels']:
+            names = ctx.bot.cfg['nodes'][cmd]['ranks']
             getter = functools.partial(discord.utils.get, ctx.author.roles)
             return any(getter(name=name) is not None for name in names)
         else:

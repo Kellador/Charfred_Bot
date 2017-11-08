@@ -22,6 +22,7 @@ class serverCmds:
         )
 
     @commands.group()
+    @commands.guild_only()
     @has_permission('status')
     async def server(self, ctx):
         if ctx.invoked_subcommand is None:

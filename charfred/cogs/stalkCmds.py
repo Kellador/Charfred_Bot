@@ -36,6 +36,7 @@ class stalkCmds:
                 )
                 await sendEmbed(ctx, reportCard)
             else:
+                # TODO: All this else stuff doesn't get executed if user is retrieved from stalkdict (dummy)
                 reportCard = discord.Embed(
                     title="__Subject: " + mcU.name + "__",
                     url='http://mcbouncer.com/u/' + mcU.uuid,
