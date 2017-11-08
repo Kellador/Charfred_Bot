@@ -9,8 +9,6 @@ from ..configs import keywords
 
 def has_permission(cmd):
     def predicate(ctx):
-        if not isinstance(ctx.channel, discord.abc.GuildChannel):
-            return False
         if ctx.author.id == ctx.bot.owner_id:
             return True
         if ctx.channel.id == ctx.bot.cfg['defaultCmdCh'] or \

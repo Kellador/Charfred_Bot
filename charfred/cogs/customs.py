@@ -20,6 +20,7 @@ class customs:
         )
 
     @commands.group(hidden=True, aliases=['cc'])
+    @commands.guild_only()
     @has_permission('custom')
     async def custom(self, ctx):
         if ctx.invoked_subcommand is None and ctx.subcommand_passed is not None:
