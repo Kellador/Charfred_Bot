@@ -14,7 +14,41 @@ def _cogs():
             yield _cog[:-3]
 
 
-def _nodes():
+def _nodes(nodes):
+    for node in nodes:
+        if node.startswith('spec:'):
+            default = nodes[node][1]
+            cfg['nodes'][node] = default
+            if type(default) is str:
+                if len(nodes[node]) > 2 and nodes[node][2]:
+                    spec = click.prompt(nodes[node][0]).split()
+                else:
+                    spec = click.prompt(nodes[node][0])
+            elif type(default) is bool:
+                spec = click.confirm(nodes[node][0])
+            else:
+                if len(nodes[node]) > 2 and nodes[node][2]:
+                    spec = click.prompt(nodes[node][0], type=type(default))
+                else:
+                    spec = click.prompt(nodes[node][0], type=type(default))
+            cfg['nodes'][node] = [spec, nodes[node][0]]
+            continue
+        cfg['nodes'][node] = {}
+        cfg['nodes'][node]['ranks'] = []
+        ranks = click.prompt('Please enter all Discord roles which will be '
+                             f'allowed to run \"{node}\", seperated by spaces only!\n').split()
+        cfg['nodes'][node]['ranks'] = ranks
+        cfg['nodes'][node]['channels'] = []
+        if click.confirm('Would you like to define specific channels where '
+                         f'{node} will be allowed?\n If you don\'t then '
+                         'it will only work in the default command channel!\n'):
+            channels = click.prompt('Please enter all channel\' IDs where '
+                                    f'\"{node}\" is allowed to be run, seperated by spaces only!\n').split()
+            channels = list(map(int, channels))
+            cfg['nodes'][node]['channels'] = channels
+
+
+def _initcogs():
     click.echo('We\'ll set up the permission nodes for all currently '
                'installed cogs (extensions) now. If the cog defines '
                'checks for its functions then these checks will run '
@@ -30,39 +64,8 @@ def _nodes():
             continue
         click.echo('Beginning setup for permission nodes defined for '
                    f'{_cog}!')
-        for node in nodes:
-            if node.startswith('spec:'):
-                default = nodes[node][1]
-                cfg['nodes'][node] = default
-                if type(default) is str:
-                    if len(nodes[node]) > 2 and nodes[node][2]:
-                        spec = click.prompt(nodes[node][0]).split()
-                    else:
-                        spec = click.prompt(nodes[node][0])
-                elif type(default) is bool:
-                    spec = click.confirm(nodes[node][0])
-                else:
-                    if len(nodes[node]) > 2 and nodes[node][2]:
-                        spec = click.prompt(nodes[node][0], type=type(default))
-                    else:
-                        spec = click.prompt(nodes[node][0], type=type(default))
-                cfg['nodes'][node] = [spec, nodes[node][0]]
-                continue
-            cfg['nodes'][node] = {}
-            cfg['nodes'][node]['ranks'] = []
-            ranks = click.prompt('Please enter all Discord roles which will be '
-                                 f'allowed to run \"{node}\", seperated by spaces only!\n').split()
-            cfg['nodes'][node]['ranks'] = ranks
-            cfg['nodes'][node]['channels'] = []
-            if click.confirm('Would you like to define specific channels where '
-                             f'{node} will be allowed?\n If you don\'t then '
-                             'it will only work in the default command channel!\n'):
-                channels = click.prompt('Please enter all channel\' IDs where '
-                                        f'\"{node}\" is allowed to be run, seperated by spaces only!\n').split()
-                channels = list(map(int, channels))
-                cfg['nodes'][node]['channels'] = channels
-        else:
-            click.echo(f'Done with all permission nodes for {_cog}!')
+        _nodes(nodes)
+        click.echo(f'Done with all permission nodes for {_cog}!')
     else:
         click.echo('Excellent, we\'re all done with the permission nodes now!')
 
@@ -106,7 +109,7 @@ def wizard(ctx):
         click.confirm('Great! We\'ve reached the breakpoint! The absolute basics '
                       'have been set up. This next part is gonna a lot longer!\n'
                       'You wanna continue now?\n', abort=True)
-        _nodes()
+        _initcogs()
         cfg._save()
         click.echo('All done, yay! You\'re ready to start using Charfred now! '
                    'If you\'ve setup everything correctly that is ;)\n'
@@ -120,6 +123,34 @@ def nodes(ctx):
     click.echo('Loaded existing configs for Charfred.')
     if ctx.invoked_subcommand is None:
         _nodes()
+        cfg._save()
+        click.echo('Configs for Charfred saved!')
+
+
+@nodes.command()
+def update():
+    for _cog in _cogs():
+        cog = importlib.import_module(f'cogs.{_cog}')
+        nodes = getattr(cog, 'permissionNodes', None)
+        if nodes is None:
+            continue
+        if type(nodes) is dict:
+            newNodes = {}
+            for k, v in nodes.items():
+                if k not in cfg['nodes']:
+                    newNodes[k] = v
+        else:
+            newNodes = []
+            for node in nodes:
+                if node not in cfg['nodes']:
+                    newNodes.append(node)
+        if len(newNodes) > 0:
+            _nodes(newNodes)
+            click.echo(f'Done with all permission nodes for {_cog}!')
+        else:
+            click.echo(f'No new nodes found for {_cog}!')
+    else:
+        click.echo('Excellent, we\'re all done with the permission nodes now!')
         cfg._save()
         click.echo('Configs for Charfred saved!')
 
