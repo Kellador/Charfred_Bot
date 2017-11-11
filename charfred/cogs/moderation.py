@@ -17,9 +17,9 @@ class moderation:
         if message.guild.id is None:
             return
 
-        if message.author.status is discord.Status.offline:
-            await message.author.send(f'Don\'t be rude! Go online before you post!')
-            if self.bot.cfg['nodes']['spec:moderation'][0]:
+        if self.bot.cfg['nodes']['spec:moderation'][0]:
+            if message.author.status is discord.Status.offline:
+                await message.author.send(f'Don\'t be rude! Go online before you post!')
                 try:
                     message.delete()
                 except discord.Forbidden:
