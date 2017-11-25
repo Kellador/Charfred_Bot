@@ -121,8 +121,8 @@ def restart(cfg, server, countdown=None):
             cwd = os.getcwd()
             log.info(f'Starting {server}')
             os.chdir(cfg['serverspath'] + f'/{server}')
-            screenCmd(['screen', '-h', '5000', '-dmS', server,
-                       cfg['servers'][server]['invocation'], 'nogui'])
+            run(['screen', '-h', '5000', '-dmS', server,
+                cfg['servers'][server]['invocation'], 'nogui'])
             os.chdir(cwd)
             sleep(5)
             if isUp(server):

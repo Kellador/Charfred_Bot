@@ -62,7 +62,3 @@ def keepBack(cfg, servers):
 @pass_cfg
 def cleanBackups(cfg):
     spiffyManagement.cleanBackups(cfg)
-
-
-if __name__ == '__main__':
-    spiffy()

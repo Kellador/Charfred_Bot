@@ -20,7 +20,8 @@ setup(
     entry_points={
         'console_scripts': [
             'charfred = charfred:run',
-            'charwizard = charwizard:wizard'
+            'charwizard = charwizard:wizard',
+            'spiffy = spiffy:spiffy'
         ]
     }
 )
