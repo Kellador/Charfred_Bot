@@ -5,7 +5,7 @@ setup(
     version="1.0alpha1",
     packages=find_packages(),
     install_requires=[
-        'git+https://github.com/Rapptz/discord.py@rewrite',
+        # 'git+https://github.com/Rapptz/discord.py@rewrite',
         'coloredlogs',
         'ttldict',
         'psutil',
@@ -13,7 +13,6 @@ setup(
     package_data={
         '': ['*.json', '*.json_default']
     },
-    zip_save=False,
     author="Kella",
     author_email="kellador@gmail.com",
     description="Charfred is a modular Discord bot with capabilities to manage your minecraft servers.",
