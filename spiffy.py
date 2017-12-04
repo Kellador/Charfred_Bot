@@ -1,7 +1,7 @@
 import click
 import os
-from spiffyScripts import spiffyManagement
-from utils.config import Config
+import spiffyManagement
+from cogs.utils.config import Config
 
 
 pass_cfg = click.make_pass_decorator(Config, ensure=True)

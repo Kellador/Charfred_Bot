@@ -12,7 +12,9 @@ from cogs.configs.keywords import nacks, errormsgs
 from cogs.utils.config import Config
 
 log = logging.getLogger('charfred')
-coloredlogs.install(level='DEBUG', logger=log)
+coloredlogs.install(level='DEBUG',
+                    logger=log,
+                    fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
 
 description = """
 Charfred is a gentleman and a scholar,
@@ -73,6 +75,7 @@ class Charfred(commands.Bot):
         elif message.guild.id is None:
             return
         else:
+            log.info(f'[{message.author.name}]: {message.content}')
             await self.process_commands(message)
 
     async def close(self):

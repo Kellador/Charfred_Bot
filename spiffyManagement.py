@@ -1,13 +1,18 @@
-#!/usr/bin/env python
-
 from subprocess import run
 import os
 import tarfile
 import datetime
 import re
 from time import sleep
-import logging as log
-from ..utils.miscutils import isUp, termProc
+import logging
+import coloredlogs
+from cogs.utils.miscutils import isUp, termProc
+
+
+log = logging.getLogger(__name__)
+coloredlogs.install(level='DEBUG',
+                    logger=log,
+                    fmt='%(asctime)s:%(msecs)03d %(name)s: %(levelname)s %(message)s')
 
 
 def screenCmd(server, *cmds):
@@ -79,22 +84,24 @@ def restart(cfg, server, countdown=None):
             cntd = cfg['restartCountdowns']['default']
         steps = []
         for i, step in enumerate(cntd):
-            s = countpat(step)
+            s = countpat.search(step)
             if s.group('minutes'):
                 time = int(s.group('time')) * 60
+                secs = time * 60
                 unit = 'minutes'
             else:
                 time = int(s.group('time'))
+                secs = time
                 unit = 'seconds'
             if i + 1 > len(cntd) - 1:
-                steps.append((time, time, unit))
+                steps.append((time, secs, unit))
             else:
-                st = countpat(cntd[i + 1])
+                st = countpat.search(cntd[i + 1])
                 if st.group('minutes'):
                     t = int(st.group('time')) * 60
                 else:
                     t = int(st.group('time'))
-                steps.append((time, time - t, unit))
+                steps.append((time, secs - t, unit))
         for step in steps:
             screenCmd(
                 server,
