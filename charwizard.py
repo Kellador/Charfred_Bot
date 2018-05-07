@@ -122,7 +122,7 @@ def nodes(ctx):
     cfg._load()
     click.echo('Loaded existing configs for Charfred.')
     if ctx.invoked_subcommand is None:
-        _nodes()
+        _initcogs()
         cfg._save()
         click.echo('Configs for Charfred saved!')
 
