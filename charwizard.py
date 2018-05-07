@@ -16,6 +16,8 @@ def _cogs():
 
 def _nodes(nodes):
     for node in nodes:
+        if not click.confirm(f'Edit permissions for: \"{node}\"?'):
+            continue
         if node.startswith('spec:'):
             default = nodes[node][1]
             cfg['nodes'][node] = default
@@ -46,6 +48,7 @@ def _nodes(nodes):
                                     f'\"{node}\" is allowed to be run, seperated by spaces only!\n').split()
             channels = list(map(int, channels))
             cfg['nodes'][node]['channels'] = channels
+        cfg._save()
 
 
 def _initcogs():
