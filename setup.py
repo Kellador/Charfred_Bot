@@ -5,11 +5,15 @@ setup(
     version="1.0alpha1",
     packages=find_packages(),
     install_requires=[
-        # 'git+https://github.com/Rapptz/discord.py@rewrite',
+        'discord.py',
         'coloredlogs',
         'ttldict',
         'psutil',
+        'pyfiglet',
         'click'],
+    dependency_links=[
+        'git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py'
+    ],
     package_data={
         '': ['*.json', '*.json_default']
     },
