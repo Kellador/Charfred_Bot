@@ -1,7 +1,5 @@
 from subprocess import run
 import os
-import tarfile
-import datetime
 import re
 from time import sleep
 import logging
@@ -22,6 +20,10 @@ def screenCmd(server, *cmds):
 
 def start(cfg, server):
     """Starts a server, if it is not running already."""
+
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+        return False
     if isUp(server):
         log.info(f'{server} appears to be running already!')
     else:
@@ -39,8 +41,12 @@ def start(cfg, server):
             return False
 
 
-def stop(server):
+def stop(cfg, server):
     """Stops a server immediately, if it is currently running."""
+
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+        return False
     if isUp(server):
         log.info(f'Stopping {server}...')
         screenCmd(
@@ -69,6 +75,10 @@ def stop(server):
 
 def restart(cfg, server, countdown=None):
     """Restarts a server with a countdown, if it is currently running."""
+
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+        return False
     countpat = re.compile(
         '(?P<time>\d+)((?P<minutes>[m].*)|(?P<seconds>[s].*))', flags=re.I
     )
@@ -143,59 +153,24 @@ def restart(cfg, server, countdown=None):
         return False
 
 
-def terminate(server):
+def terminate(cfg, server):
     """Terminates the process corresponding to the given servername."""
+
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+        return
     return termProc(server)
 
 
-def status(server):
+def status(cfg, server):
     """Checks if a server's process is running."""
+
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+        return False
     if isUp(server):
         log.info(f'{server} is running.')
         return True
     else:
         log.info(f'{server} is not running.')
         return False
-
-
-def cleanBackups(cfg):
-    """Deletes all backups older than the configured age."""
-    cwd = os.getcwd()
-    for server in iter(cfg['servers']):
-        # TODO
-        pass
-
-
-def backup(cfg, server):
-    """Backs up all given servers."""
-    # TODO: Try this out!
-    cwd = os.getcwd()
-    if cfg['servers'][server]['backup']:
-        if not isUp(server):
-            log.warning(f'Skipping backup of {server} because it is offline. '
-                        'Maybe it is currently restarting?')
-            return
-        try:
-            os.mkdir(cfg['backupspath'] + f'/{server}')
-            log.info(f'Created directory for {server} backup.')
-        except OSError:
-            pass
-        try:
-            os.chdir(cfg['serverspath'] + f'/{server}')
-        except OSError as e:
-            log.error(f'Could not backup {server}:\n{e.message}')
-            return
-        bfilename = (
-            cfg['serverspath'] + f'/{server}/' +
-            datetime.datetime.now().strftime('%Y.%m.%d-%H:%M') +
-            f'-{server}-' + cfg['servers'][server]['worldname']
-        )
-        with tarfile.open(bfilename, 'w:gz') as tars:
-            tars.add(cfg['servers'][server]['worldname'])
-    os.chdir(cwd)
-
-
-def keepBack(cfg, server):
-    """Moves latest backup of given servers to configured location."""
-    # TODO
-    pass

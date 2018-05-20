@@ -11,7 +11,7 @@ dirp = os.path.dirname(os.path.realpath(__file__))
 @click.group()
 @pass_cfg
 def spiffy(cfg):
-    cfg.cfgfile = f'{dirp}/serverCfgs.json'
+    cfg.cfgfile = f'{dirp}/cogs/configs/serverCfgs.json'
     cfg._load()
 
 
@@ -24,7 +24,8 @@ def start(cfg, server):
 
 @spiffy.command()
 @click.argument('server')
-def stop(server):
+@pass_cfg
+def stop(cfg, server):
     spiffyManagement.stop(server)
 
 
@@ -38,27 +39,6 @@ def restart(cfg, server, countdown):
 
 @spiffy.command()
 @click.argument('server')
-def status(server):
+@pass_cfg
+def status(cfg, server):
     spiffyManagement.status(server)
-
-
-@spiffy.command()
-@click.argument('servers', nargs=-1)
-@pass_cfg
-def backup(cfg, servers):
-    for server in servers:
-        spiffyManagement.backup(cfg, server)
-
-
-@spiffy.command()
-@click.argument('servers', nargs=-1)
-@pass_cfg
-def keepBack(cfg, servers):
-    for server in servers:
-        spiffyManagement.keepBack(cfg, server)
-
-
-@spiffy.command()
-@pass_cfg
-def cleanBackups(cfg):
-    spiffyManagement.cleanBackups(cfg)
