@@ -40,7 +40,7 @@ class Charfred(commands.Bot):
             traceback.print_exc()
 
     def get_prefixes(self, bot, msg):
-        prefixes = ['‽']
+        prefixes = []
         prefixes.extend(self.cfg['prefixes'])
         return commands.when_mentioned_or(*prefixes)(bot, msg)
 
