@@ -5,6 +5,7 @@ setup(
     version="1.0alpha1",
     packages=find_packages(),
     install_requires=[
+        'yarl<1.2',
         'discord.py',
         'coloredlogs',
         'ttldict',
