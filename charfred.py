@@ -8,8 +8,8 @@ import traceback
 import datetime
 import random
 import aiohttp
-from cogs.configs.keywords import nacks, errormsgs
-from cogs.utils.config import Config
+from configs.keywords import nacks, errormsgs
+from utils.config import Config
 
 log = logging.getLogger('charfred')
 coloredlogs.install(level='DEBUG',
@@ -29,10 +29,10 @@ class Charfred(commands.Bot):
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.dir = os.path.dirname(os.path.realpath(__file__))
-        self.cfg = Config(f'{self.dir}/cogs/configs/botCfg.json',
+        self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         try:
-            self.load_extension('cogs.gearbox')
+            self.load_extension('adminCogs.gearbox')
         except ClientException:
             log.critical(f'Could not load \"Gearbox\"!')
         except ImportError:

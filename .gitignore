@@ -96,8 +96,8 @@ ENV/
 .mypy_cache/
 
 #Project Specific
-cogs/configs/configs.py
-cogs/configs/*.json
+configs/configs.py
+configs/*.json
 default_config.txt
 old_main.py
 .flake8

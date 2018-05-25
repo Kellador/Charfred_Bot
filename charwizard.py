@@ -1,11 +1,11 @@
 import os
 import importlib
 import click
-from cogs.utils.config import Config
+from utils.config import Config
 
 botDir = os.path.dirname(os.path.realpath(__file__))
 
-cfg = Config(f'{botDir}/cogs/configs/botCfg.json')
+cfg = Config(f'{botDir}/configs/botCfg.json')
 
 
 def _cogs():
