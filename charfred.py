@@ -38,6 +38,7 @@ class Charfred(commands.Bot):
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         try:
+            os.chdir(self.dir)
             for adminCog in _adminCogs():
                 self.load_extension(adminCog[:-3])
         except ClientException:
