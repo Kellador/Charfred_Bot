@@ -9,9 +9,13 @@ cfg = Config(f'{botDir}/configs/botCfg.json')
 
 
 def _cogs():
-    for _cog in os.listdir(f'{botDir}/cogs'):
-        if os.path.isfile(os.path.join(f'{botDir}/cogs', _cog)):
-            yield _cog[:-3]
+    for dirpath, _, filenames in os.walk(f'{botDir}/cogs'):
+        if '__' in dirpath:
+            continue
+        else:
+            for filename in filenames:
+                if filename.endswith('.py'):
+                    yield filename, os.path.join(dirpath, filename[:-3])
 
 
 def _nodes(nodes):
@@ -60,15 +64,15 @@ def _initcogs():
                'some information. It may take a while if there are a '
                'lot of permission nodes.\n'
                'So let\'s get started!')
-    for _cog in _cogs():
-        cog = importlib.import_module(f'cogs.{_cog}')
+    for cogname, _cog in _cogs():
+        cog = importlib.import_module(_cog.replace('/', '.').replace('\\', '.'))
         nodes = getattr(cog, 'permissionNodes', None)
         if nodes is None:
             continue
         click.echo('Beginning setup for permission nodes defined for '
-                   f'{_cog}!')
+                   f'{cogname}!')
         _nodes(nodes)
-        click.echo(f'Done with all permission nodes for {_cog}!')
+        click.echo(f'Done with all permission nodes for {cogname}!')
     else:
         click.echo('Excellent, we\'re all done with the permission nodes now!')
 
@@ -132,8 +136,8 @@ def nodes(ctx):
 
 @nodes.command()
 def update():
-    for _cog in _cogs():
-        cog = importlib.import_module(f'cogs.{_cog}')
+    for cogname, _cog in _cogs():
+        cog = importlib.import_module(_cog.replace('/', '.').replace('\\', '.'))
         nodes = getattr(cog, 'permissionNodes', None)
         if nodes is None:
             continue
@@ -149,9 +153,9 @@ def update():
                     newNodes.append(node)
         if len(newNodes) > 0:
             _nodes(newNodes)
-            click.echo(f'Done with all permission nodes for {_cog}!')
+            click.echo(f'Done with all permission nodes for {cogname}!')
         else:
-            click.echo(f'No new nodes found for {_cog}!')
+            click.echo(f'No new nodes found for {cogname}!')
     else:
         click.echo('Excellent, we\'re all done with the permission nodes now!')
         cfg._save()
