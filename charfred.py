@@ -42,7 +42,8 @@ class Charfred(commands.Bot):
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         try:
-            for adminCog in _adminCogs(f'{self.dir}/adminCogs'):
+            os.chdir(self.dir)
+            for adminCog in _adminCogs('adminCogs'):
                 self.load_extension(adminCog.replace('/', '.').replace('\\', '.'))
         except ClientException:
             log.critical(f'Could not load Administrative Cogs!')

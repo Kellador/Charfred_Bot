@@ -9,7 +9,7 @@ cfg = Config(f'{botDir}/configs/botCfg.json')
 
 
 def _cogs():
-    for dirpath, _, filenames in os.walk(f'{botDir}/cogs'):
+    for dirpath, _, filenames in os.walk('cogs'):
         if '__' in dirpath:
             continue
         else:
@@ -64,6 +64,7 @@ def _initcogs():
                'some information. It may take a while if there are a '
                'lot of permission nodes.\n'
                'So let\'s get started!')
+    os.chdir(botDir)
     for cogname, _cog in _cogs():
         cog = importlib.import_module(_cog.replace('/', '.').replace('\\', '.'))
         nodes = getattr(cog, 'permissionNodes', None)
@@ -136,6 +137,7 @@ def nodes(ctx):
 
 @nodes.command()
 def update():
+    os.chdir(botDir)
     for cogname, _cog in _cogs():
         cog = importlib.import_module(_cog.replace('/', '.').replace('\\', '.'))
         nodes = getattr(cog, 'permissionNodes', None)
