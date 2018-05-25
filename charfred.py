@@ -39,7 +39,7 @@ class Charfred(commands.Bot):
                           load=True, loop=self.loop)
         try:
             for adminCog in _adminCogs(self.dir):
-                self.load_extension(adminCog)
+                self.load_extension(f'adminCogs.{adminCog}')
         except ClientException:
             log.critical(f'Could not load Administrative Cogs!')
         except ImportError:
