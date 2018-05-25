@@ -100,8 +100,17 @@ class admin:
         else:
             currRanks = '\n'.join(n['ranks'])
             await ctx.send(f'Current ranks with permission for {node}: ```{currRanks}```')
-            currChans = '\n'.join(n['channels'])
-            await ctx.send(f'Current channels where {node} is permitted: ```{currChans}```')
+            dCC = self.bot.get_channel(self.botCfg['defaultCmdCh']).mention
+            if len(n['channels']) > 0:
+                currChans = []
+                for c in n['channels']:
+                    currChans.append(self.bot.get_channel(c).mention)
+                currChans = '\n'.join(currChans)
+                await ctx.send(f'Current channels where {node} is permitted: ```{currChans}```'
+                               f'\nAlways permitted in default command channel: {dCC}')
+            else:
+                await ctx.send(f'No extra channels specified for {node}'
+                               f'\nAlways permitted in default command channel: {dCC}')
 
     @permissions.command(hidden=True)
     @commands.is_owner()
@@ -124,8 +133,7 @@ class admin:
                 return
             self.botCfg['nodes'][node] = [spec, n[-1]]
         else:
-            opts = '\n'.join(n)
-            r = await promptInput(ctx, f'Which would you like to edit?\n```{opts}```')
+            r = await promptInput(ctx, 'Which would you like to edit?\n```ranks\nchannels```')
             if r == 'ranks':
                 ranks = await promptInput(ctx, 'Please enter all ranks, which should be permitted'
                                           f'to use {node}.'
@@ -134,7 +142,7 @@ class admin:
             elif r == 'channels':
                 chans = await promptInput(ctx, f'Enter all channels where you wish {node} to be allowed!'
                                           '\nDelimited only by spaces!')
-                chans = chans.split().map(int, chans)
+                chans = list(map(int, chans.split()))
                 self.botCfg['nodes'][node]['channels'] = chans
             else:
                 await ctx.send(f'Invalid selection, aborting!')
