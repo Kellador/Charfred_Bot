@@ -98,6 +98,7 @@ ENV/
 #Project Specific
 configs/configs.py
 configs/*.json
+cogs/
 default_config.txt
 old_main.py
 .flake8
