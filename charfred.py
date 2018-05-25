@@ -26,7 +26,7 @@ however he can be quite rude sometimes.
 def _adminCogs():
     for dirpath, _, filenames in os.walk('adminCogs'):
         for filename in filenames:
-            yield os.path.join(dirpath, filename)[:-3]
+            yield os.path.join(dirpath, filename)
 
 
 class Charfred(commands.Bot):
@@ -39,7 +39,7 @@ class Charfred(commands.Bot):
                           load=True, loop=self.loop)
         try:
             for adminCog in _adminCogs():
-                self.load_extension(adminCog)
+                self.load_extension(adminCog[:-3])
         except ClientException:
             log.critical(f'Could not load Administrative Cogs!')
         except ImportError:
