@@ -125,13 +125,25 @@ class gearbox:
         await self.cogfig.save()
         await ctx.send(f'\"{cogname}\" will no longer be loaded automatically.')
 
-    @cog.command(name='list')
+    @cog.group(invoke_without_command=True, name='list')
     @commands.is_owner()
     async def listcogs(self, ctx):
-        """Lists all cogs to be loaded automatically."""
+        """Listing of cogs.
 
-        cogList = ', '.join(self.cogfig['cogs'])
-        await ctx.send(f'Cogs being loaded on startup: `{cogList}`')
+        Without a subcommand, this returns a list of all currently
+        loaded cogs.
+        """
+        if ctx.invoked_subcommand is None:
+            cogList = ',\n'.join(list(self.bot.extensions))
+            await ctx.send(f'Cogs currently loaded:\n```{cogList}```')
+
+    @listcogs.command(name='startup')
+    @commands.is_owner()
+    async def listStartup(self, ctx):
+        """Lists all cogs being loaded on startup."""
+
+        cogList = ',\n'.join(self.cogfig['cogs'])
+        await ctx.send(f'Cogs being loaded on startup:\n```{cogList}```')
 
 
 def setup(bot):
