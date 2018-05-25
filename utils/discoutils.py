@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import random
 import functools
-from ..configs import keywords
+from configs import keywords
 
 
 def has_permission(cmd):
