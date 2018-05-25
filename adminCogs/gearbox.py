@@ -90,20 +90,14 @@ class gearbox:
         else:
             await ctx.send(f'Could not reload \"{cogname}\"!')
 
-    # NOTE: reinitiate is a one-off use, it'll unload gearbox,
-    #       but won't be able to reload it, as at time of
-    #       execution, all of gearbox's commands are still registered.
     @cog.command(name='reinitiate')
     @commands.is_owner()
     async def reinitiatecogs(self, ctx):
-        """One-off reload of all cogs.
-
-        Won\'t reload the gearbox, so this is a
-        one-time per bot-uptime use! (workin on it)
-        """
+        """Reloads all cogs, but the adminCogs."""
 
         for cog in list(self.bot.extensions):
-            self._unload(cog)
+            if not cog.startswith('adminCogs'):
+                self._unload(cog)
         for cog in self.cogfig['cogs']:
             self._load(cog)
 
@@ -134,7 +128,7 @@ class gearbox:
         loaded cogs.
         """
         if ctx.invoked_subcommand is None:
-            cogList = ',\n'.join(list(self.bot.extensions))
+            cogList = '\n'.join(list(self.bot.extensions))
             await ctx.send(f'Cogs currently loaded:\n```{cogList}```')
 
     @listcogs.command(name='startup')
@@ -142,7 +136,7 @@ class gearbox:
     async def listStartup(self, ctx):
         """Lists all cogs being loaded on startup."""
 
-        cogList = ',\n'.join(self.cogfig['cogs'])
+        cogList = '\n'.join(self.cogfig['cogs'])
         await ctx.send(f'Cogs being loaded on startup:\n```{cogList}```')
 
 

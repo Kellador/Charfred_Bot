@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random
+import re
 import functools
 from configs import keywords
 
@@ -31,3 +32,26 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
 
 async def sendEmbed(ctx, emb):
     await ctx.send(f'{random.choice(keywords.replies)}', embed=emb)
+
+
+async def promptInput(ctx, prompt: str):
+    """Prompt for text input."""
+    def check(m):
+        return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+
+    await ctx.send(prompt)
+    r = await ctx.bot.wait_for('message', check=check, timeout=120)
+    return r.content
+
+
+async def promptConfirm(ctx, prompt: str):
+    """Prompt for confirmation."""
+    def check(m):
+        return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+
+    await ctx.send(prompt)
+    r = await ctx.bot.wait_for('message', check=check, timeout=120)
+    if re.match('^(y|yes)', r.content, flags=re.I):
+        return True
+    else:
+        return False
