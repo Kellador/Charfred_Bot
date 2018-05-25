@@ -23,10 +23,10 @@ however he can be quite rude sometimes.
 """
 
 
-def _adminCogs(botDir):
-    for adminCog in os.listdir(f'{botDir}/adminCogs'):
-        if os.path.isfile(os.path.join(f'{botDir}/adminCogs', adminCog)):
-            yield adminCog[:-3]  # [:-3] cuts off .py from the filename.
+def _adminCogs():
+    for dirpath, _, filenames in os.walk('adminCogs'):
+        for filename in filenames:
+            yield os.path.join(dirpath, filename)[:-3]
 
 
 class Charfred(commands.Bot):
@@ -38,8 +38,8 @@ class Charfred(commands.Bot):
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         try:
-            for adminCog in _adminCogs(self.dir):
-                self.load_extension(f'adminCogs.{adminCog}')
+            for adminCog in _adminCogs():
+                self.load_extension(adminCog)
         except ClientException:
             log.critical(f'Could not load Administrative Cogs!')
         except ImportError:
