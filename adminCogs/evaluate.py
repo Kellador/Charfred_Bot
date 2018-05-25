@@ -8,7 +8,7 @@ from discord.ext import commands
 log = logging.getLogger('charfred')
 
 
-class evaluator:
+class evaluate:
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None
@@ -77,4 +77,4 @@ class evaluator:
 
 
 def setup(bot):
-    bot.add_cog(evaluator(bot))
+    bot.add_cog(evaluate(bot))
