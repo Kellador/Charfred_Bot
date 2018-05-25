@@ -4,7 +4,7 @@ import re
 from time import sleep
 import logging
 import coloredlogs
-from cogs.utils.mcservutils import isUp, termProc
+from utils.mcservutils import isUp, termProc
 
 
 log = logging.getLogger(__name__)

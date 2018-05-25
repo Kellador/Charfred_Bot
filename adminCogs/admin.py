@@ -4,7 +4,7 @@ from discord.ext import commands
 log = logging.getLogger('charfred')
 
 
-class adminis:
+class admin:
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
@@ -43,4 +43,4 @@ class adminis:
 
 
 def setup(bot):
-    bot.add_cog(adminis(bot))
+    bot.add_cog(admin(bot))

@@ -1,7 +1,7 @@
 import click
 import os
 import spiffyManagement
-from cogs.utils.config import Config
+from utils.config import Config
 
 
 pass_cfg = click.make_pass_decorator(Config, ensure=True)
@@ -11,7 +11,7 @@ dirp = os.path.dirname(os.path.realpath(__file__))
 @click.group()
 @pass_cfg
 def spiffy(cfg):
-    cfg.cfgfile = f'{dirp}/cogs/configs/serverCfgs.json'
+    cfg.cfgfile = f'{dirp}/configs/serverCfgs.json'
     cfg._load()
 
 

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="Charfred",
-    version="1.0beta2",
+    version="1.0beta3",
     packages=find_packages(),
     install_requires=[
         'yarl<1.2',

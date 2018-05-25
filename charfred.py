@@ -23,6 +23,12 @@ however he can be quite rude sometimes.
 """
 
 
+def _adminCogs(botDir):
+    for adminCog in os.listdir(f'{botDir}/adminCogs'):
+        if os.path.isfile(os.path.join(f'{botDir}/adminCogs', adminCog)):
+            yield adminCog[:-3]  # [:-3] cuts off .py from the filename.
+
+
 class Charfred(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=self.get_prefixes, description=description,
@@ -32,11 +38,12 @@ class Charfred(commands.Bot):
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         try:
-            self.load_extension('adminCogs.gearbox')
+            for adminCog in _adminCogs(self.dir):
+                self.load_extension(adminCog)
         except ClientException:
-            log.critical(f'Could not load \"Gearbox\"!')
+            log.critical(f'Could not load Administrative Cogs!')
         except ImportError:
-            log.critical(f'Gearbox could not be imported!')
+            log.critical(f'Administrative Cogs could not be imported!')
             traceback.print_exc()
 
     def get_prefixes(self, bot, msg):

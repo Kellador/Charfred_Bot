@@ -1,7 +1,7 @@
 import logging
 import traceback
 from discord.ext import commands
-from .utils.config import Config
+from ..utils.config import Config
 
 log = logging.getLogger('charfred')
 
@@ -11,7 +11,7 @@ class gearbox:
         self.bot = bot
         self.dir = bot.dir
         self.loop = bot.loop
-        self.cogfig = Config(f'{self.dir}/cogs/configs/cogCfg.json',
+        self.cogfig = Config(f'{self.dir}/configs/cogCfg.json',
                              load=True, loop=self.loop)
         try:
             for cog in self.cogfig['cogs']:
