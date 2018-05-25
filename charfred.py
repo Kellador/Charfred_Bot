@@ -40,7 +40,7 @@ class Charfred(commands.Bot):
         try:
             os.chdir(self.dir)
             for adminCog in _adminCogs():
-                self.load_extension(adminCog[:-3])
+                self.load_extension(adminCog[:-3].replace('/', '.').replace('\\', '.'))
         except ClientException:
             log.critical(f'Could not load Administrative Cogs!')
         except ImportError:
