@@ -11,7 +11,8 @@ keyphrases = ["won't you?",
               "will you?",
               "mustn't we?",
               "won't we?",
-              "DO IT NOW!"]
+              "DO IT NOW!"
+              ]
 
 # Command Acknowledgements; Charfred will use one of these to show that he
 # has recieved and understood a command.
@@ -23,7 +24,8 @@ acks = ["Of course!",
         "With pleasure!",
         "With pleasure, as always!",
         "Thanks for the tip...",
-        "*nods*"]
+        "*nods*"
+        ]
 
 # Command Nacknowledgements; Charfred will use one of these to show that he
 # has recieved, but not understood a command.
@@ -33,7 +35,15 @@ nacks = ["That doesn't look like anything to me.",
          "Rubber baby buggy bumpers!",
          "Don't you know the building is on fire?!",
          "*These violent delights have violent ends*",
-         "I don't understand..."]
+         "I don't understand...",
+         u"( º﹃º )",
+         u"(´･_･`)",
+         u"┐(ﾟ～ﾟ)┌",
+         u"╭( ･ㅂ･)و",
+         u"ミ(ノ_ _)ノ",
+         u"ఠ ͟ಠ",
+         u"눈_눈"
+         ]
 
 # Command Error; Charfred will let you know with one of these, that
 # the command entered cannot be executed because of some error or
@@ -44,7 +54,8 @@ errormsgs = ["Sorry, you're not allowed to use that!",
              "Uplinks underground, uplinks underground.\n"
              "If you guys don't shut up, I'll uplink your ass,\n"
              "and you'll be underground!",
-             "STAHP IT!"]
+             "STAHP IT!"
+             ]
 
 # Reply Prefixes; Charfred will use one of these as a prefix for
 # responses returned from commands.
@@ -52,7 +63,8 @@ replies = ["A message for you, sir!: ",
            "This just arrived via telegraph: ",
            "I need a vacation...",
            "*hmmpf*",
-           "*an envelope slides in under the door*"]
+           "*an envelope slides in under the door*"
+           ]
 
 # Deposit Prefixes; Charfred will use one of these as a prefix for
 # posts that mention the commandCh.
@@ -61,4 +73,5 @@ deposits = ["Please follow me to the study, sir!",
             "I have prepared the dungeon for you, sir!",
             "I have prepared the study for you, sir!",
             "The study is ready for you.",
-            "GET TO THE CHOPPAH!"]
+            "GET TO THE CHOPPAH!"
+            ]
