@@ -133,7 +133,7 @@ class admin:
                 return
             self.botCfg['nodes'][node] = [spec, n[-1]]
         else:
-            r = await promptInput(ctx, 'Which would you like to edit?\n```ranks\nchannels```')
+            r = await promptInput(ctx, 'Which would you like to edit? ```ranks\nchannels```')
             if r == 'ranks':
                 ranks = await promptInput(ctx, 'Please enter all ranks, which should be permitted'
                                           f'to use {node}.'
