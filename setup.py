@@ -8,13 +8,13 @@ setup(
         'yarl<1.2',
         'discord.py',
         'coloredlogs',
-        'ttldict',
-        'psutil',
-        'pyfiglet',
         'click'],
     dependency_links=[
         'git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py'
     ],
+    extras_require={
+        'uvlooped': ['uvloop']
+    },
     package_data={
         '': ['*.json', '*.json_default']
     },

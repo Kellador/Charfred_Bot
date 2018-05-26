@@ -1,6 +1,7 @@
 from discord.ext import commands
 from discord import ClientException
 import os
+import asyncio
 import click
 import logging
 import coloredlogs
@@ -15,6 +16,14 @@ log = logging.getLogger('charfred')
 coloredlogs.install(level='DEBUG',
                     logger=log,
                     fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
+
+try:
+    import uvloop
+except ImportError:
+    pass
+else:
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+    log.info('uvloop imported, oh yeah! \*high five\*')
 
 description = """
 Charfred is a gentleman and a scholar,
