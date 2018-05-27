@@ -41,9 +41,11 @@ def _nodes(nodes):
             continue
         cfg['nodes'][node] = {}
         cfg['nodes'][node]['roles'] = []
-        roles = click.prompt('Please enter all Discord roles, that should have\n'
-                             f'permission for {node} commands.').split()
-        cfg['nodes'][node]['roles'] = roles
+        if click.confirm('Would you like to limit which roles are permitted\n'
+                         f'to use {node} commands?'):
+            roles = click.prompt('Please enter all Discord roles, that should have\n'
+                                 f'permission for {node} commands.').split()
+            cfg['nodes'][node]['roles'] = roles
         cfg['nodes'][node]['channels'] = []
         if click.confirm(f'Would you like to limit where {node} commands\n'
                          'are allowed, to specific channels?'):
@@ -182,9 +184,11 @@ def edit():
         else:
             click.echo('Old entries for allowed roles:\n' +
                        ' '.join(cfg['nodes'][node]['roles']))
-            roles = click.prompt('Please enter all Discord roles, that should have\n'
-                                 f'permission for {node} commands.').split()
-            cfg['nodes'][node]['roles'] = roles
+            if click.confirm('Would you like to limit which roles are permitted\n'
+                             f'to use {node} commands?'):
+                roles = click.prompt('Please enter all Discord roles, that should have\n'
+                                     f'permission for {node} commands.').split()
+                cfg['nodes'][node]['roles'] = roles
             if click.confirm(f'Would you like to limit where {node} commands\n'
                              'are allowed, to specific channels?'):
                 click.echo('Old entries:\n' +

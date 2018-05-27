@@ -16,8 +16,11 @@ async def node_check(ctx, node):
             return False
 
     roles = ctx.bot.cfg['nodes'][node]['roles']
-    getter = functools.partial(discord.utils.get, ctx.author.roles)
-    return any(getter(name=roleName) is not None for roleName in roles)
+    if roles:
+        getter = functools.partial(discord.utils.get, ctx.author.roles)
+        return any(getter(name=roleName) is not None for roleName in roles)
+    else:
+        return True
 
 
 def permissionNode(node):

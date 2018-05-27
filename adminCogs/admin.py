@@ -73,8 +73,11 @@ class admin:
                 await ctx.send(f'{n[-1]}: {str(n[0])}')
         else:
             currroles = '\n'.join(n['roles'])
-            await ctx.send(f'Current roles with permission for {node}: ```{currroles}```')
-            if len(n['channels']) > 0:
+            if currroles:
+                await ctx.send(f'Current roles with permission for {node}: ```{currroles}```')
+            else:
+                await ctx.send(f'Everyone is free to use {node} commands!')
+            if n['channels']:
                 currChans = []
                 for c in n['channels']:
                     currChans.append(self.bot.get_channel(c).mention)
