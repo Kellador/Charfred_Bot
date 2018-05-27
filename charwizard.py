@@ -40,12 +40,12 @@ def _nodes(nodes):
             cfg['nodes'][node] = [spec, nodes[node][0]]
             continue
         cfg['nodes'][node] = {}
-        cfg['nodes'][node]['roles'] = []
+        cfg['nodes'][node]['role'] = []
         if click.confirm('Would you like to limit which roles are permitted\n'
                          f'to use {node} commands?'):
-            roles = click.prompt('Please enter all Discord roles, that should have\n'
-                                 f'permission for {node} commands.').split()
-            cfg['nodes'][node]['roles'] = roles
+            role = click.prompt('Please enter the minimum Discord role that should\n'
+                                f'be able to use {node} commands')
+            cfg['nodes'][node]['role'] = role
         cfg['nodes'][node]['channels'] = []
         if click.confirm(f'Would you like to limit where {node} commands\n'
                          'are allowed, to specific channels?'):
@@ -182,13 +182,13 @@ def edit():
                                         type=type(cfg['nodes'][node][0])).split()
             cfg['nodes'][node] = [spec, cfg['nodes'][node][-1]]
         else:
-            click.echo('Old entries for allowed roles:\n' +
-                       ' '.join(cfg['nodes'][node]['roles']))
+            click.echo('Old entry for minimum role:\n' +
+                       ' '.join(cfg['nodes'][node]['role']))
             if click.confirm('Would you like to limit which roles are permitted\n'
                              f'to use {node} commands?'):
-                roles = click.prompt('Please enter all Discord roles, that should have\n'
-                                     f'permission for {node} commands.').split()
-                cfg['nodes'][node]['roles'] = roles
+                role = click.prompt('Please enter the minimum Discord role that should\n'
+                                    f'be able to use {node} commands')
+                cfg['nodes'][node]['role'] = role
             if click.confirm(f'Would you like to limit where {node} commands\n'
                              'are allowed, to specific channels?'):
                 click.echo('Old entries:\n' +

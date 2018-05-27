@@ -72,9 +72,9 @@ class admin:
             else:
                 await ctx.send(f'{n[-1]}: {str(n[0])}')
         else:
-            currroles = '\n'.join(n['roles'])
-            if currroles:
-                await ctx.send(f'Current roles with permission for {node}: ```{currroles}```')
+            currrole = n['role']
+            if currrole:
+                await ctx.send(f'Current minimum role for {node}: ```{currrole}```')
             else:
                 await ctx.send(f'Everyone is free to use {node} commands!')
             if n['channels']:
@@ -107,12 +107,11 @@ class admin:
                 return
             self.botCfg['nodes'][node] = [spec, n[-1]]
         else:
-            r = await promptInput(ctx, 'Which would you like to edit? ``` roles\nchannels```')
-            if r == 'roles':
-                roles = await promptInput(ctx, 'Please enter all roles, which should be permitted'
-                                          f'to use {node} commands.'
-                                          '\nSeperated by spaces only!')
-                self.botCfg['nodes'][node]['roles'] = roles.split()
+            r = await promptInput(ctx, 'Which would you like to edit? ``` role\n channels```')
+            if r == 'role':
+                role = await promptInput(ctx, 'Please enter the minimum role required'
+                                         f' to use {node} commands.')
+                self.botCfg['nodes'][node]['roles'] = role
             elif r == 'channels':
                 chans = await promptInput(ctx, f'Enter all channels where you wish {node} to be allowed!'
                                           '\nDelimited only by spaces!')

@@ -1,8 +1,7 @@
-import discord
+from discord.utils import find
 from discord.ext import commands
 import random
 import re
-import functools
 
 
 async def node_check(ctx, node):
@@ -15,10 +14,10 @@ async def node_check(ctx, node):
         if ctx.channel.id not in channels:
             return False
 
-    roles = ctx.bot.cfg['nodes'][node]['roles']
-    if roles:
-        getter = functools.partial(discord.utils.get, ctx.author.roles)
-        return any(getter(name=roleName) is not None for roleName in roles)
+    roleName = ctx.bot.cfg['nodes'][node]['role']
+    if roleName:
+        minRole = find(lambda r: r.name == roleName, ctx.guild.roles)
+        ctx.author.top_role >= minRole
     else:
         return True
 
