@@ -35,7 +35,6 @@ nacks = ["That doesn't look like anything to me.",
          "Rubber baby buggy bumpers!",
          "Don't you know the building is on fire?!",
          "*These violent delights have violent ends*",
-         "I don't understand...",
          u"( º﹃º )",
          u"(´･_･`)",
          u"┐(ﾟ～ﾟ)┌",
@@ -54,7 +53,8 @@ errormsgs = ["Sorry, you're not allowed to use that!",
              "Uplinks underground, uplinks underground.\n"
              "If you guys don't shut up, I'll uplink your ass,\n"
              "and you'll be underground!",
-             "STAHP IT!"
+             "STAHP IT!",
+             "This incident will be reported!"
              ]
 
 # Reply Prefixes; Charfred will use one of these as a prefix for

@@ -67,17 +67,30 @@ class Charfred(commands.Bot):
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
-            await ctx.send(random.choice(errormsgs))
-            log.warning(f'DisabledCommand: {ctx.invoked_with}')
+            await ctx.send('Sorry chap, that command\'s disabled!')
+            log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
         elif isinstance(error, commands.CheckFailure):
             await ctx.send(random.choice(errormsgs))
-            log.warning(f'{ctx.author.name} attempted to use {ctx.command.name} in {ctx.channel.name}!')
+            log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
         elif isinstance(error, commands.CommandNotFound):
             await ctx.send(random.choice(nacks))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
+        elif isinstance(error, commands.MissingRequiredArgument):
+            await ctx.send('You\'re missing some arguments there, mate!')
+            log.warning(f'MissingRequiredArgument: {ctx.command.qualified_name}')
+        elif isinstance(error, commands.NoPrivateMessage):
+            await ctx.send('Stop it, you\'re making me blush...')
+            log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
+        elif isinstance(error, commands.MissingPermissions):
+            await ctx.send(random.choice(errormsgs))
+            log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
+        elif isinstance(error, commands.BotMissingPermissions):
+            await ctx.send('I am not allowed to do that, sir, it is known!')
+            log.warning(f'BotMissingPermissions: {ctx.command.qualified_name}')
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('Sorry lass, that command\'s on cooldown!')
-            log.warning(f'CommandOnCooldown: {ctx.invoked_with}')
+            await ctx.send('Sorry lass, that command\'s on cooldown!\n'
+                           f'Try again in {error.retry_after} seconds.')
+            log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
         elif isinstance(error, commands.CommandInvokeError):
             await ctx.send(random.choice(nacks))
             log.error(f'{ctx.command.qualified_name}:')
