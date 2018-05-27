@@ -57,7 +57,6 @@ class admin:
                            '\'spec\' signifies special permission nodes.')
 
     @permissions.command(hidden=True)
-    @commands.is_owner()
     async def list(self, ctx, node: str):
         """List current state of a node."""
 
@@ -82,7 +81,7 @@ class admin:
                 for c in n['channels']:
                     currChans.append(self.bot.get_channel(c).mention)
                 currChans = '\n'.join(currChans)
-                await ctx.send(f'Current channels where {node} commands are permitted: ```{currChans}```')
+                await ctx.send(f'Current channels where {node} commands are permitted:\n{currChans}')
             else:
                 await ctx.send(f'{node} commands work everywhere!')
 

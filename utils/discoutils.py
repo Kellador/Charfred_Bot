@@ -17,7 +17,7 @@ async def node_check(ctx, node):
     roleName = ctx.bot.cfg['nodes'][node]['role']
     if roleName:
         minRole = find(lambda r: r.name == roleName, ctx.guild.roles)
-        ctx.author.top_role >= minRole
+        return ctx.author.top_role >= minRole
     else:
         return True
 
