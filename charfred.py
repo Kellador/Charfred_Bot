@@ -9,7 +9,6 @@ import traceback
 import datetime
 import random
 import aiohttp
-from configs.keywords import nacks, errormsgs
 from utils.config import Config
 
 log = logging.getLogger('charfred')
@@ -50,6 +49,9 @@ class Charfred(commands.Bot):
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
+        self.keywords = Config(f'{self.dir}/configs/keywords.json',
+                               load=True, loop=self.loop,
+                               default=f'{self.dir}/configs/keywords.json_default')
         try:
             os.chdir(self.dir)
             for adminCog in _adminCogs('adminCogs'):
@@ -69,11 +71,14 @@ class Charfred(commands.Bot):
         if isinstance(error, commands.DisabledCommand):
             await ctx.send('Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
+        elif isinstance(error, commands.NotOwner):
+            await ctx.send('You\'re not the boss of me, sir!')
+            log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send(random.choice(errormsgs))
+            await ctx.send(random.choice(self.keywords['errormsgs']))
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
         elif isinstance(error, commands.CommandNotFound):
-            await ctx.send(random.choice(nacks))
+            await ctx.send(random.choice(self.keywords['nacks']))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
         elif isinstance(error, commands.MissingRequiredArgument):
             await ctx.send('You\'re missing some arguments there, mate!')
@@ -82,7 +87,7 @@ class Charfred(commands.Bot):
             await ctx.send('Stop it, you\'re making me blush...')
             log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(random.choice(errormsgs))
+            await ctx.send(random.choice(self.keywords['errormsgs']))
             log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
         elif isinstance(error, commands.BotMissingPermissions):
             await ctx.send('I am not allowed to do that, sir, it is known!')
@@ -92,7 +97,7 @@ class Charfred(commands.Bot):
                            f'Try again in {error.retry_after} seconds.')
             log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
         elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send(random.choice(nacks))
+            await ctx.send(random.choice(self.keywords['nacks']))
             log.error(f'{ctx.command.qualified_name}:')
             traceback.print_tb(error.original.__traceback__)
             log.error(f'{error.original.__class__.__name__}: {error.original}')

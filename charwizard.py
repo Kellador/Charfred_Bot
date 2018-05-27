@@ -40,16 +40,15 @@ def _nodes(nodes):
             cfg['nodes'][node] = [spec, nodes[node][0]]
             continue
         cfg['nodes'][node] = {}
-        cfg['nodes'][node]['ranks'] = []
-        ranks = click.prompt('Please enter all Discord roles which will be '
-                             f'allowed to run \"{node}\", seperated by spaces only!\n').split()
-        cfg['nodes'][node]['ranks'] = ranks
+        cfg['nodes'][node]['roles'] = []
+        roles = click.prompt('Please enter all Discord roles, that should have\n'
+                             f'permission for {node} commands.').split()
+        cfg['nodes'][node]['roles'] = roles
         cfg['nodes'][node]['channels'] = []
-        if click.confirm('Would you like to define specific channels where '
-                         f'{node} will be allowed?\n If you don\'t then '
-                         'it will only work in the default command channel!\n'):
-            channels = click.prompt('Please enter all channel\' IDs where '
-                                    f'\"{node}\" is allowed to be run, seperated by spaces only!\n').split()
+        if click.confirm(f'Would you like to limit where {node} commands\n'
+                         'are allowed, to specific channels?'):
+            channels = click.prompt(f'Please enter all channel\' IDs where {node} commands\n'
+                                    'are allowed, seperated by spaces only!\n').split()
             channels = list(map(int, channels))
             cfg['nodes'][node]['channels'] = channels
         cfg._save()
@@ -104,14 +103,6 @@ def wizard(ctx):
         while click.confirm('Wanna add one more?\n'):
             prefix = click.prompt('Please enter another prefix!\n')
             cfg['prefixes'].append(prefix)
-        click.echo('Perfect! Now comes the channel ID for the default command '
-                   'channel. This will be used in our permission system.\n'
-                   'When you run a command the channel where the command is '
-                   'issued will be first checked against this ID. '
-                   'So all commands will be allowed to run in this channel!')
-        defaultCmdCh = click.prompt('Please enter the numeric channel ID now!\n',
-                                    type=int)
-        cfg['defaultCmdCh'] = defaultCmdCh
         cfg['nodes'] = {}
         cfg._save()
         click.confirm('Great! We\'ve reached the breakpoint! The absolute basics '
@@ -189,20 +180,18 @@ def edit():
                                         type=type(cfg['nodes'][node][0])).split()
             cfg['nodes'][node] = [spec, cfg['nodes'][node][-1]]
         else:
-            click.echo('Old entries for allowed ranks:\n' +
-                       ' '.join(cfg['nodes'][node]['ranks']))
-            ranks = click.prompt('Please enter all Discord roles which will be '
-                                 f'allowed to run \"{node}\", seperated by spaces only!\n').split()
-            cfg['nodes'][node]['ranks'] = ranks
-            if click.confirm('Would you like to define specific channels where '
-                             f'{node} will be allowed?\n If you don\'t then '
-                             f'{node} will only work in the default command channel!\n'):
-                click.echo('Old entries for allowed channels:\n' +
+            click.echo('Old entries for allowed roles:\n' +
+                       ' '.join(cfg['nodes'][node]['roles']))
+            roles = click.prompt('Please enter all Discord roles, that should have\n'
+                                 f'permission for {node} commands.').split()
+            cfg['nodes'][node]['roles'] = roles
+            if click.confirm(f'Would you like to limit where {node} commands\n'
+                             'are allowed, to specific channels?'):
+                click.echo('Old entries:\n' +
                            ' '.join(cfg['nodes'][node]['channels']))
                 cfg['nodes'][node]['channels'] = []
-                channels = click.prompt('Please enter all Discord channels\' IDs where '
-                                        f'\"{node}\" is allowed to be run, seperated by '
-                                        'spaces only!\n').split()
+                channels = click.prompt(f'Please enter all channel\' IDs where {node} commands\n'
+                                        'are allowed, seperated by spaces only!\n').split()
                 channels = list(map(int, channels))
                 cfg['nodes'][node]['channels'] = channels
             click.echo(f'Done editing permissions for {node}!')
@@ -235,17 +224,6 @@ def prefixes():
         while click.confirm('Wanna add one more?\n'):
             prefix = click.prompt('Please enter another prefix!\n')
             cfg['prefixes'].append(prefix)
-        cfg._save()
-
-
-@wizard.command()
-def cmdChannel():
-    cfg._load()
-    click.echo('Current default command channel: ' + str(cfg['defaultCmdCh']))
-    if click.confirm('Would you like to change it?\n'):
-        cmdCh = click.prompt('Please enter the new default command channel\'s ID!\n',
-                             type=int)
-        cfg['defaultCmdCh'] = cmdCh
         cfg._save()
 
 

@@ -3,23 +3,31 @@ from discord.ext import commands
 import random
 import re
 import functools
-from configs import keywords
 
 
-def has_permission(cmd):
-    def predicate(ctx):
-        if ctx.channel.id == ctx.bot.cfg['defaultCmdCh'] or \
-           ctx.channel.id in ctx.bot.cfg['nodes'][cmd]['channels']:
-            names = ctx.bot.cfg['nodes'][cmd]['ranks']
-            getter = functools.partial(discord.utils.get, ctx.author.roles)
-            return any(getter(name=name) is not None for name in names)
-        else:
+async def node_check(ctx, node):
+    is_owner = await ctx.bot.is_owner(ctx.author)
+    if is_owner:
+        return True
+
+    channels = ctx.bot.cfg['nodes'][node]['channels']
+    if channels:
+        if ctx.channel.id not in channels:
             return False
+
+    roles = ctx.bot.cfg['nodes'][node]['roles']
+    getter = functools.partial(discord.utils.get, ctx.author.roles)
+    return any(getter(name=roleName) is not None for roleName in roles)
+
+
+def permissionNode(node):
+    async def predicate(ctx):
+        return await node_check(ctx, node)
     return commands.check(predicate)
 
 
 async def sendReply(ctx, msg):
-    await ctx.send(f'{random.choice(keywords.replies)}\n{msg}')
+    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}\n{msg}")
 
 
 async def sendReply_codeblocked(ctx, msg, encoding=None):
@@ -27,11 +35,11 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
         mesg = f'\n```markdown\n{msg}\n```'
     else:
         mesg = f'\n```{encoding}\n{msg}\n```'
-    await ctx.send(f'{random.choice(keywords.replies)}' + mesg)
+    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)  # fix this!
 
 
 async def sendEmbed(ctx, emb):
-    await ctx.send(f'{random.choice(keywords.replies)}', embed=emb)
+    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)  # fix this too!
 
 
 async def promptInput(ctx, prompt: str):

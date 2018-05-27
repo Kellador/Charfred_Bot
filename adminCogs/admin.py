@@ -43,32 +43,6 @@ class admin:
         await self.botCfg.save()
         await ctx.send(f'{prefix} has been unregistered!')
 
-    @commands.group(invoke_without_command=True, hidden=True, name='cmdChannel')
-    @commands.is_owner()
-    async def defaultCmdCh(self, ctx):
-        """Command channel operations.
-
-        Without a subncommand, this shows the default command channel
-        where all commands are permitted to be executed,
-        regardless of specified channels in their respective
-        permission nodes.
-        """
-
-        if ctx.invoked_subcommand is None:
-            defCC = self.bot.get_channel(self.botCfg['defaultCmdCh']).mention
-            await ctx.send(f'Current default command channel: {defCC}')
-
-    @defaultCmdCh.command(hidden=True, name='set')
-    @commands.is_owner()
-    async def setDefaultCmdCh(self, ctx, ch: int):
-        newDCC = self.bot.get_channel(ch)
-        if newDCC is None:
-            await ctx.send('Invalid channel id, please try again!')
-        else:
-            self.botCfg['defaultCmdCh'] = ch
-            await self.botCfg.save()
-            await ctx.send(f'Default command channel set to {newDCC.mention}!')
-
     @commands.group(invoke_without_command=True, hidden=True)
     async def permissions(self, ctx):
         """Permission and special settings operations.
@@ -98,19 +72,16 @@ class admin:
             else:
                 await ctx.send(f'{n[-1]}: {str(n[0])}')
         else:
-            currRanks = '\n'.join(n['ranks'])
-            await ctx.send(f'Current ranks with permission for {node}: ```{currRanks}```')
-            dCC = self.bot.get_channel(self.botCfg['defaultCmdCh']).mention
+            currroles = '\n'.join(n['roles'])
+            await ctx.send(f'Current roles with permission for {node}: ```{currroles}```')
             if len(n['channels']) > 0:
                 currChans = []
                 for c in n['channels']:
                     currChans.append(self.bot.get_channel(c).mention)
                 currChans = '\n'.join(currChans)
-                await ctx.send(f'Current channels where {node} is permitted: ```{currChans}```'
-                               f'\nAlways permitted in default command channel: {dCC}')
+                await ctx.send(f'Current channels where {node} commands are permitted: ```{currChans}```')
             else:
-                await ctx.send(f'No extra channels specified for {node}'
-                               f'\nAlways permitted in default command channel: {dCC}')
+                await ctx.send(f'{node} commands work everywhere!')
 
     @permissions.command(hidden=True)
     @commands.is_owner()
@@ -133,12 +104,12 @@ class admin:
                 return
             self.botCfg['nodes'][node] = [spec, n[-1]]
         else:
-            r = await promptInput(ctx, 'Which would you like to edit? ``` ranks\nchannels```')
-            if r == 'ranks':
-                ranks = await promptInput(ctx, 'Please enter all ranks, which should be permitted'
-                                          f'to use {node}.'
+            r = await promptInput(ctx, 'Which would you like to edit? ``` roles\nchannels```')
+            if r == 'roles':
+                roles = await promptInput(ctx, 'Please enter all roles, which should be permitted'
+                                          f'to use {node} commands.'
                                           '\nSeperated by spaces only!')
-                self.botCfg['nodes'][node]['ranks'] = ranks.split()
+                self.botCfg['nodes'][node]['roles'] = roles.split()
             elif r == 'channels':
                 chans = await promptInput(ctx, f'Enter all channels where you wish {node} to be allowed!'
                                           '\nDelimited only by spaces!')
