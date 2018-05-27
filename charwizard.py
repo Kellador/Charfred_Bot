@@ -40,7 +40,7 @@ def _nodes(nodes):
             cfg['nodes'][node] = [spec, nodes[node][0]]
             continue
         cfg['nodes'][node] = {}
-        cfg['nodes'][node]['role'] = []
+        cfg['nodes'][node]['role'] = ""
         if click.confirm('Would you like to limit which roles are permitted\n'
                          f'to use {node} commands?'):
             role = click.prompt('Please enter the minimum Discord role that should\n'
