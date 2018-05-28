@@ -60,3 +60,7 @@ class keywords:
         else:
             log.info(f'Random gibberish from {category}!')
             await ctx.send(f'{random.choice(self.phrases[category])}')
+
+
+def setup(bot):
+    bot.add_cog(keywords(bot))
