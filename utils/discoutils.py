@@ -37,11 +37,11 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
         mesg = f'\n```markdown\n{msg}\n```'
     else:
         mesg = f'\n```{encoding}\n{msg}\n```'
-    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)  # fix this!
+    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)
 
 
 async def sendEmbed(ctx, emb):
-    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)  # fix this too!
+    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
 
 
 async def promptInput(ctx, prompt: str):
