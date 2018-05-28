@@ -110,7 +110,7 @@ class admin:
             if r == 'role':
                 role = await promptInput(ctx, 'Please enter the minimum role required'
                                          f' to use {node} commands.')
-                self.botCfg['nodes'][node]['roles'] = role
+                self.botCfg['nodes'][node]['role'] = role
             elif r == 'channels':
                 chans = await promptInput(ctx, f'Enter all channels where you wish {node} to be allowed!'
                                           '\nDelimited only by spaces!')
