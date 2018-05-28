@@ -128,16 +128,16 @@ class gearbox:
         loaded cogs.
         """
         if ctx.invoked_subcommand is None:
-            cogList = '\n'.join(list(self.bot.extensions))
-            await ctx.send(f'Cogs currently loaded:\n```{cogList}```')
+            cogList = '\n '.join(list(self.bot.extensions))
+            await ctx.send(f'Cogs currently loaded:\n``` {cogList}```')
 
     @listcogs.command(name='startup')
     @commands.is_owner()
     async def listStartup(self, ctx):
         """Lists all cogs being loaded on startup."""
 
-        cogList = '\n'.join(self.cogfig['cogs'])
-        await ctx.send(f'Cogs being loaded on startup:\n```{cogList}```')
+        cogList = '\n '.join(self.cogfig['cogs'])
+        await ctx.send(f'Cogs being loaded on startup:\n``` {cogList}```')
 
 
 def setup(bot):

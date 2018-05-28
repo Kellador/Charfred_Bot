@@ -43,7 +43,7 @@ class admin:
         await self.botCfg.save()
         await ctx.send(f'{prefix} has been unregistered!')
 
-    @commands.group(invoke_without_command=True, hidden=True)
+    @commands.group(invoke_without_command=True, hidden=True, aliases=['perms'])
     async def permissions(self, ctx):
         """Permission and special settings operations.
 
@@ -52,8 +52,8 @@ class admin:
         """
 
         if ctx.invoked_subcommand is None:
-            nodeList = '\n'.join(list(self.botCfg['nodes']))
-            await ctx.send(f'Current permission nodes:\n```{nodeList}```\n'
+            nodeList = '\n '.join(list(self.botCfg['nodes']))
+            await ctx.send(f'Current permission nodes:\n``` {nodeList}```\n'
                            '\'spec\' signifies special permission nodes.')
 
     @permissions.command(hidden=True)
@@ -73,7 +73,7 @@ class admin:
         else:
             currrole = n['role']
             if currrole:
-                await ctx.send(f'Current minimum role for {node}: ```{currrole}```')
+                await ctx.send(f'Current minimum role for {node}: ``` {currrole}```')
             else:
                 await ctx.send(f'Everyone is free to use {node} commands!')
             if n['channels']:
