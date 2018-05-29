@@ -10,6 +10,20 @@ class admin:
         self.bot = bot
         self.botCfg = bot.cfg
 
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def cfgreload(self, ctx):
+        """Reload botCfg.
+
+        Useful when you edited botCfg.json
+        manually or with Charwizard.
+        Will discard all unsaved changes
+        in memory!
+        """
+        log.info('Reloading botCfg.json...')
+        await self.botCfg.load()
+        log.info('Reloaded!')
+
     @commands.group(invoke_without_command=True, hidden=True)
     async def prefix(self, ctx):
         """Bot Prefix operations.
