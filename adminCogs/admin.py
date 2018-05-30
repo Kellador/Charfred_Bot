@@ -23,6 +23,7 @@ class admin:
         log.info('Reloading botCfg.json...')
         await self.botCfg.load()
         log.info('Reloaded!')
+        await ctx.send('Locked and reloaded!')
 
     @commands.group(invoke_without_command=True, hidden=True)
     async def prefix(self, ctx):
