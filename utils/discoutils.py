@@ -9,6 +9,9 @@ async def node_check(ctx, node):
     if is_owner:
         return True
 
+    if node not in ctx.bot.cfg['nodes']:
+        return False
+
     channels = ctx.bot.cfg['nodes'][node]['channels']
     if channels:
         if ctx.channel.id not in channels:
