@@ -95,7 +95,7 @@ class Flipbook:
         await self.draw_page(0, first=True)
 
         def check(reaction, user):
-            if reaction.message.id != self.message.id:
+            if reaction.message.id != self.msg.id:
                 return False
 
             if user.id != self.ctx.author.id:
