@@ -14,6 +14,7 @@ class Flipbook:
     def __init__(self, ctx, entries, entries_per_page=16, title=None, color=None):
         self.bot = ctx.bot
         self.ctx = ctx
+        self.helping = False
         self.title = title
         self.entries = entries
         self.entries_per_page = entries_per_page
@@ -78,18 +79,24 @@ class Flipbook:
         await self.msg.delete()
 
     async def info(self):
-        content = [
-            'Flip through by reacting to this embed!',
-            ' ',
-            'Flip backwards: 👈',
-            'Flip forwards:  👉',
-            'Flip Charfred off: 🖕 (closes Flipbook)',
-            'Toggle this help: ❔'
-        ]
+        if self.helping:
+            self.helping = False
+            await self.msg.edit(embed=self.embed)
+        else:
+            self.helping = True
+            content = [
+                'Flip through by reacting to this embed!',
+                ' ',
+                'Flip backwards: 👈',
+                'Flip forwards:  👉',
+                'Flip Charfred off: 🖕 (closes Flipbook)',
+                'Toggle this help: ❔'
+            ]
 
-        self.embed.title = 'Charfred Flipbook Instructions:'
-        self.embed.description = '\n'.join(content)
-        await self.msg.edit(embed=self.embed)
+            infoEmbed = discord.Embed(color=discord.Color.blurple())
+            infoEmbed.title = 'Charfred Flipbook Instructions:'
+            infoEmbed.description = '\n'.join(content)
+            await self.msg.edit(embed=infoEmbed)
 
     async def flip(self):
         await self.draw_page(0, first=True)
@@ -133,6 +140,9 @@ class EmbedFlipbook(Flipbook):
 
         self.current_page = page
         self.embed = self.entries[page]
+
+        if self.title:
+            self.embed.title = self.title
 
         if self.pages > 1:
             self.embed.set_footer(text=f'Page {page} of {self.pages - 1}')
