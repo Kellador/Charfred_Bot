@@ -5,7 +5,7 @@ from utils.discoutils import promptInput, promptConfirm
 log = logging.getLogger('charfred')
 
 
-class admin:
+class Admin:
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
@@ -140,4 +140,4 @@ class admin:
 
 
 def setup(bot):
-    bot.add_cog(admin(bot))
+    bot.add_cog(Admin(bot))

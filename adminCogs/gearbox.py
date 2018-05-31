@@ -6,7 +6,7 @@ from utils.config import Config
 log = logging.getLogger('charfred')
 
 
-class gearbox:
+class Gearbox:
     def __init__(self, bot):
         self.bot = bot
         self.dir = bot.dir
@@ -141,4 +141,4 @@ class gearbox:
 
 
 def setup(bot):
-    bot.add_cog(gearbox(bot))
+    bot.add_cog(Gearbox(bot))
