@@ -40,7 +40,7 @@ class Flipbook:
         return self.entries[start:start + self.entries_per_page]
 
     async def draw_page(self, page, first=False):
-        if page < 0 and page > self.pages:
+        if page < 0 or page > (self.pages - 1):
             return
 
         self.current_page = page
@@ -128,14 +128,14 @@ class EmbedFlipbook(Flipbook):
     """Flipbook, but for flipping through
     a list of embeds!"""
     async def draw_page(self, page, first=False):
-        if page < 0 and page > self.pages:
+        if page < 0 or page > (self.pages - 1):
             return
 
         self.current_page = page
         self.embed = self.entries[page]
 
         if self.pages > 1:
-            self.embed.set_footer(text=f'Page {page} of {self.pages}')
+            self.embed.set_footer(text=f'Page {page} of {self.pages - 1}')
         else:
             self.embed.set_footer(text=u'Got it all on one page! ╭( ･ㅂ･)و\n'
                                   'Wait... why make a Flipbook for just one embed?')
