@@ -31,6 +31,10 @@ def permissionNode(node):
     return commands.check(predicate)
 
 
+async def sendMarkdown(ctx, msg):
+    await ctx.send(f'```markdown\n{msg}\n```')
+
+
 async def sendReply(ctx, msg):
     await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}\n{msg}")
 
