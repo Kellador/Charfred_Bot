@@ -32,11 +32,11 @@ def permissionNode(node):
 
 
 async def sendMarkdown(ctx, msg):
-    await ctx.send(f'```markdown\n{msg}\n```')
+    return await ctx.send(f'```markdown\n{msg}\n```')
 
 
 async def sendReply(ctx, msg):
-    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}\n{msg}")
+    return await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}\n{msg}")
 
 
 async def sendReply_codeblocked(ctx, msg, encoding=None):
@@ -44,11 +44,11 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
         mesg = f'\n```markdown\n{msg}\n```'
     else:
         mesg = f'\n```{encoding}\n{msg}\n```'
-    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)
+    return await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)
 
 
 async def sendEmbed(ctx, emb):
-    await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
+    return await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
 
 
 async def promptInput(ctx, prompt: str, timeout: int=120):
