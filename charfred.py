@@ -67,6 +67,9 @@ class Charfred(commands.Bot):
         prefixes.extend(self.cfg['prefixes'])
         return commands.when_mentioned_or(*prefixes)(bot, msg)
 
+    async def on_command(self, ctx):
+        log.info(f'[{ctx.author.name}]: {ctx.message.content}')
+
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
             await ctx.send('Sorry chap, that command\'s disabled!')
@@ -114,7 +117,6 @@ class Charfred(commands.Bot):
         elif message.guild.id is None:
             return
         else:
-            log.info(f'[{message.author.name}]: {message.content}')
             await self.process_commands(message)
 
     async def close(self):
