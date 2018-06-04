@@ -7,14 +7,11 @@ import logging
 import coloredlogs
 import traceback
 import datetime
-import random
 import aiohttp
 from utils.config import Config
 
 log = logging.getLogger('charfred')
-coloredlogs.install(level='DEBUG',
-                    logger=log,
-                    fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
+
 
 try:
     import uvloop
@@ -70,41 +67,6 @@ class Charfred(commands.Bot):
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
 
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.DisabledCommand):
-            await ctx.send('Sorry chap, that command\'s disabled!')
-            log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.NotOwner):
-            await ctx.send('You\'re not the boss of me, sir!')
-            log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.CheckFailure):
-            await ctx.send(random.choice(self.keywords['errormsgs']))
-            log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
-        elif isinstance(error, commands.CommandNotFound):
-            await ctx.send(random.choice(self.keywords['nacks']))
-            log.warning(f'CommandNotFound: {ctx.invoked_with}')
-        elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You\'re missing some arguments there, mate!')
-            log.warning(f'MissingRequiredArgument: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send('Stop it, you\'re making me blush...')
-            log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(random.choice(self.keywords['errormsgs']))
-            log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send('I am not allowed to do that, sir, it is known!')
-            log.warning(f'BotMissingPermissions: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('Sorry lass, that command\'s on cooldown!\n'
-                           f'Try again in {error.retry_after} seconds.')
-            log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
-        elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send(random.choice(self.keywords['nacks']))
-            log.error(f'{ctx.command.qualified_name}:')
-            traceback.print_tb(error.original.__traceback__)
-            log.error(f'{error.original.__class__.__name__}: {error.original}')
-
     async def on_ready(self):
         log.info(f'{self.user} reporting for duty!')
         log.info(f'ID: {self.user.id}')
@@ -131,8 +93,12 @@ class Charfred(commands.Bot):
 
 
 @click.command()
+@click.option('--logLvl', default='DEBUG', help='Logging Level')
 @click.option('--token', default=None, help='Discord Bot Token')
-def run(token):
+def run(logLvl, token):
+    coloredlogs.install(level=logLvl,
+                        logger=log,
+                        fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
     log.info('Initializing Charfred!')
     char = Charfred()
     char.run(token)

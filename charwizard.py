@@ -95,6 +95,7 @@ def wizard(ctx):
                       'Are you sure you want to continue?\n', abort=True)
         token = click.prompt('Alright! Please enter your bot token\n')
         cfg['botToken'] = token
+
         click.echo('We\'ll now setup the prefixes that Charfred will accept '
                    'one by one, you\'ll be asked if you want to add more after '
                    'every one.\n' 'Anything you enter (including whitespace) '
@@ -105,6 +106,15 @@ def wizard(ctx):
         while click.confirm('Wanna add one more?\n'):
             prefix = click.prompt('Please enter another prefix!\n')
             cfg['prefixes'].append(prefix)
+
+        cfg['hook'] = ''
+        if click.confirm('Charfred\'s Error Handler is capable of sending tracebacks for '
+                         'otherwise uncaught exceptions to a Discord Webhook, for your '
+                         'convenience, if a webhook url is specified!\n'
+                         'Do you wish to specify a webhook url to enable this feature?'):
+            hook_url = click.prompt('Please enter the webhook url now!\n')
+            cfg['hook'] = hook_url
+
         cfg['nodes'] = {}
         cfg._save()
         click.confirm('Great! We\'ve reached the breakpoint! The absolute basics '
@@ -228,6 +238,21 @@ def prefixes():
         while click.confirm('Wanna add one more?\n'):
             prefix = click.prompt('Please enter another prefix!\n')
             cfg['prefixes'].append(prefix)
+        cfg._save()
+
+
+@wizard.hook()
+def hook():
+    cfg._load()
+    if 'hook' in cfg.keys() and cfg['hook'] is not None:
+        click.echo('Currently specified webhook url:\n')
+        click.echo(cfg['hook'])
+    else:
+        click.echo('A webhook url for exception reporting is not currently specified!')
+    cfg['hook'] = ''
+    if click.confirm('Would you like to enter a new webhook url?\n'):
+        hook_url = click.prompt('Please enter the webhook url now!\n')
+        cfg['hook'] = hook_url
         cfg._save()
 
 
