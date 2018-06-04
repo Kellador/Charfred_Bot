@@ -93,10 +93,10 @@ class Charfred(commands.Bot):
 
 
 @click.command()
-@click.option('--logLvl', default='DEBUG', help='Logging Level')
+@click.option('--loglvl', default="DEBUG", help='Logging Level')
 @click.option('--token', default=None, help='Discord Bot Token')
-def run(logLvl, token):
-    coloredlogs.install(level=logLvl,
+def run(loglvl, token):
+    coloredlogs.install(level=loglvl,
                         logger=log,
                         fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
     log.info('Initializing Charfred!')
