@@ -241,7 +241,7 @@ def prefixes():
         cfg._save()
 
 
-@wizard.hook()
+@wizard.command()
 def hook():
     cfg._load()
     if 'hook' in cfg.keys() and cfg['hook'] is not None:
