@@ -55,12 +55,12 @@ class ErrorHandler:
             await ctx.send(random.choice(self.keywords['nacks']))
 
             hook_url = self.cfg['hook']
-            if hook_url is not None:
+            if hook_url:
                 hook_this = {
                     "embeds": [
                         {
                             "title": f"Exception during Command: {ctx.command.qualified_name}",
-                            "description": f"```py\n{error}\n```",
+                            "description": f"```py\n{traceback.format_exc(error)}\n```",
                             "color": 15102720
                         }
                     ]
@@ -70,8 +70,8 @@ class ErrorHandler:
                     await r.read()
 
             log.error(f'{ctx.command.qualified_name}:')
-            traceback.print_tb(error.original.__traceback__)
             log.error(f'{error.original.__class__.__name__}: {error.original}')
+            traceback.print_tb(error.original.__traceback__)
 
 
 def setup(bot):
