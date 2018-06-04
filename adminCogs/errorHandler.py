@@ -60,7 +60,7 @@ class ErrorHandler:
                     "embeds": [
                         {
                             "title": f"Exception during Command: {ctx.command.qualified_name}",
-                            "description": f"```py\n{traceback.format_exc(error)}\n```",
+                            "description": f"```py\n{traceback.format_exc(error.original)}\n```",
                             "color": 15102720
                         }
                     ]
