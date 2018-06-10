@@ -48,6 +48,7 @@ class Config(MutableMapping):
             log.info('Loaded as empty dict!')
 
     def _save(self):
+        os.makedirs(os.path.dirname(self.cfgfile), exist_ok=True)
         with open(f'{self.cfgfile}.tmp', 'w') as tmp:
             json.dump(self.cfgs.copy(), tmp)
         os.replace(f'{self.cfgfile}.tmp', self.cfgfile)
