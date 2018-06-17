@@ -63,8 +63,9 @@ class Flipbook:
         if first:
             self.msg = await self.ctx.send(embed=self.embed)
 
-            for (bttn, _) in self.bttns:
-                await self.msg.add_reaction(bttn)
+            if self.flipable:
+                for (bttn, _) in self.bttns:
+                    await self.msg.add_reaction(bttn)
         else:
             await self.msg.edit(embed=self.embed)
 
