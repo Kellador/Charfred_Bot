@@ -65,9 +65,7 @@ class ErrorHandler:
                         }
                     ]
                 }
-
-                async with self.session.post(hook_url, json=hook_this) as r:
-                    await r.read()
+                await self.session.post(hook_url, json=hook_this)
 
             log.error(f'{ctx.command.qualified_name}:')
             log.error(f'{error.original.__class__.__name__}: {error.original}')
