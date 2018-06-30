@@ -56,7 +56,7 @@ async def promptInput(ctx, prompt: str, timeout: int=120):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await ctx.send(prompt)
+    await sendMarkdown(ctx, prompt)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     return r.content
 
@@ -66,7 +66,7 @@ async def promptConfirm(ctx, prompt: str, timeout: int=120):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await ctx.send(prompt)
+    await sendMarkdown(ctx, prompt)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     if re.match('^(y|yes)', r.content, flags=re.I):
         return True
