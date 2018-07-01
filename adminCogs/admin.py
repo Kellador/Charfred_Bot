@@ -1,6 +1,7 @@
 import logging
 from discord.ext import commands
 from utils.discoutils import promptInput, promptConfirm, sendMarkdown
+from utils.flipbooks import NodeFlipbook
 
 log = logging.getLogger('charfred')
 
@@ -61,13 +62,12 @@ class Admin:
     async def permissions(self, ctx):
         """Permission and special settings operations.
 
-        Without a subcommand, this returns a list
-        of all current permission nodes.
+        Without a subcommand, this opens the NodeFlipbook,
+        for easier permission node editing.
         """
 
-        nodeList = '\n\t> '.join(list(self.botCfg['nodes']))
-        await sendMarkdown(ctx, '> Current permission nodes:\n'
-                           f'\t> {nodeList}\n> \'spec\' signifies special permission nodes.')
+        nodeFlip = NodeFlipbook(ctx, self.botCfg)
+        await nodeFlip.flip()
 
     @permissions.command(hidden=True)
     async def list(self, ctx, node: str):
