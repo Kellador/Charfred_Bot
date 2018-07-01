@@ -86,7 +86,7 @@ class Admin:
         else:
             currrole = n['role']
             if currrole:
-                await sendMarkdown(ctx, '> Current minimum role for {node}:\n'
+                await sendMarkdown(ctx, f'> Current minimum role for {node}:\n'
                                    f'\t> {currrole}')
             else:
                 await sendMarkdown(ctx, f'> Everyone is free to use {node} commands!')
@@ -96,7 +96,8 @@ class Admin:
                     currChans.append(self.bot.get_channel(c).mention)
                 currChans = '\n\t> '.join(currChans)
                 await sendMarkdown(ctx, f'> Current channels where {node} commands are'
-                                   f' permitted:\n\t> {currChans}')
+                                   ' permitted:')
+                await ctx.send(f'{currChans}')
             else:
                 await sendMarkdown(ctx, f'> {node} commands work everywhere!')
 

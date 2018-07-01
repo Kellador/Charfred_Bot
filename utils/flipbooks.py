@@ -176,6 +176,7 @@ class NodeFlipbook(Flipbook):
         self.nodes = cfg['nodes']
         super().__init__(ctx, list(self.nodes), entries_per_page=8, title='Node Book',
                          color=discord.Color.gold())
+        self.active = True
         self.current_entries = []
         self.curr_editing = None
         self.curr_entry_name = ''
@@ -254,6 +255,21 @@ class NodeFlipbook(Flipbook):
             entryEmbed.add_field(name='Minimum required role:',
                                  value=role if role else "Everyone is free to use it!",
                                  inline=False)
+            chans = self.curr_editing['channels']
+            if chans:
+                tmp = []
+                for c in chans:
+                    ch = self.ctx.bot.get_channel(c)
+                    if ch:
+                        tmp.append(ch.name)
+                    else:
+                        tmp.append(f'{c} (appears to be invalid)')
+                chans = '\n'.join(tmp)
+            else:
+                chans = 'No channel restriction!'
+            entryEmbed.add_field(name='Allowed channels:',
+                                 value=chans,
+                                 inline=False)
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
         await self.msg.add_reaction('\N{PENCIL}')
@@ -316,6 +332,7 @@ class NodeFlipbook(Flipbook):
             await self.draw_page(self.current_page)
 
     async def flip_off(self):
+        self.active = False
         self.flipable = False
         await self.msg.clear_reactions()
         if self.edited:
@@ -371,6 +388,7 @@ class NodeFlipbook(Flipbook):
             await self.msg.add_reaction('🖕')
 
     async def flip(self):
+        log.info('Flipping the node book!')
         await self.draw_page(0, first=True)
 
         def check(reaction, user):
@@ -386,7 +404,7 @@ class NodeFlipbook(Flipbook):
                     return True
             return False
 
-        while True:
+        while self.active:
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=120, check=check)
             except asyncio.TimeoutError:
