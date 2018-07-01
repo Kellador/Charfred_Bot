@@ -323,9 +323,17 @@ class NodeFlipbook(Flipbook):
             self.trash.append(m)
             self.trash.append(pm)
             if confirmation:
+                log.info('Saving botCfg.json...')
                 await self.cfg.save()
+                log.info('Saved!')
+                await sendMarkdown(self.ctx, '# Node Book changes saved!')
+            else:
+                log.info('Reloading botCfg.json...')
+                await self.cfg.load()
+                log.info('Reloaded!')
+                await sendMarkdown(self.ctx, '> Node Book changes discarded!')
         await self.msg.edit(embed=None,
-                            content='```markdown\n# Dict Book closed, changes saved!\n```')
+                            content='```markdown\n# Node Book closed!\n```')
         await self.cleanup()
 
     async def info(self):
@@ -382,6 +390,10 @@ class NodeFlipbook(Flipbook):
             try:
                 reaction, user = await self.bot.wait_for('reaction_add', timeout=120, check=check)
             except asyncio.TimeoutError:
+                log.info('Reloading botCfg.json...')
+                await self.cfg.load()
+                log.info('Reloaded!')
+                await sendMarkdown(self.ctx, '> NodeBook changes discarded!')
                 try:
                     await self.msg.clear_reactions()
                 except:
