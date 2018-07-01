@@ -173,7 +173,7 @@ class NodeFlipbook(Flipbook):
     def __init__(self, ctx, cfg):
         self.cfg = cfg
         self.nodes = cfg['nodes']
-        super().__init__(ctx, self.nodes.keys(), entries_per_page=8, title='Dict Book',
+        super().__init__(ctx, list(self.nodes), entries_per_page=8, title='Dict Book',
                          color=discord.Color.gold())
         self.current_entries = []
         self.curr_editing = None
