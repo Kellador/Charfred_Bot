@@ -237,11 +237,12 @@ class NodeFlipbook(Flipbook):
         entryEmbed.description = f'Entry for {self.curr_entry_name}:'
         self.curr_editing = self.nodes[self.curr_entry_name]
         if self.curr_entry_name.startswith('spec:'):
-            entryEmbed.add_field('Prompt:', self.curr_editing[1])
-            entryEmbed.add_field('Value:', self.curr_editing[0])
+            entryEmbed.add_field(name='Prompt:', value=self.curr_editing[1])
+            entryEmbed.add_field(name='Value:', value=self.curr_editing[0])
         else:
-            entryEmbed.add_field('Minimum required role:',
-                                 self.curr_editing['role'], inline=False)
+            entryEmbed.add_field(name='Minimum required role:',
+                                 value=self.curr_editing['role'],
+                                 inline=False)
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
         await self.msg.add_reaction('\N{PENCIL}')
