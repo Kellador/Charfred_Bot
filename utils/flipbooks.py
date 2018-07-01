@@ -2,6 +2,7 @@ import logging
 import asyncio
 import discord
 from itertools import chain
+from functools import partial
 from utils.discoutils import promptConfirm, promptInput, sendMarkdown
 
 log = logging.getLogger('charfred')
@@ -173,7 +174,7 @@ class NodeFlipbook(Flipbook):
     def __init__(self, ctx, cfg):
         self.cfg = cfg
         self.nodes = cfg['nodes']
-        super().__init__(ctx, list(self.nodes), entries_per_page=8, title='Dict Book',
+        super().__init__(ctx, list(self.nodes), entries_per_page=8, title='Node Book',
                          color=discord.Color.gold())
         self.current_entries = []
         self.curr_editing = None
@@ -181,19 +182,19 @@ class NodeFlipbook(Flipbook):
         self.curr_index = 0
         self.current_page = 0
         self.selectionBttns = [
-            ('\u0031\u20E3', self.draw_entry_content(0)),
-            ('\u0032\u20E3', self.draw_entry_content(1)),
-            ('\u0033\u20E3', self.draw_entry_content(2)),
-            ('\u0034\u20E3', self.draw_entry_content(3)),
-            ('\u0035\u20E3', self.draw_entry_content(4)),
-            ('\u0036\u20E3', self.draw_entry_content(5)),
-            ('\u0037\u20E3', self.draw_entry_content(6)),
-            ('\u0038\u20E3', self.draw_entry_content(7))
+            ('\u0031\u20E3', partial(self.draw_entry_content, 0)),
+            ('\u0032\u20E3', partial(self.draw_entry_content, 1)),
+            ('\u0033\u20E3', partial(self.draw_entry_content, 2)),
+            ('\u0034\u20E3', partial(self.draw_entry_content, 3)),
+            ('\u0035\u20E3', partial(self.draw_entry_content, 4)),
+            ('\u0036\u20E3', partial(self.draw_entry_content, 5)),
+            ('\u0037\u20E3', partial(self.draw_entry_content, 6)),
+            ('\u0038\u20E3', partial(self.draw_entry_content, 7))
         ]
         self.entryViewBttns = [
             ('\N{Squared Up With Exclamation Mark}', self.draw_page(self.current_page)),
-            ('\N{PENCIL}', self.edit_entry()),
-            ('\N{BOMB}', self.delete_entry())
+            ('\N{PENCIL}', self.edit_entry),
+            ('\N{BOMB}', self.delete_entry)
         ]
 
     async def draw_page(self, page, first=False):
@@ -230,6 +231,7 @@ class NodeFlipbook(Flipbook):
             await self.msg.add_reaction(bttn)
 
     async def draw_entry_content(self, index):
+        self.curr_index = index
         self.curr_entry_name = self.current_entries[index]
         entryEmbed = discord.Embed(color=discord.Color.dark_blue())
         entryEmbed.description = f'Entry for {self.curr_entry_name}:'
