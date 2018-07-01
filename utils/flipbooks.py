@@ -192,7 +192,7 @@ class NodeFlipbook(Flipbook):
             ('\u0038\u20E3', partial(self.draw_entry_content, 7))
         ]
         self.entryViewBttns = [
-            ('\N{Squared Up With Exclamation Mark}', self.draw_page(self.current_page)),
+            ('\N{Squared Up With Exclamation Mark}', partial(self.draw_page, self.current_page)),
             ('\N{PENCIL}', self.edit_entry),
             ('\N{BOMB}', self.delete_entry)
         ]
