@@ -112,23 +112,23 @@ class Admin:
         n = self.botCfg['nodes'][node]
         if node.startswith('spec:'):
             if type(n[0]) is str:
-                spec = await promptInput(ctx, f'# {n[-1]}')
+                spec, _ = await promptInput(ctx, f'# {n[-1]}')
             elif type(n[0]) is bool:
-                spec = await promptConfirm(ctx, f'# {n[-1]}')
+                spec, _ = await promptConfirm(ctx, f'# {n[-1]}')
             else:
                 await sendMarkdown(ctx, f'< {node} is misconfigured; Only str and bool types'
                                    'are supported at the moment! >')
                 return
             self.botCfg['nodes'][node] = [spec, n[-1]]
         else:
-            r = await promptInput(ctx, '# Which would you like to edit?\n\trole\n\tchannels')
+            r, _ = await promptInput(ctx, '# Which would you like to edit?\n\trole\n\tchannels')
             if r == 'role':
-                role = await promptInput(ctx, '# Please enter the minimum role required'
-                                         f' to use {node} commands.')
+                role, _ = await promptInput(ctx, '# Please enter the minimum role required'
+                                            f' to use {node} commands.')
                 self.botCfg['nodes'][node]['role'] = role
             elif r == 'channels':
-                chans = await promptInput(ctx, f'# Enter all channels where you wish {node} to be allowed!'
-                                          '\n# Delimited only by spaces!')
+                chans, _ = await promptInput(ctx, f'# Enter all channels where you wish {node} to be '
+                                             ' allowed!\n# Delimited only by spaces!')
                 chans = list(map(int, chans.split()))
                 self.botCfg['nodes'][node]['channels'] = chans
             else:

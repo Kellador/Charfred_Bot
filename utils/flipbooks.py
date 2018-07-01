@@ -181,6 +181,8 @@ class NodeFlipbook(Flipbook):
         self.curr_entry_name = ''
         self.curr_index = 0
         self.current_page = 0
+        self.trash = []
+        self.edited = False
         self.selectionBttns = [
             ('\u0031\u20E3', partial(self.draw_entry_content, 0)),
             ('\u0032\u20E3', partial(self.draw_entry_content, 1)),
@@ -196,6 +198,10 @@ class NodeFlipbook(Flipbook):
             ('\N{PENCIL}', self.edit_entry),
             ('\N{BOMB}', self.delete_entry)
         ]
+
+    async def cleanup(self):
+        for m in self.trash:
+            await m.delete()
 
     async def draw_page(self, page, first=False):
         if page < 0 or page > (self.pages - 1):
@@ -220,6 +226,7 @@ class NodeFlipbook(Flipbook):
         if first:
             self.msg = await self.ctx.send(embed=self.embed)
         else:
+            await self.cleanup()
             await self.msg.edit(embed=self.embed)
             await self.msg.clear_reactions()
 
@@ -243,6 +250,7 @@ class NodeFlipbook(Flipbook):
             entryEmbed.add_field(name='Minimum required role:',
                                  value=self.curr_editing['role'],
                                  inline=False)
+        await self.cleanup()
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
         await self.msg.add_reaction('\N{PENCIL}')
@@ -252,46 +260,63 @@ class NodeFlipbook(Flipbook):
     async def edit_entry(self):
         if self.curr_entry_name.startswith('spec:'):
             if type(self.curr_editing[0]) is bool:
-                self.curr_editing[0] = await promptConfirm(self.ctx, f'> {self.curr_editing[1]}')
+                self.curr_editing[0], m = await promptConfirm(self.ctx, f'> {self.curr_editing[1]}')
             else:
-                self.curr_editing[0] = await promptInput(self.ctx, f'> {self.curr_editing[1]}')
+                self.curr_editing[0], m = await promptInput(self.ctx, f'> {self.curr_editing[1]}')
+            self.trash.append(m)
         else:
-            change_roles = await promptConfirm(self.ctx, '> Do you wish to edit required roles?')
+            change_roles, m = await promptConfirm(self.ctx, '> Do you wish to edit required roles?')
+            self.trash.append(m)
             if change_roles:
-                req_role = await promptInput(self.ctx, '> Please enter the minimum role'
-                                             f' required for {self.curr_entry_name}!'
-                                             'To clear role requirements, enter: \'\'')
+                req_role, m = await promptInput(self.ctx, '> Please enter the minimum role'
+                                                f' required for {self.curr_entry_name}!'
+                                                'To clear role requirements, enter: \'\'')
+                self.trash.append(m)
                 if req_role == "''":
                     self.curr_editing['role'] = ''
                 else:
                     self.curr_editing['role'] = req_role
-            change_chan_limit = await promptConfirm(self.ctx, '> Do you wish to edit where '
-                                                    f'{self.curr_entry_name} is allowed?')
+                self.edited = True
+            change_chan_limit, m = await promptConfirm(self.ctx, '> Do you wish to edit where '
+                                                       f'{self.curr_entry_name} is allowed?')
+            self.trash.append(m)
             if change_chan_limit:
-                chan_limit = await promptInput(self.ctx, '> Please enter all IDs of the channels '
-                                               f'where you wish {self.curr_entry_name} to be allowed!\n'
-                                               'Delimited by spaces only!\n'
-                                               'To clear channel limits, enter: \'\'')
+                chan_limit, m = await promptInput(self.ctx, '> Please enter all IDs of the channels '
+                                                  f'where you wish {self.curr_entry_name} to be allowed!\n'
+                                                  'Delimited by spaces only!\n'
+                                                  'To clear channel limits, enter: \'\'')
+                self.trash.append(m)
                 if chan_limit == "''":
                     self.curr_editing['channels'] = []
                 else:
                     self.curr_editing['channels'] = list(map(int, chan_limit.split()))
+                self.edited = True
         await self.draw_entry_content(self.curr_index)
 
     async def delete_entry(self):
-        confirmation = await promptConfirm(self.ctx, '> Do you really wish to delete the entry '
-                                           f'for {self.curr_entry_name}?\n'
-                                           f'< This will make {self.curr_entry_name} bot owner only! >')
+        confirmation, m = await promptConfirm(self.ctx, '> Do you really wish to delete the entry '
+                                              f'for {self.curr_entry_name}?\n'
+                                              f'< This will make {self.curr_entry_name} bot owner only! >')
+        self.trash.append(m)
         if confirmation:
             del self.nodes[self.curr_entry_name]
-            await sendMarkdown(self.ctx, f'> {self.curr_entry_name} deleted!')
+            self.edited = True
+            m = await sendMarkdown(self.ctx, f'> {self.curr_entry_name} deleted!')
+            self.trash.append(m)
+            self.entries.remove(self.curr_entry_name)
+            await self.draw_page(self.current_page)
 
     async def flip_off(self):
         self.flipable = False
         await self.msg.clear_reactions()
-        await self.cfg.save()
+        if self.edited:
+            confirmation, m = await promptConfirm(self.ctx, '> Do you wish to save your changes?')
+            self.trash.append(m)
+            if confirmation:
+                await self.cfg.save()
         await self.msg.edit(embed=None,
                             content='```markdown\n# Dict Book closed, changes saved!\n```')
+        await self.cleanup()
 
     async def info(self):
         if self.helping:
@@ -305,7 +330,7 @@ class NodeFlipbook(Flipbook):
                 'To flip through the pages (if there is more than one):',
                 'Flip backwards: 👈',
                 'Flip forwards:  👉',
-                'Flip Charfred off: 🖕 (closes Node Book AND saves changes)',
+                'Flip Charfred off: 🖕 (closes Node Book)',
                 'Toggle this help: ❔',
                 ' ',
                 'There are number-block emoji for each entry on the page:',
