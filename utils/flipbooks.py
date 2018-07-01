@@ -179,6 +179,7 @@ class NodeFlipbook(Flipbook):
         self.curr_editing = None
         self.curr_entry_name = ''
         self.curr_index = 0
+        self.current_page = 0
         self.selectionBttns = [
             ('1️⃣', self.draw_entry_content(0)),
             ('2️⃣', self.draw_entry_content(1)),
