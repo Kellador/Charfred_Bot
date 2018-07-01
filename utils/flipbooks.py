@@ -262,45 +262,51 @@ class NodeFlipbook(Flipbook):
     async def edit_entry(self):
         if self.curr_entry_name.startswith('spec:'):
             if type(self.curr_editing[0]) is bool:
-                self.curr_editing[0], m = await promptConfirm(self.ctx, f'> {self.curr_editing[1]}')
+                self.curr_editing[0], m, pm = await promptConfirm(self.ctx, f'> {self.curr_editing[1]}')
             else:
-                self.curr_editing[0], m = await promptInput(self.ctx, f'> {self.curr_editing[1]}')
+                self.curr_editing[0], m, pm = await promptInput(self.ctx, f'> {self.curr_editing[1]}')
             self.trash.append(m)
+            self.trash.append(pm)
         else:
-            change_roles, m = await promptConfirm(self.ctx, '> Do you wish to edit required roles?')
+            change_roles, m, pm = await promptConfirm(self.ctx, '> Do you wish to edit required roles?')
             self.trash.append(m)
+            self.trash.append(pm)
             if change_roles:
-                req_role, m = await promptInput(self.ctx, '> Please enter the minimum role'
-                                                f' required for {self.curr_entry_name}!'
-                                                'To clear role requirements, enter: \'\'')
+                req_role, m, pm = await promptInput(self.ctx, '> Please enter the minimum role'
+                                                    f' required for {self.curr_entry_name}!'
+                                                    'To clear role requirements, enter: \'\'')
                 self.trash.append(m)
+                self.trash.append(pm)
                 if req_role == "''":
                     self.curr_editing['role'] = ''
                 else:
                     self.curr_editing['role'] = req_role
                 self.edited = True
-            change_chan_limit, m = await promptConfirm(self.ctx, '> Do you wish to edit where '
-                                                       f'{self.curr_entry_name} is allowed?')
+            change_chan_limit, m, pm = await promptConfirm(self.ctx, '> Do you wish to edit where '
+                                                           f'{self.curr_entry_name} is allowed?')
             self.trash.append(m)
+            self.trash.append(pm)
             if change_chan_limit:
-                chan_limit, m = await promptInput(self.ctx, '> Please enter all IDs of the channels '
-                                                  f'where you wish {self.curr_entry_name} to be allowed!\n'
-                                                  'Delimited by spaces only!\n'
-                                                  'To clear channel limits, enter: \'\'')
+                c_limit, m, pm = await promptInput(self.ctx, '> Please enter all IDs of the channels '
+                                                   f'where you wish {self.curr_entry_name} to be allowed!'
+                                                   '\nDelimited by spaces only!\n'
+                                                   'To clear channel limits, enter: \'\'')
                 self.trash.append(m)
-                if chan_limit == "''":
+                self.trash.append(pm)
+                if c_limit == "''":
                     self.curr_editing['channels'] = []
                 else:
-                    self.curr_editing['channels'] = list(map(int, chan_limit.split()))
+                    self.curr_editing['channels'] = list(map(int, c_limit.split()))
                 self.edited = True
         await self.draw_entry_content(self.curr_index)
 
     async def delete_entry(self):
-        confirmation, m = await promptConfirm(self.ctx, '> Do you really wish to delete the entry '
-                                              f'for {self.curr_entry_name}?\n'
-                                              f'< This will make {self.curr_entry_name} bot owner only! >')
+        con, m, pm = await promptConfirm(self.ctx, '> Do you really wish to delete the entry '
+                                         f'for {self.curr_entry_name}?\n'
+                                         f'< This will make {self.curr_entry_name} bot owner only! >')
         self.trash.append(m)
-        if confirmation:
+        self.trash.append(pm)
+        if con:
             del self.nodes[self.curr_entry_name]
             self.edited = True
             m = await sendMarkdown(self.ctx, f'> {self.curr_entry_name} deleted!')
@@ -312,8 +318,9 @@ class NodeFlipbook(Flipbook):
         self.flipable = False
         await self.msg.clear_reactions()
         if self.edited:
-            confirmation, m = await promptConfirm(self.ctx, '> Do you wish to save your changes?')
+            confirmation, m, pm = await promptConfirm(self.ctx, '> Do you wish to save your changes?')
             self.trash.append(m)
+            self.trash.append(pm)
             if confirmation:
                 await self.cfg.save()
         await self.msg.edit(embed=None,

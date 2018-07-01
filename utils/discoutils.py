@@ -54,29 +54,29 @@ async def sendEmbed(ctx, emb):
 async def promptInput(ctx, prompt: str, timeout: int=120):
     """Prompt for text input.
 
-    Returns a tuple of acquired input
-    and reply message.
+    Returns a triple of acquired input
+    reply message and prompt message.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await sendMarkdown(ctx, prompt)
+    pm = await sendMarkdown(ctx, prompt)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
-    return (r.content, r)
+    return (r.content, r, pm)
 
 
 async def promptConfirm(ctx, prompt: str, timeout: int=120):
     """Prompt for confirmation.
 
     Returns a tuple of acquired confirmation
-    and reply message.
+    reply message and prompt message.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await sendMarkdown(ctx, prompt)
+    pm = await sendMarkdown(ctx, prompt)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     if re.match('^(y|yes)', r.content, flags=re.I):
-        return (True, r)
+        return (True, r, pm)
     else:
-        return (False, r)
+        return (False, r, pm)
