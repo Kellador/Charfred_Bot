@@ -181,19 +181,19 @@ class NodeFlipbook(Flipbook):
         self.curr_index = 0
         self.current_page = 0
         self.selectionBttns = [
-            ('1️⃣', self.draw_entry_content(0)),
-            ('2️⃣', self.draw_entry_content(1)),
-            ('3️⃣', self.draw_entry_content(2)),
-            ('4️⃣', self.draw_entry_content(3)),
-            ('5️⃣', self.draw_entry_content(4)),
-            ('6️⃣', self.draw_entry_content(5)),
-            ('7️⃣', self.draw_entry_content(6)),
-            ('8️⃣', self.draw_entry_content(7))
+            ('\u0031\u20E3', self.draw_entry_content(0)),
+            ('\u0032\u20E3', self.draw_entry_content(1)),
+            ('\u0033\u20E3', self.draw_entry_content(2)),
+            ('\u0034\u20E3', self.draw_entry_content(3)),
+            ('\u0035\u20E3', self.draw_entry_content(4)),
+            ('\u0036\u20E3', self.draw_entry_content(5)),
+            ('\u0037\u20E3', self.draw_entry_content(6)),
+            ('\u0038\u20E3', self.draw_entry_content(7))
         ]
         self.entryViewBttns = [
-            ('🆙', self.draw_page(self.current_page)),
-            ('✏️', self.edit_entry()),
-            ('💣', self.delete_entry())
+            ('\N{Squared Up With Exclamation Mark}', self.draw_page(self.current_page)),
+            ('\N{PENCIL}', self.edit_entry()),
+            ('\N{BOMB}', self.delete_entry())
         ]
 
     async def draw_page(self, page, first=False):
@@ -242,9 +242,9 @@ class NodeFlipbook(Flipbook):
                                  self.curr_editing['role'], inline=False)
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
-        await self.msg.add_reaction('✏️')
-        await self.msg.add_reaction('🆙')
-        await self.msg.add_reaction('💣')
+        await self.msg.add_reaction('\N{PENCIL}')
+        await self.msg.add_reaction('\N{Squared Up With Exclamation Mark}')
+        await self.msg.add_reaction('\N{BOMB}')
 
     async def edit_entry(self):
         if self.curr_entry_name.startswith('spec:'):
