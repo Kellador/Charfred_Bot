@@ -201,7 +201,10 @@ class NodeFlipbook(Flipbook):
 
     async def cleanup(self):
         for m in self.trash:
-            await m.delete()
+            try:
+                await m.delete()
+            except:
+                pass
 
     async def draw_page(self, page, first=False):
         if page < 0 or page > (self.pages - 1):
@@ -250,7 +253,6 @@ class NodeFlipbook(Flipbook):
             entryEmbed.add_field(name='Minimum required role:',
                                  value=self.curr_editing['role'],
                                  inline=False)
-        await self.cleanup()
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
         await self.msg.add_reaction('\N{PENCIL}')
