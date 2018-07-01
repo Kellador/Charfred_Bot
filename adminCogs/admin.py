@@ -62,9 +62,18 @@ class Admin:
     async def permissions(self, ctx):
         """Permission and special settings operations.
 
-        Without a subcommand, this opens the NodeFlipbook,
-        for easier permission node editing.
+        Without a subcommand, this returns a list
+        of all current permission nodes.
         """
+
+        nodeList = '\n\t> '.join(list(self.botCfg['nodes']))
+        await sendMarkdown(ctx, '> Current permission nodes:\n'
+                           f'\t> {nodeList}\n> \'spec\' signifies special permission nodes.')
+
+    @permissions.command(hidden=True)
+    @commands.is_owner()
+    async def nodeBook(self, ctx):
+        """Opens the Permission Node Book."""
 
         nodeFlip = NodeFlipbook(ctx, self.botCfg)
         await nodeFlip.flip()
