@@ -250,8 +250,9 @@ class NodeFlipbook(Flipbook):
             entryEmbed.add_field(name='Prompt:', value=self.curr_editing[1])
             entryEmbed.add_field(name='Value:', value=self.curr_editing[0])
         else:
+            role = self.curr_editing['role']
             entryEmbed.add_field(name='Minimum required role:',
-                                 value=self.curr_editing['role'],
+                                 value=role if role else "Everyone is free to use it!",
                                  inline=False)
         await self.msg.clear_reactions()
         await self.msg.edit(embed=entryEmbed)
