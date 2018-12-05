@@ -4,14 +4,10 @@ from time import sleep, time
 from datetime import datetime
 import tarfile
 import logging
-import coloredlogs
 from cogs.minecraftCogs.utils.mcservutils import isUp, termProc, buildCountdownSteps
 
 
-log = logging.getLogger(__name__)
-coloredlogs.install(level='DEBUG',
-                    logger=log,
-                    fmt='%(asctime)s:%(msecs)03d %(name)s: %(levelname)s %(message)s')
+log = logging.getLogger('spiffyManagement')
 
 
 def screenCmd(server, *cmds):
@@ -164,62 +160,61 @@ def status(cfg, server):
         return False
 
 
-def backup(cfg, *servers):
+def backup(cfg, server):
     """Backup a server's world directory.
 
     Also deletes backups older than a configured age.
     """
 
     bpath = cfg['backupspath']
-    for server in servers:
-        if server not in cfg['servers']:
-            log.warning(f'{server} has been misspelled or not configured!')
-        elif 'worldname' not in cfg['servers'][server]:
-            log.warning(f'{server} has no world directory specified!')
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+    elif 'worldname' not in cfg['servers'][server]:
+        log.warning(f'{server} has no world directory specified!')
+    else:
+        world = cfg['servers'][server]['worldname']
+        log.info(f'Starting backup for {server}...')
+        if isUp(server):
+            log.info(f'{server} is running, announcing backup and toggling save!')
+            screenCmd(
+                server,
+                'Starting Backup!',
+                'save-off',
+                'save-all'
+            )
+            sleep(10)
+        sbpath = f'{bpath}/{server}'
+        try:
+            os.makedirs(sbpath, exist_ok=True)
+        except Exception as e:
+            log.error(e + '\nBackups aborted!')
+            return False
         else:
-            world = cfg['servers'][server]['worldname']
-            log.info(f'Starting backup for {server}...')
-            if isUp(server):
-                log.info(f'{server} is running, announcing backup and toggling save!')
-                screenCmd(
-                    server,
-                    'Starting Backup!',
-                    'save-off',
-                    'save-all'
-                )
-                sleep(10)
-            sbpath = f'{bpath}/{server}'
-            try:
-                os.makedirs(sbpath, exist_ok=True)
-            except Exception as e:
-                log.error(e + '\nBackups aborted!')
-                return False
-            else:
-                log.info('Created missing directories!')
-            log.info('Deleting outdated backups...')
-            now = time()
-            with os.scandir(sbpath) as d:
-                for entry in d:
-                    if not entry.name.startswith('.') and entry.is_file():
-                        stats = entry.stat()
-                        if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
-                            try:
-                                os.remove(entry.path)
-                            except OSError as e:
-                                log.error(e)
-                            else:
-                                log.info(f'Deleted {entry.path} for being too old!')
-            log.info('Creating backup...')
-            bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}.tar.gz'
-            os.chdir(sbpath)
-            serverpath = cfg['serverspath']
-            with tarfile.open(bname, 'w:gz') as tf:
-                tf.add(f'{serverpath}/{server}/{world}', f'{world}')
-            log.info('Backup created!')
-            if isUp(server):
-                log.info(f'{server} is running, re-enabling save!')
-                screenCmd(
-                    server,
-                    'save-on',
-                    'say Backup complete!'
-                )
+            log.info('Created missing directories!')
+        log.info('Deleting outdated backups...')
+        now = time()
+        with os.scandir(sbpath) as d:
+            for entry in d:
+                if not entry.name.startswith('.') and entry.is_file():
+                    stats = entry.stat()
+                    if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                        try:
+                            os.remove(entry.path)
+                        except OSError as e:
+                            log.error(e)
+                        else:
+                            log.info(f'Deleted {entry.path} for being too old!')
+        log.info('Creating backup...')
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}.tar.gz'
+        os.chdir(sbpath)
+        serverpath = cfg['serverspath']
+        with tarfile.open(bname, 'w:gz') as tf:
+            tf.add(f'{serverpath}/{server}/{world}', f'{world}')
+        log.info('Backup created!')
+        if isUp(server):
+            log.info(f'{server} is running, re-enabling save!')
+            screenCmd(
+                server,
+                'save-on',
+                'say Backup complete!'
+            )
