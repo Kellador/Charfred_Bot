@@ -8,5 +8,7 @@
       "demotecmd": "lp user {player} parent set {rank}"
     }
   },
-  "serverspath": "/home/Servers"
+  "serverspath": "NONE",
+  "backupspath": "NONE",
+  "oldTimer": 1440
 }
