@@ -41,7 +41,7 @@ def restart(server, countdown):
 @spiffy.command()
 @click.argument('server')
 def status(server):
-    spiffyManagement.status(server)
+    spiffyManagement.status(cfg, server)
 
 
 @spiffy.command()
