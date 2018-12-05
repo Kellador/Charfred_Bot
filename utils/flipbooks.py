@@ -13,7 +13,7 @@ class Flipbook:
     pages, that can be flipped through via
     reactions.
 
-    Totally based on RoboDanny's Paginator."""
+    Heavily based on RoboDanny's Paginator."""
     def __init__(self, ctx, entries, entries_per_page=16, title=None, color=None):
         self.bot = ctx.bot
         self.ctx = ctx
@@ -82,6 +82,7 @@ class Flipbook:
         self.flipable = False
         await self.msg.edit(embed=None,
                             content='```markdown\n> FlipBook closed!\n```')
+        await self.msg.clear_reactions()
 
     async def info(self):
         if self.helping:

@@ -1,10 +1,11 @@
 from subprocess import run
 import os
-import re
-from time import sleep
+from time import sleep, time
+from datetime import datetime
+import tarfile
 import logging
 import coloredlogs
-from utils.mcservutils import isUp, termProc
+from cogs.minecraftCogs.utils.mcservutils import isUp, termProc, buildCountdownSteps
 
 
 log = logging.getLogger(__name__)
@@ -31,8 +32,9 @@ def start(cfg, server):
         os.chdir(cfg['serverspath'] + f'/{server}')
         log.info(f'Starting {server}')
         run(['screen', '-h', '5000', '-dmS', server,
-             cfg['servers'][server]['invocation'], 'nogui'])
+             *(cfg['servers'][server]['invocation']).split(), 'nogui'])
         os.chdir(cwd)
+        sleep(5)
         if isUp(server):
             log.info(f'{server} is now running!')
             return True
@@ -79,39 +81,25 @@ def restart(cfg, server, countdown=None):
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
         return False
-    countpat = re.compile(
-        '(?P<time>\d+)((?P<minutes>[m].*)|(?P<seconds>[s].*))', flags=re.I
-    )
     if isUp(server):
+        countdownSteps = ["20m", "15m", "10m", "5m", "3m",
+                          "2m", "1m", "30s", "10s", "5s"]
         if countdown:
-            if countdown not in cfg['restartCountdowns']:
-                log.error(f'{countdown} is undefined under restartCountdowns!')
+            if countdown not in countdownSteps:
+                log.error(f'{countdown} is an undefined step, aborting!')
+                availableSteps1 = ', '.join(countdownSteps[:5])
+                availableSteps2 = ', '.join(countdownSteps[5:])
+                log.info('> Available countdown steps are:\n'
+                         f'> {availableSteps1},\n'
+                         f'> {availableSteps2}')
                 return False
             log.info(f'Restarting {server} with {countdown}-countdown.')
-            cntd = cfg['restartCountdowns'][countdown]
+            indx = countdownSteps.index(countdown)
+            cntd = countdownSteps[indx:]
         else:
-            log.info(f'Restarting {server} with default countdown.')
-            cntd = cfg['restartCountdowns']['default']
-        steps = []
-        for i, step in enumerate(cntd):
-            s = countpat.search(step)
-            if s.group('minutes'):
-                time = int(s.group('time')) * 60
-                secs = time * 60
-                unit = 'minutes'
-            else:
-                time = int(s.group('time'))
-                secs = time
-                unit = 'seconds'
-            if i + 1 > len(cntd) - 1:
-                steps.append((time, secs, unit))
-            else:
-                st = countpat.search(cntd[i + 1])
-                if st.group('minutes'):
-                    t = int(st.group('time')) * 60
-                else:
-                    t = int(st.group('time'))
-                steps.append((time, secs - t, unit))
+            log.info(f'Restarting {server} with default 10min countdown.')
+            cntd = countdownSteps[2:]
+        steps = buildCountdownSteps(cntd)
         for step in steps:
             screenCmd(
                 server,
@@ -139,7 +127,7 @@ def restart(cfg, server, countdown=None):
             log.info(f'Starting {server}')
             os.chdir(cfg['serverspath'] + f'/{server}')
             run(['screen', '-h', '5000', '-dmS', server,
-                cfg['servers'][server]['invocation'], 'nogui'])
+                *(cfg['servers'][server]['invocation']).split(), 'nogui'])
             os.chdir(cwd)
             sleep(5)
             if isUp(server):
@@ -174,3 +162,64 @@ def status(cfg, server):
     else:
         log.info(f'{server} is not running.')
         return False
+
+
+def backup(cfg, *servers):
+    """Backup a server's world directory.
+
+    Also deletes backups older than a configured age.
+    """
+
+    bpath = cfg['backupspath']
+    for server in servers:
+        if server not in cfg['servers']:
+            log.warning(f'{server} has been misspelled or not configured!')
+        elif 'worldname' not in cfg['servers'][server]:
+            log.warning(f'{server} has no world directory specified!')
+        else:
+            world = cfg['servers'][server]['worldname']
+            log.info(f'Starting backup for {server}...')
+            if isUp(server):
+                log.info(f'{server} is running, announcing backup and toggling save!')
+                screenCmd(
+                    server,
+                    'Starting Backup!',
+                    'save-off',
+                    'save-all'
+                )
+                sleep(10)
+            sbpath = f'{bpath}/{server}'
+            try:
+                os.makedirs(sbpath, exist_ok=True)
+            except Exception as e:
+                log.error(e + '\nBackups aborted!')
+                return False
+            else:
+                log.info('Created missing directories!')
+            log.info('Deleting outdated backups...')
+            now = time()
+            with os.scandir(sbpath) as d:
+                for entry in d:
+                    if not entry.name.startswith('.') and entry.is_file():
+                        stats = entry.stat()
+                        if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                            try:
+                                os.remove(entry.path)
+                            except OSError as e:
+                                log.error(e)
+                            else:
+                                log.info(f'Deleted {entry.path} for being too old!')
+            log.info('Creating backup...')
+            bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}.tar.gz'
+            os.chdir(sbpath)
+            serverpath = cfg['serverspath']
+            with tarfile.open(bname, 'w:gz') as tf:
+                tf.add(f'{serverpath}/{server}/{world}', f'{world}')
+            log.info('Backup created!')
+            if isUp(server):
+                log.info(f'{server} is running, re-enabling save!')
+                screenCmd(
+                    server,
+                    'save-on',
+                    'say Backup complete!'
+                )

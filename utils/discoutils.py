@@ -20,7 +20,9 @@ async def node_check(ctx, node):
     roleName = ctx.bot.cfg['nodes'][node]['role']
     if roleName:
         minRole = find(lambda r: r.name == roleName, ctx.guild.roles)
-        return ctx.author.top_role >= minRole
+        if minRole:
+            return ctx.author.top_role >= minRole
+        return False
     else:
         return True
 
@@ -54,8 +56,8 @@ async def sendEmbed(ctx, emb):
 async def promptInput(ctx, prompt: str, timeout: int=120):
     """Prompt for text input.
 
-    Returns a triple of acquired input
-    reply message and prompt message.
+    Returns a tuple of acquired input,
+    reply message, and prompt message.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
@@ -68,8 +70,8 @@ async def promptInput(ctx, prompt: str, timeout: int=120):
 async def promptConfirm(ctx, prompt: str, timeout: int=120):
     """Prompt for confirmation.
 
-    Returns a tuple of acquired confirmation
-    reply message and prompt message.
+    Returns a triple of acquired confirmation,
+    reply message, and prompt message.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
