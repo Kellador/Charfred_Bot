@@ -48,4 +48,11 @@ def status(server):
 @click.argument('servers', nargs=-1)
 def backup(servers):
     for server in servers:
-        spiffyManagement.backup(server)
+        spiffyManagement.backup(cfg, server)
+
+
+@spiffy.command()
+@click.argument('servers', nargs=-1)
+def questbackup(servers):
+    for server in servers:
+        spiffyManagement.questbackup(cfg, server)

@@ -190,7 +190,7 @@ def backup(cfg, server):
             log.error(e + '\nBackups aborted!')
             return False
         else:
-            log.info('Created missing directories!')
+            log.info('Created missing directories! (if they were missing)')
         log.info('Deleting outdated backups...')
         now = time()
         with os.scandir(sbpath) as d:
@@ -218,3 +218,49 @@ def backup(cfg, server):
                 'save-on',
                 'say Backup complete!'
             )
+
+
+def questbackup(cfg, server):
+    """Silly solution to a silly problem."""
+
+    bpath = cfg['backupspath']
+    if server not in cfg['servers']:
+        log.warning(f'{server} has been misspelled or not configured!')
+    elif 'worldname' not in cfg['servers'][server]:
+        log.warning(f'{server} has no world directory specified!')
+    else:
+        world = cfg['servers'][server]['worldname']
+        log.info(f'Starting backup for {server}\'s quests...')
+        if isUp(server):
+            log.info(f'{server} is running, don\'t care, just want QUESTS!')
+        sbpath = f'{bpath}/{server}/quests'
+        try:
+            os.makedirs(sbpath, exist_ok=True)
+        except Exception as e:
+            log.error(e + '\nBackup aborted, DANGER! might loose quests!')
+            return False
+        else:
+            log.info('Created missing directories! (if they were missing)')
+        log.info('Deleting old quest backups...')
+        now = time()
+        with os.scandir(sbpath) as d:
+            for entry in d:
+                if not entry.name.startswith('.') and entry.is_file():
+                    stats = entry.stat()
+                    if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                        try:
+                            os.remove(entry.path)
+                        except OSError as e:
+                            log.error(e)
+                        else:
+                            log.info(f'Deleted {entry.path} for being too old!')
+        log.info('Creating quest backup...')
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-QUESTS.tar.gz'
+        os.chdir(sbpath)
+        serverpath = cfg['serverspath']
+        with tarfile.open(bname, 'w:gz') as tf:
+            tf.add(f'{serverpath}/{server}/{world}/betterquesting', 'betterquesting')
+        log.info('Quest backup created!')
+        if isUp(server):
+            log.info(f'{server} is running, STILL DON\'T CARE!')
+        log.info('DONE!')
