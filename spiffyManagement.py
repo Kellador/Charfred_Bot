@@ -24,12 +24,10 @@ def start(cfg, server):
     if isUp(server):
         log.info(f'{server} appears to be running already!')
     else:
-        cwd = os.getcwd()
         os.chdir(cfg['serverspath'] + f'/{server}')
         log.info(f'Starting {server}')
         run(['screen', '-h', '5000', '-dmS', server,
              *(cfg['servers'][server]['invocation']).split(), 'nogui'])
-        os.chdir(cwd)
         sleep(5)
         if isUp(server):
             log.info(f'{server} is now running!')
@@ -119,12 +117,10 @@ def restart(cfg, server, countdown=None):
             log.warning(f'Restart failed, {server} appears not to have stopped!')
         else:
             log.info(f'Restart in progress, {server} was stopped.')
-            cwd = os.getcwd()
             log.info(f'Starting {server}')
             os.chdir(cfg['serverspath'] + f'/{server}')
             run(['screen', '-h', '5000', '-dmS', server,
                 *(cfg['servers'][server]['invocation']).split(), 'nogui'])
-            os.chdir(cwd)
             sleep(5)
             if isUp(server):
                 log.info(f'Restart successful, {server} is now running!')
