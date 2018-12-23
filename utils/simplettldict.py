@@ -6,7 +6,8 @@ class SimpleTTLDict(OrderedDict):
     """Super simple implementation of an OrderedDict with expiring
     items.
 
-
+    Only deletes items that have outlived their ttl when new items
+    are inserted.
     """
     def __init__(self, ttl_seconds=180):
         assert ttl_seconds >= 0
