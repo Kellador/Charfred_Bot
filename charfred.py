@@ -76,10 +76,11 @@ class Charfred(commands.Bot):
     async def on_message(self, message):
         if message.author.bot:
             return
-        elif message.guild.id is None:
-            return
         else:
-            await self.process_commands(message)
+            if message.guild.id is None:
+                log.info(f'PM from {message.author.name}')
+            ctx = await self.get_context(message)
+            await self.invoke(ctx)
 
     async def close(self):
         await super().close()
