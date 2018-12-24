@@ -33,12 +33,13 @@ def permissionNode(node):
     return commands.check(predicate)
 
 
-async def send(ctx, msg):
+async def send(ctx, msg, deletable=True):
     outmsg = await ctx.send(msg)
-    try:
-        ctx.bot.cmd_map[ctx.message.id][0].append(outmsg)
-    except KeyError:
-        pass
+    if deletable:
+        try:
+            ctx.bot.cmd_map[ctx.message.id][0].append(outmsg)
+        except KeyError:
+            pass
     return outmsg
 
 
@@ -62,10 +63,10 @@ async def sendReply_codeblocked(ctx, msg, encoding=None):
 
 
 async def sendEmbed(ctx, emb):
-    return await send(ctx, f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
+    return await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
 
 
-async def promptInput(ctx, prompt: str, timeout: int=120):
+async def promptInput(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for text input.
 
     Returns a tuple of acquired input,
@@ -74,12 +75,12 @@ async def promptInput(ctx, prompt: str, timeout: int=120):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    pm = await sendMarkdown(ctx, prompt)
+    pm = await sendMarkdown(ctx, prompt, deletable)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     return (r.content, r, pm)
 
 
-async def promptConfirm(ctx, prompt: str, timeout: int=120):
+async def promptConfirm(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for confirmation.
 
     Returns a triple of acquired confirmation,
@@ -88,7 +89,7 @@ async def promptConfirm(ctx, prompt: str, timeout: int=120):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    pm = await sendMarkdown(ctx, prompt)
+    pm = await sendMarkdown(ctx, prompt, deletable)
     r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     if re.match('^(y|yes)', r.content, flags=re.I):
         return (True, r, pm)
