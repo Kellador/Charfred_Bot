@@ -9,6 +9,7 @@ import traceback
 import datetime
 import aiohttp
 from utils.config import Config
+from utils.simplettldict import SimpleTTLDict
 
 log = logging.getLogger('charfred')
 
@@ -49,6 +50,7 @@ class Charfred(commands.Bot):
         self.keywords = Config(f'{self.dir}/configs/keywords.json',
                                load=True, loop=self.loop,
                                default=f'{self.dir}/configs/keywords.json_default')
+        self.cmd_map = SimpleTTLDict()
         try:
             os.chdir(self.dir)
             for adminCog in _adminCogs('adminCogs'):
@@ -66,6 +68,14 @@ class Charfred(commands.Bot):
 
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
+        self.cmd_map[ctx.message.id] = []
+
+    # async def on_command_completion(self, ctx):
+    #     log.info(f'[{ctx.author.name}]: {ctx.message.content} has succeeded!')
+    #     try:
+    #         del self.cmd_map[ctx.message.id]
+    #     except KeyError:
+    #         pass
 
     async def on_ready(self):
         log.info(f'{self.user} reporting for duty!')
@@ -76,11 +86,10 @@ class Charfred(commands.Bot):
     async def on_message(self, message):
         if message.author.bot:
             return
-        else:
-            if message.guild.id is None:
-                log.info(f'PM from {message.author.name}')
-            ctx = await self.get_context(message)
-            await self.invoke(ctx)
+        if message.guild.id is None:
+            log.info(f'PM from {message.author.name}')
+        ctx = await self.get_context(message)
+        await self.invoke(ctx)
 
     async def close(self):
         await super().close()

@@ -2,6 +2,7 @@ from discord.ext import commands
 import traceback
 import logging
 import random
+from utils.discoutils import send
 
 log = logging.getLogger('charfred')
 
@@ -15,44 +16,44 @@ class ErrorHandler:
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
-            await ctx.send('Sorry chap, that command\'s disabled!')
+            await send(ctx, 'Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NotOwner):
-            await ctx.send('You\'re not the boss of me, sir!')
+            await send(ctx, 'You\'re not the boss of me, sir!')
             log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CheckFailure):
-            await ctx.send(random.choice(self.keywords['errormsgs']))
+            await send(ctx, random.choice(self.keywords['errormsgs']))
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
 
         elif isinstance(error, commands.CommandNotFound):
-            await ctx.send(random.choice(self.keywords['nacks']))
+            await send(ctx, random.choice(self.keywords['nacks']))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await ctx.send('You\'re missing some arguments there, mate!')
+            await send(ctx, 'You\'re missing some arguments there, mate!')
             log.warning(f'MissingRequiredArgument: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NoPrivateMessage):
-            await ctx.send('Stop it, you\'re making me blush...')
+            await send(ctx, 'Stop it, you\'re making me blush...')
             log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.MissingPermissions):
-            await ctx.send(random.choice(self.keywords['errormsgs']))
+            await send(ctx, random.choice(self.keywords['errormsgs']))
             log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await ctx.send('I am not allowed to do that, sir, it is known!')
+            await send(ctx, 'I am not allowed to do that, sir, it is known!')
             log.warning(f'BotMissingPermissions: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandOnCooldown):
-            await ctx.send('Sorry lass, that command\'s on cooldown!\n'
+            await send(ctx, 'Sorry lass, that command\'s on cooldown!\n'
                            f'Try again in {error.retry_after} seconds.')
             log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandInvokeError):
-            await ctx.send(random.choice(self.keywords['nacks']))
+            await send(ctx, random.choice(self.keywords['nacks']))
 
             hook_url = self.cfg['hook']
             if hook_url:

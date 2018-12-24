@@ -2,6 +2,7 @@ import logging
 import traceback
 from discord.ext import commands
 from utils.config import Config
+from utils.discoutils import send
 
 log = logging.getLogger('charfred')
 
@@ -66,9 +67,9 @@ class Gearbox:
         """Load a cog."""
 
         if self._load(cogname):
-            await ctx.send(f'\"{cogname}\" loaded!')
+            await send(ctx, f'\"{cogname}\" loaded!')
         else:
-            await ctx.send(f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
+            await send(ctx, f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
 
     @cog.command(name='unload')
     @commands.is_owner()
@@ -76,9 +77,9 @@ class Gearbox:
         """Unload a cog."""
 
         if self._unload(cogname):
-            await ctx.send(f'\"{cogname}\" unloaded!')
+            await send(ctx, f'\"{cogname}\" unloaded!')
         else:
-            await ctx.send(f'Could not unload \"{cogname}\"!')
+            await send(ctx, f'Could not unload \"{cogname}\"!')
 
     @cog.command(name='reload')
     @commands.is_owner()
@@ -86,9 +87,9 @@ class Gearbox:
         """Reload a cog."""
 
         if self._reload(cogname):
-            await ctx.send(f'\"{cogname}\" reloaded!')
+            await send(ctx, f'\"{cogname}\" reloaded!')
         else:
-            await ctx.send(f'Could not reload \"{cogname}\"!')
+            await send(ctx, f'Could not reload \"{cogname}\"!')
 
     @cog.command(name='reinitiate')
     @commands.is_owner()
@@ -108,7 +109,7 @@ class Gearbox:
 
         self.cogfig['cogs'].append(cogname)
         await self.cogfig.save()
-        await ctx.send(f'\"{cogname}\" will now be loaded automatically.')
+        await send(ctx, f'\"{cogname}\" will now be loaded automatically.')
 
     @cog.command(name='remove')
     @commands.is_owner()
@@ -117,7 +118,7 @@ class Gearbox:
 
         self.cogfig['cogs'].remove(cogname)
         await self.cogfig.save()
-        await ctx.send(f'\"{cogname}\" will no longer be loaded automatically.')
+        await send(ctx, f'\"{cogname}\" will no longer be loaded automatically.')
 
     @cog.group(invoke_without_command=True, name='list')
     @commands.is_owner()
@@ -129,7 +130,7 @@ class Gearbox:
         """
         if ctx.invoked_subcommand is None:
             cogList = '\n '.join(list(self.bot.extensions))
-            await ctx.send(f'Cogs currently loaded:\n``` {cogList}```')
+            await send(ctx, f'Cogs currently loaded:\n``` {cogList}```')
 
     @listcogs.command(name='startup')
     @commands.is_owner()
@@ -137,7 +138,7 @@ class Gearbox:
         """Lists all cogs being loaded on startup."""
 
         cogList = '\n '.join(self.cogfig['cogs'])
-        await ctx.send(f'Cogs being loaded on startup:\n``` {cogList}```')
+        await send(ctx, f'Cogs being loaded on startup:\n``` {cogList}```')
 
 
 def setup(bot):

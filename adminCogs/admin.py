@@ -1,6 +1,6 @@
 import logging
 from discord.ext import commands
-from utils.discoutils import promptInput, promptConfirm, sendMarkdown
+from utils.discoutils import promptInput, promptConfirm, sendMarkdown, send
 from utils.flipbooks import NodeFlipbook
 
 log = logging.getLogger('charfred')
@@ -106,7 +106,7 @@ class Admin:
                 currChans = '\n\t> '.join(currChans)
                 await sendMarkdown(ctx, f'> Current channels where {node} commands are'
                                    ' permitted:')
-                await ctx.send(f'{currChans}')
+                await send(ctx, f'{currChans}')
             else:
                 await sendMarkdown(ctx, f'> {node} commands work everywhere!')
 
