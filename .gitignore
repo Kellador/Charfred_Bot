@@ -50,6 +50,7 @@ ENV/
 
 #Project Specific
 /configs/*.json
+/cogs/*
 /cogs/**
 !/cogs/README.txt
 .flake8
