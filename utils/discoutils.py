@@ -42,8 +42,11 @@ async def send(ctx, msg):
     return outmsg
 
 
-async def sendMarkdown(ctx, msg):
-    return await send(ctx, f'```markdown\n{msg}\n```')
+async def sendMarkdown(ctx, msg, deletable=True):
+    if deletable:
+        return await send(ctx, f'```markdown\n{msg}\n```')
+    else:
+        return await ctx.send(f'```markdown\n{msg}\n```')
 
 
 async def sendReply(ctx, msg):
