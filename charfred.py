@@ -79,7 +79,7 @@ class Charfred(commands.Bot):
     async def on_message(self, message):
         if message.author.bot:
             return
-        if message.guild.id is None:
+        if message.guild is None:
             log.info(f'PM from {message.author.name}')
         ctx = await self.get_context(message)
         await self.invoke(ctx)
