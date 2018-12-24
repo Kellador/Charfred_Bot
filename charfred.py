@@ -70,13 +70,6 @@ class Charfred(commands.Bot):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
         self.cmd_map[ctx.message.id] = []
 
-    # async def on_command_completion(self, ctx):
-    #     log.info(f'[{ctx.author.name}]: {ctx.message.content} has succeeded!')
-    #     try:
-    #         del self.cmd_map[ctx.message.id]
-    #     except KeyError:
-    #         pass
-
     async def on_ready(self):
         log.info(f'{self.user} reporting for duty!')
         log.info(f'ID: {self.user.id}')

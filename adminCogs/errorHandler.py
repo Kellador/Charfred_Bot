@@ -10,20 +10,31 @@ log = logging.getLogger('charfred')
 class ErrorHandler:
     def __init__(self, bot):
         self.bot = bot
+        self.cmd_map = bot.cmd_map
         self.keywords = bot.keywords
         self.session = bot.session
         self.cfg = bot.cfg
 
     async def on_command_error(self, ctx, error):
+        if ctx.message.id not in self.cmd_map:
+            self.cmd_map[ctx.message.id] = []
         if isinstance(error, commands.DisabledCommand):
             await send(ctx, 'Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NotOwner):
+            try:
+                del self.cmd_map[ctx.message.id]
+            except KeyError:
+                pass
             await send(ctx, 'You\'re not the boss of me, sir!')
             log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CheckFailure):
+            try:
+                del self.cmd_map[ctx.message.id]
+            except KeyError:
+                pass
             await send(ctx, random.choice(self.keywords['errormsgs']))
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
 
@@ -49,7 +60,7 @@ class ErrorHandler:
 
         elif isinstance(error, commands.CommandOnCooldown):
             await send(ctx, 'Sorry lass, that command\'s on cooldown!\n'
-                           f'Try again in {error.retry_after} seconds.')
+                            f'Try again in {error.retry_after} seconds.')
             log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandInvokeError):
