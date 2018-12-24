@@ -82,6 +82,4 @@ class CmdHistorian:
 
 
 def setup(bot):
-    if not hasattr(bot, 'cmd_map'):
-        bot.cmd_map = SimpleTTLDict()
     bot.add_cog(CmdHistorian(bot))
