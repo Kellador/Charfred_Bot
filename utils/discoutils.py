@@ -33,8 +33,11 @@ def permissionNode(node):
     return commands.check(predicate)
 
 
-async def send(ctx, msg, deletable=True):
-    outmsg = await ctx.send(msg)
+async def send(ctx, msg, deletable=True, embed=None):
+    if embed:
+        outmsg = await ctx.send(msg, embed=embed)
+    else:
+        outmsg = await ctx.send(msg)
     if deletable:
         try:
             ctx.bot.cmd_map[ctx.message.id][0].append(outmsg)
