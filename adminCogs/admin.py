@@ -26,7 +26,7 @@ class Admin:
         log.info('Reloaded!')
         await sendMarkdown(ctx, '# Locked and reloaded!')
 
-    @commands.group(invoke_without_command=True, hidden=True)
+    @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
         """Bot Prefix operations.
 

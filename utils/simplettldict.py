@@ -9,7 +9,7 @@ class SimpleTTLDict(OrderedDict):
     Only deletes items that have outlived their ttl when new items
     are inserted.
     """
-    def __init__(self, ttl_seconds=180):
+    def __init__(self, ttl_seconds=360):
         assert ttl_seconds >= 0
 
         super().__init__(self)
