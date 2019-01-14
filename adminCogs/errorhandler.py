@@ -16,8 +16,6 @@ class ErrorHandler:
         self.cfg = bot.cfg
 
     async def on_command_error(self, ctx, error):
-        if ctx.message.id not in self.cmd_map:
-            self.cmd_map[ctx.message.id] = []
         if isinstance(error, commands.DisabledCommand):
             await send(ctx, 'Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')

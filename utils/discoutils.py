@@ -37,8 +37,10 @@ async def send(ctx, msg=None, deletable=True, embed=None):
     outmsg = await ctx.send(content=msg, embed=embed)
     if deletable:
         try:
-            ctx.bot.cmd_map[ctx.message.id][0].append(outmsg)
+            ctx.bot.cmd_map[ctx.message.id].output.append(outmsg)
         except KeyError:
+            pass
+        except AttributeError:
             pass
     return outmsg
 

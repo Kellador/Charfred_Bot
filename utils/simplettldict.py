@@ -35,3 +35,14 @@ class SimpleTTLDict(OrderedDict):
         self._expire()
         super().__setitem__(key, (value, int(time.time())))
         super().move_to_end(key)
+
+    def getvalue(self, key):
+        """Gets the value from a (value, date) tuple of a given key."""
+        return super().__getitem__(key)[0]
+
+    def find(self, predicate):
+        """Finds and returns the first value that satisifies a given
+        predicate."""
+        for (value, _) in reversed(self.values()):
+            if predicate(value):
+                return value

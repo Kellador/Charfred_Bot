@@ -9,7 +9,6 @@ import traceback
 import datetime
 import aiohttp
 from utils.config import Config
-from utils.simplettldict import SimpleTTLDict
 
 log = logging.getLogger('charfred')
 
@@ -50,7 +49,6 @@ class Charfred(commands.Bot):
         self.keywords = Config(f'{self.dir}/configs/keywords.json',
                                load=True, loop=self.loop,
                                default=f'{self.dir}/configs/keywords.json_default')
-        self.cmd_map = SimpleTTLDict()
         try:
             os.chdir(self.dir)
             for adminCog in _adminCogs('adminCogs'):
@@ -68,7 +66,6 @@ class Charfred(commands.Bot):
 
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
-        self.cmd_map[ctx.message.id] = []
 
     async def on_ready(self):
         log.info(f'{self.user} reporting for duty!')
