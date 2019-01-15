@@ -2,7 +2,7 @@ import logging
 import traceback
 from discord.ext import commands
 from utils.config import Config
-from utils.discoutils import send
+from utils.discoutils import sendMarkdown
 
 log = logging.getLogger('charfred')
 
@@ -55,11 +55,56 @@ class Gearbox:
             log.info(f'\"{cog}\" reloaded!')
             return True
 
-    @commands.group(hidden=True, aliases=['gear', 'extension', 'cogs'])
+    @commands.group(hidden=True, aliases=['extension', 'cogs'], invoke_without_command=True)
     @commands.is_owner()
     async def cog(self, ctx):
-        if ctx.invoked_subcommand is None:
-            pass
+        """Cog commands.
+
+        This returns a list of all active and inactive cogs,
+        including their status on whether they load on startup or not,
+        if no subcommand was given.
+        """
+
+        activeCogs = list(self.bot.extensions)
+        startupCogs = self.cogfig['cogs']
+        statusMsgs = []
+        adminCogMsgs = []
+        for c in activeCogs:
+            if c in startupCogs:
+                statusMsgs.append(f'# {c}')
+            else:
+                if c.startswith('adminCogs.'):
+                    adminCogMsgs.append(f'# {c}')
+                    continue
+                statusMsgs.append(f'< {c} >')
+        statusMsgs.append('\n> Cogs not being loaded on startup are marked in yellow.')
+        statusMsgs.append('\n# Cogs that should have loaded on startup, '
+                          'but are currently unloaded:\n')
+        for c in startupCogs:
+            if c in activeCogs:
+                continue
+            else:
+                statusMsgs.append(f'> {c}')
+        statusMsgs = '\n'.join(statusMsgs)
+        adminCogMsgs = '\n'.join(adminCogMsgs)
+        await sendMarkdown(ctx, f'# Cogs currently loaded:\n{statusMsgs}\n'
+                           f'Essential Cogs:\n{adminCogMsgs}')
+
+    @cog.command(aliases=['current-to-startup'])
+    @commands.is_owner()
+    async def addloaded(self, ctx):
+        """Adds all currently loaded cogs to be loaded on startup."""
+
+        for cogname in list(self.bot.extensions):
+            if cogname in self.cogfig['cogs']:
+                continue
+            if cogname.startswith('adminCogs.'):
+                continue
+            self.cogfig['cogs'].append(cogname)
+        else:
+            await self.cogfig.save()
+            cogList = '\n# '.join(self.cogfig['cogs'])
+            await sendMarkdown(ctx, f'# Cogs being loaded on startup:\n# {cogList}')
 
     @cog.command(name='load')
     @commands.is_owner()
@@ -67,9 +112,10 @@ class Gearbox:
         """Load a cog."""
 
         if self._load(cogname):
-            await send(ctx, f'\"{cogname}\" loaded!')
+            await sendMarkdown(ctx, f'# \"{cogname}\" loaded!')
         else:
-            await send(ctx, f'Could not load \"{cogname}\"!\nMaybe you got the name wrong?')
+            await sendMarkdown(ctx, f'< Could not load \"{cogname}\"! '
+                               'Maybe you got the name wrong? >')
 
     @cog.command(name='unload')
     @commands.is_owner()
@@ -77,9 +123,10 @@ class Gearbox:
         """Unload a cog."""
 
         if self._unload(cogname):
-            await send(ctx, f'\"{cogname}\" unloaded!')
+            await sendMarkdown(ctx, f'# \"{cogname}\" unloaded!')
         else:
-            await send(ctx, f'Could not unload \"{cogname}\"!')
+            await sendMarkdown(ctx, f'< Could not unload \"{cogname}\"! >'
+                               'Maybe it is already unloaded? >')
 
     @cog.command(name='reload')
     @commands.is_owner()
@@ -87,9 +134,9 @@ class Gearbox:
         """Reload a cog."""
 
         if self._reload(cogname):
-            await send(ctx, f'\"{cogname}\" reloaded!')
+            await sendMarkdown(ctx, f'# \"{cogname}\" reloaded!')
         else:
-            await send(ctx, f'Could not reload \"{cogname}\"!')
+            await sendMarkdown(ctx, f'< Could not reload \"{cogname}\"! >')
 
     @cog.command(name='reinitiate')
     @commands.is_owner()
@@ -105,40 +152,48 @@ class Gearbox:
     @cog.command(name='add')
     @commands.is_owner()
     async def addcog(self, ctx, cogname: str):
-        """Adds a cog to be loaded automatically in the future."""
+        """Adds a cog to be loaded on startup."""
 
+        if cogname.startswith('adminCogs.'):
+            return
+        if cogname in self.cogfig['cogs']:
+            await sendMarkdown(ctx, f'> \"{cogname}\" already loading on startup!')
+            return
         self.cogfig['cogs'].append(cogname)
         await self.cogfig.save()
-        await send(ctx, f'\"{cogname}\" will now be loaded automatically.')
+        await sendMarkdown(ctx, f'# \"{cogname}\" will now be loaded automatically.')
+        if self._load(cogname):
+            await sendMarkdown(ctx, f'# \"{cogname}\" loaded!')
+        else:
+            await sendMarkdown(ctx, f'< Could not load \"{cogname}\"! '
+                               'Maybe you got the name wrong? >')
 
     @cog.command(name='remove')
     @commands.is_owner()
     async def removecog(self, ctx, cogname: str):
-        """Removes a cog from being loaded automatically in the future."""
+        """Removes a cog from being loaded on startup."""
 
         self.cogfig['cogs'].remove(cogname)
         await self.cogfig.save()
-        await send(ctx, f'\"{cogname}\" will no longer be loaded automatically.')
+        await sendMarkdown(ctx, f'# \"{cogname}\" will no longer be loaded automatically.')
+        if self._unload(cogname):
+            await sendMarkdown(ctx, f'# \"{cogname}\" unloaded!')
+        else:
+            await sendMarkdown(ctx, f'< Could not unload \"{cogname}\"! '
+                               'Maybe it is already unloaded? >')
 
-    @cog.group(invoke_without_command=True, name='list')
+    @cog.command(aliases=[''])
     @commands.is_owner()
-    async def listcogs(self, ctx):
-        """Listing of cogs.
+    async def clear(self, ctx):
+        """Removes all cogs from being loaded on startup and unloads all cogs."""
 
-        This returns a list of all currently loaded cogs,
-        if no subcommand was given.
-        """
-        if ctx.invoked_subcommand is None:
-            cogList = '\n '.join(list(self.bot.extensions))
-            await send(ctx, f'Cogs currently loaded:\n``` {cogList}```')
-
-    @listcogs.command(name='startup')
-    @commands.is_owner()
-    async def listStartup(self, ctx):
-        """Lists all cogs being loaded on startup."""
-
-        cogList = '\n '.join(self.cogfig['cogs'])
-        await send(ctx, f'Cogs being loaded on startup:\n``` {cogList}```')
+        for cog in list(self.bot.extensions):
+            if cog.startswith('adminCogs.'):
+                continue
+            self._unload(cog)
+            self.cogfig['cogs'].remove(cog)
+        else:
+            await sendMarkdown(ctx, '# Done!')
 
 
 def setup(bot):
