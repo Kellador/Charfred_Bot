@@ -125,8 +125,8 @@ class Gearbox:
     async def listcogs(self, ctx):
         """Listing of cogs.
 
-        Without a subcommand, this returns a list of all currently
-        loaded cogs.
+        This returns a list of all currently loaded cogs,
+        if no subcommand was given.
         """
         if ctx.invoked_subcommand is None:
             cogList = '\n '.join(list(self.bot.extensions))

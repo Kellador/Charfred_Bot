@@ -103,7 +103,7 @@ class CommandHistorian:
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
     async def cmdlogging(self, ctx):
-        """Command logging operations.
+        """Command logging commands.
 
         Returns whether logging is currently enabled or not,
         if no subcommand is given.
@@ -125,8 +125,8 @@ class CommandHistorian:
     async def cmdmap(self, ctx):
         """Command Map commands.
 
-        Without a subcommand, this returns a crude list of
-        the current command map state.
+        This returns a crude list of the current command map state,
+        if no subcommand was given.
         """
 
         log.info('Showing cmd_map.')

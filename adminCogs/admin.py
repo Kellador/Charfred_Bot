@@ -28,10 +28,10 @@ class Admin:
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
-        """Bot Prefix operations.
+        """Bot Prefix commands.
 
-        Without a subcommand, this returns the list
-        of all current prefixes.
+        This returns the list of all current prefixes,
+        if no subcommand was given.
         """
 
         prefixes = '\n\t> '.join(self.botCfg['prefixes'])
@@ -60,10 +60,10 @@ class Admin:
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['perms'])
     async def permissions(self, ctx):
-        """Permission and special settings operations.
+        """Permission and special settings commands.
 
-        Without a subcommand, this returns a list
-        of all current permission nodes.
+        This returns a list of all current permission nodes,
+        if no subcommand was given.
         """
 
         nodeList = '\n\t> '.join(list(self.botCfg['nodes']))
