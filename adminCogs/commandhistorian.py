@@ -1,5 +1,7 @@
 import logging
 import pprint
+import os
+import asyncio
 from collections import namedtuple
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
@@ -15,72 +17,41 @@ class CommandHistorian:
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
+        self.dir = bot.dir
+        self.loop = bot.loop
+        self.lock = asyncio.Lock()
         self.pprinter = pprint.PrettyPrinter()
         self.cmd_map = SizedDict()
+        self.logcmds = False
         if not hasattr(bot, 'cmd_map'):
             bot.cmd_map = self.cmd_map
 
+    def _writelog(self, ctx):
+        logname = f'{self.dir}/logs/commandlogs/{ctx.message.author.id}.log'
+        if os.path.exists(logname):
+            openmode = 'a'
+        else:
+            openmode = 'w'
+            os.makedirs(os.path.dirname(logname), exist_ok=True)
+            log.info(f'Created potentially missing dirs for {id}.log!')
+        with open(logname, openmode) as cmdlog:
+            cmdlog.write(f'cmd failed: {ctx.command_failed}; msg: \"{ctx.message.content}\"')
+
+    async def _log(self, ctx):
+        with await self.lock:
+            await self.loop.run_in_executor(None, self._writelog, ctx)
+
     async def on_command(self, ctx):
+        """Saves message attached to command context to the command map,
+        and optionally logs command user\'s command history file.
+        """
+
         self.cmd_map[ctx.message.id] = Command(
             msg=ctx.message,
             output=[]
         )
-
-    @commands.group(invoke_without_command=True, hidden=True)
-    @commands.is_owner()
-    async def cmdmap(self, ctx):
-        """Command Map commands.
-
-        Without a subcommand, this returns a crude list of
-        the current command map state.
-        """
-
-        log.info('Showing cmd_map.')
-        rep = self.pprinter.pformat(self.cmd_map)
-        await sendMarkdown(ctx, rep)
-
-    @cmdmap.command(hidden=True)
-    @commands.is_owner()
-    async def clear(self, ctx, max_size: int=100):
-        """Clears the current command map.
-
-        Optionally takes a number for the maximum
-        size of the command map.
-        """
-
-        if max_size > 1:
-            log.info(f'Clearing cmd_map, setting maximum size to: {max_size}.')
-            self.cmd_map.clear()
-            self.cmd_map.max_size = max_size
-            await sendMarkdown(ctx, 'Command map cleared, new maximum size set '
-                               f'to {max_size}!')
-        else:
-            log.warning('cmd_map clear with insufficient max_size!')
-            await sendMarkdown(ctx, '< Insufficient maximum size, you can\'t '
-                               'even store a single command in there! >')
-
-    @commands.group(aliases=['cmdhistory'])
-    async def history(self, ctx):
-        """Command-history commands."""
-
-        if ctx.invoked_subcommand is None:
-            pass
-
-    @commands.command(name='!!', aliases=['again'])
-    async def _repeat(self, ctx):
-        """Reinvokes the last command issued by the user of this command.
-
-        Given that the last command has not expired and been removed from
-        the command history yet.
-        """
-
-        lastcmd = self.cmd_map.find(lambda c: c.msg.author.id == ctx.author.id)
-        if not lastcmd:
-            log.info(f'No recent command found for {ctx.author.name}.')
-            await sendMarkdown(ctx, '> Could not find any recent command of yours,'
-                               ' sorry.')
-            return
-        await sendMarkdown(ctx, f'# Last command found!')
+        if self.logcmds:
+            await self._log(ctx)
 
     async def on_message_delete(self, message):
         """Deletes command output if original invokation
@@ -128,6 +99,66 @@ class CommandHistorian:
                 log.info(f'Reinvoking: {before.content} -> {after.content}')
                 await self.bot.on_message(after)
                 del self.cmd_map[before.id]
+
+    @commands.group(hidden=True, invoke_without_command=True)
+    @commands.is_owner()
+    async def cmdlogging(self, ctx):
+        """Command logging operations.
+
+        Returns whether logging is currently enabled or not,
+        if no subcommand is given.
+        """
+
+        log.info('Logging is currently ' + 'active!' if self.logcmds else 'inactive!')
+        await sendMarkdown(ctx, '# Logging is currently ' + 'active!' if self.logcmds else 'inactive!')
+
+    @cmdlogging.command(hidden=True)
+    @commands.is_owner()
+    async def toggle(self, ctx):
+        """Toggles command logging on and off."""
+
+        log.info('Toggled command logging ' + 'off!' if self.logcmds else 'on!')
+        await sendMarkdown(ctx, '# Toggled command logging ' + 'off!' if self.logcmds else 'on!')
+
+    @commands.group(invoke_without_command=True, hidden=True)
+    @commands.is_owner()
+    async def cmdmap(self, ctx):
+        """Command Map commands.
+
+        Without a subcommand, this returns a crude list of
+        the current command map state.
+        """
+
+        log.info('Showing cmd_map.')
+        rep = self.pprinter.pformat(self.cmd_map)
+        await sendMarkdown(ctx, rep)
+
+    @cmdmap.command(hidden=True)
+    @commands.is_owner()
+    async def clear(self, ctx, max_size: int=100):
+        """Clears the current command map.
+
+        Optionally takes a number for the maximum
+        size of the command map.
+        """
+
+        if max_size > 1:
+            log.info(f'Clearing cmd_map, setting maximum size to: {max_size}.')
+            self.cmd_map.clear()
+            self.cmd_map.max_size = max_size
+            await sendMarkdown(ctx, 'Command map cleared, new maximum size set '
+                               f'to {max_size}!')
+        else:
+            log.warning('cmd_map clear with insufficient max_size!')
+            await sendMarkdown(ctx, '< Insufficient maximum size, you can\'t '
+                               'even store a single command in there! >')
+
+    @commands.group(aliases=['cmdhistory'])
+    async def history(self, ctx):
+        """Command-history commands."""
+
+        if ctx.invoked_subcommand is None:
+            pass
 
 
 def setup(bot):
