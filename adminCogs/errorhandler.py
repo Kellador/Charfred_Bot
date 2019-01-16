@@ -2,9 +2,12 @@ from discord.ext import commands
 import traceback
 import logging
 import random
+from collections import namedtuple
 from utils.discoutils import send
 
 log = logging.getLogger('charfred')
+
+Command = namedtuple('Command', 'msg output')
 
 
 class ErrorHandler:
@@ -37,6 +40,11 @@ class ErrorHandler:
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
 
         elif isinstance(error, commands.CommandNotFound):
+            if ctx.message.id not in self.cmd_map:
+                self.cmd_map[ctx.message.id] = Command(
+                    msg=ctx.message,
+                    output=[]
+                )
             await send(ctx, random.choice(self.keywords['nacks']))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
 
