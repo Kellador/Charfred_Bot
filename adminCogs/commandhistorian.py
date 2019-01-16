@@ -100,6 +100,23 @@ class CommandHistorian:
                 del self.cmd_map[before.id]
                 await self.bot.on_message(after)
 
+    @commands.command(aliases=['!!'])
+    async def last(self, ctx):
+        """Reinvokes the last command executed by the user.
+
+        Specifically the last command invoked in the channel that last
+        was invoked in.
+        """
+
+        lastcmd = self.cmd_map.find(lambda cmd: (cmd.msg.channel.id == ctx.channel.id) and
+                                    (cmd.msg.author.id == ctx.author.id))
+        if lastcmd:
+            log.info('Last command found, reinvoking...')
+            await self.bot.on_message(lastcmd.msg)
+        else:
+            log.info('No last command found!')
+            await sendMarkdown(ctx, '> No recent command found in current channel!')
+
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
     async def cmdlogging(self, ctx):
@@ -117,6 +134,10 @@ class CommandHistorian:
     async def toggle(self, ctx):
         """Toggles command logging on and off."""
 
+        if self.logcmds:
+            self.logcmds = False
+        else:
+            self.logcmds = True
         log.info('Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
         await sendMarkdown(ctx, '# Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
 
