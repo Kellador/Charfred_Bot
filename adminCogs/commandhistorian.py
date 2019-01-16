@@ -153,12 +153,11 @@ class CommandHistorian:
             await sendMarkdown(ctx, '< Insufficient maximum size, you can\'t '
                                'even store a single command in there! >')
 
-    @commands.group(aliases=['cmdhistory'])
+    @commands.group(aliases=['cmdhistory'], invoke_without_command=True)
     async def history(self, ctx):
         """Command-history commands."""
 
-        if ctx.invoked_subcommand is None:
-            pass
+        pass
 
 
 def setup(bot):
