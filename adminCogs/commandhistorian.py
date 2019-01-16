@@ -21,10 +21,12 @@ class CommandHistorian:
         self.loop = bot.loop
         self.lock = asyncio.Lock()
         self.pprinter = pprint.PrettyPrinter()
-        self.cmd_map = SizedDict()
         self.logcmds = False
         if not hasattr(bot, 'cmd_map'):
+            self.cmd_map = SizedDict()
             bot.cmd_map = self.cmd_map
+        else:
+            self.cmd_map = bot.cmd_map
 
     def _writelog(self, ctx):
         logname = f'{self.dir}/logs/commandlogs/{ctx.message.author.id}.log'
