@@ -97,8 +97,8 @@ class CommandHistorian:
                 log.warning('Some messages not found for deletion!')
             else:
                 log.info(f'Reinvoking: {before.content} -> {after.content}')
-                await self.bot.on_message(after)
                 del self.cmd_map[before.id]
+                await self.bot.on_message(after)
 
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
@@ -109,16 +109,16 @@ class CommandHistorian:
         if no subcommand is given.
         """
 
-        log.info('Logging is currently ' + 'active!' if self.logcmds else 'inactive!')
-        await sendMarkdown(ctx, '# Logging is currently ' + 'active!' if self.logcmds else 'inactive!')
+        log.info('Logging is currently ' + ('active!' if self.logcmds else 'inactive!'))
+        await sendMarkdown(ctx, '# Logging is currently ' + ('active!' if self.logcmds else 'inactive!'))
 
     @cmdlogging.command(hidden=True)
     @commands.is_owner()
     async def toggle(self, ctx):
         """Toggles command logging on and off."""
 
-        log.info('Toggled command logging ' + 'off!' if self.logcmds else 'on!')
-        await sendMarkdown(ctx, '# Toggled command logging ' + 'off!' if self.logcmds else 'on!')
+        log.info('Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
+        await sendMarkdown(ctx, '# Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
 
     @commands.group(invoke_without_command=True, hidden=True)
     @commands.is_owner()
