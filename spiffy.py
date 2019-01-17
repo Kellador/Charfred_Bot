@@ -2,10 +2,10 @@ import click
 import os
 import logging
 import coloredlogs
-import spiffyManagement
+import spiffymanagement
 from utils.config import Config
 
-log = logging.getLogger('spiffyManagement')
+log = logging.getLogger('spiffymanagement')
 coloredlogs.install(level='DEBUG',
                     logger=log,
                     fmt='%(asctime)s:%(msecs)03d %(name)s: %(levelname)s %(message)s')
@@ -22,37 +22,37 @@ def spiffy():
 @spiffy.command()
 @click.argument('server')
 def start(server):
-    spiffyManagement.start(cfg, server)
+    spiffymanagement.start(cfg, server)
 
 
 @spiffy.command()
 @click.argument('server')
 def stop(server):
-    spiffyManagement.stop(cfg, server)
+    spiffymanagement.stop(cfg, server)
 
 
 @spiffy.command()
 @click.argument('server')
 @click.argument('countdown')
 def restart(server, countdown):
-    spiffyManagement.restart(cfg, server, countdown)
+    spiffymanagement.restart(cfg, server, countdown)
 
 
 @spiffy.command()
 @click.argument('server')
 def status(server):
-    spiffyManagement.status(cfg, server)
+    spiffymanagement.status(cfg, server)
 
 
 @spiffy.command()
 @click.argument('servers', nargs=-1)
 def backup(servers):
     for server in servers:
-        spiffyManagement.backup(cfg, server)
+        spiffymanagement.backup(cfg, server)
 
 
 @spiffy.command()
 @click.argument('servers', nargs=-1)
 def questbackup(servers):
     for server in servers:
-        spiffyManagement.questbackup(cfg, server)
+        spiffymanagement.questbackup(cfg, server)

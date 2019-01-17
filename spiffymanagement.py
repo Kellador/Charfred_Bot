@@ -7,7 +7,7 @@ import logging
 from cogs.minecraftCogs.utils.mcservutils import isUp, termProc, buildCountdownSteps
 
 
-log = logging.getLogger('spiffyManagement')
+log = logging.getLogger('spiffymanagement')
 
 
 def screenCmd(server, *cmds):

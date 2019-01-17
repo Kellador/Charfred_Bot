@@ -78,16 +78,19 @@ class Gearbox:
                     continue
                 statusMsgs.append(f'< {c} >')
         statusMsgs.append('\n> Cogs not being loaded on startup are marked in yellow.')
-        statusMsgs.append('\n# Cogs that should have loaded on startup, '
+        shouldMsgs = []
+        shouldMsgs.append('\nCogs that should have loaded on startup, '
                           'but are currently unloaded:\n')
         for c in startupCogs:
             if c in activeCogs:
                 continue
             else:
-                statusMsgs.append(f'> {c}')
+                shouldMsgs.append(f'> {c}')
+        if shouldMsgs:
+            statusMsgs.extend(shouldMsgs)
         statusMsgs = '\n'.join(statusMsgs)
         adminCogMsgs = '\n'.join(adminCogMsgs)
-        await sendMarkdown(ctx, f'# Cogs currently loaded:\n{statusMsgs}\n'
+        await sendMarkdown(ctx, f'Cogs currently loaded:\n{statusMsgs}\n'
                            f'Essential Cogs:\n{adminCogMsgs}')
 
     @cog.command(aliases=['current-to-startup'])
