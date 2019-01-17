@@ -102,6 +102,27 @@ class CommandHistorian:
                 del self.cmd_map[before.id]
                 await self.bot.on_message(after)
 
+    def _removefrommap(self, ctx):
+        log.info('Command removed from command map!')
+        try:
+            del self.cmd_map[ctx.message.id]
+        except KeyError:
+            pass
+
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.NotOwner):
+            self._removefrommap(ctx)
+        elif isinstance(error, commands.CheckFailure):
+            self._removefrommap(ctx)
+        elif isinstance(error, commands.MissingPermissions):
+            self._removefrommap(ctx)
+        elif isinstance(error, commands.CommandNotFound):
+            if ctx.message.id not in self.cmd_map:
+                self.cmd_map[ctx.message.id] = Command(
+                    msg=ctx.message,
+                    output=[]
+                )
+
     @commands.command(aliases=['!!'])
     async def last(self, ctx):
         """Reinvokes the last command executed by the user.

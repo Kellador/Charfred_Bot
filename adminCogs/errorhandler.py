@@ -2,75 +2,58 @@ from discord.ext import commands
 import traceback
 import logging
 import random
-from collections import namedtuple
-from utils.discoutils import send
+from utils.discoutils import sendMarkdown
 
 log = logging.getLogger('charfred')
-
-Command = namedtuple('Command', 'msg output')
 
 
 class ErrorHandler:
     def __init__(self, bot):
         self.bot = bot
-        self.cmd_map = bot.cmd_map
         self.keywords = bot.keywords
         self.session = bot.session
         self.cfg = bot.cfg
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
-            await send(ctx, 'Sorry chap, that command\'s disabled!')
+            await sendMarkdown(ctx, '> Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NotOwner):
-            try:
-                del self.cmd_map[ctx.message.id]
-            except KeyError:
-                pass
-            await send(ctx, 'You\'re not the boss of me, sir!')
+            await sendMarkdown(ctx, '< You\'re not the boss of me, sir! >')
             log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CheckFailure):
-            try:
-                del self.cmd_map[ctx.message.id]
-            except KeyError:
-                pass
-            await send(ctx, random.choice(self.keywords['errormsgs']))
+            await sendMarkdown(ctx, '< ' + random.choice(self.keywords['errormsgs']) + ' >')
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
 
         elif isinstance(error, commands.CommandNotFound):
-            if ctx.message.id not in self.cmd_map:
-                self.cmd_map[ctx.message.id] = Command(
-                    msg=ctx.message,
-                    output=[]
-                )
-            await send(ctx, random.choice(self.keywords['nacks']))
+            await sendMarkdown(ctx, '> ' + random.choice(self.keywords['nacks']))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await send(ctx, 'You\'re missing some arguments there, mate!')
+            await sendMarkdown(ctx, '> You\'re missing some arguments there, mate!')
             log.warning(f'MissingRequiredArgument: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NoPrivateMessage):
-            await send(ctx, 'Stop it, you\'re making me blush...')
+            await sendMarkdown(ctx, '# Stop it, you\'re making me blush...')
             log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.MissingPermissions):
-            await send(ctx, random.choice(self.keywords['errormsgs']))
+            await sendMarkdown(ctx, '< ' + random.choice(self.keywords['errormsgs']) + ' >')
             log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await send(ctx, 'I am not allowed to do that, sir, it is known!')
+            await sendMarkdown(ctx, '< I am not allowed to do that, sir, it is known! >')
             log.warning(f'BotMissingPermissions: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandOnCooldown):
-            await send(ctx, 'Sorry lass, that command\'s on cooldown!\n'
-                            f'Try again in {error.retry_after} seconds.')
+            await sendMarkdown(ctx, '> Sorry lass, that command\'s on cooldown!\n'
+                               f'> Try again in {error.retry_after} seconds.')
             log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandInvokeError):
-            await send(ctx, random.choice(self.keywords['nacks']))
+            await sendMarkdown(ctx, '< ' + random.choice(self.keywords['nacks']) + ' >')
 
             hook_url = self.cfg['hook']
             if hook_url:
