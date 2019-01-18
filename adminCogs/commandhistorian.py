@@ -45,7 +45,7 @@ class CommandHistorian:
 
     async def on_command(self, ctx):
         """Saves message attached to command context to the command map,
-        and optionally logs command user\'s command history file.
+        and optionally logs command to users command history file.
         """
 
         self.cmd_map[ctx.message.id] = Command(
@@ -196,12 +196,6 @@ class CommandHistorian:
             log.warning('cmd_map clear with insufficient max_size!')
             await sendMarkdown(ctx, '< Insufficient maximum size, you can\'t '
                                'even store a single command in there! >')
-
-    @commands.group(aliases=['cmdhistory'], invoke_without_command=True)
-    async def history(self, ctx):
-        """Command-history commands."""
-
-        pass
 
 
 def setup(bot):
