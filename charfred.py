@@ -77,7 +77,9 @@ class Charfred(commands.Bot):
         if message.author.bot:
             return
         if message.guild is None:
-            log.info(f'PM from {message.author.name}')
+            is_owner = await self.is_owner(message.author)
+            if not is_owner:
+                return
         ctx = await self.get_context(message)
         await self.invoke(ctx)
 
