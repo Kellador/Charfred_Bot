@@ -57,7 +57,10 @@ def stop(cfg, server):
             server,
             'stop'
         )
-        sleep(20)
+        waiting = 6
+        while isUp(server) and waiting > 0:
+            waiting -= 1
+            sleep(20)
         if isUp(server):
             log.warning(f'{server} does not appear to have stopped!')
             return False
@@ -112,7 +115,10 @@ def restart(cfg, server, countdown=None):
             server,
             'stop'
         )
-        sleep(30)
+        waiting = 6
+        while isUp(server) and waiting > 0:
+            waiting -= 1
+            sleep(20)
         if isUp(server):
             log.warning(f'Restart failed, {server} appears not to have stopped!')
         else:
