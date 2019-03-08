@@ -7,13 +7,14 @@ from utils.discoutils import sendMarkdown
 log = logging.getLogger('charfred')
 
 
-class ErrorHandler:
+class ErrorHandler(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.keywords = bot.keywords
         self.session = bot.session
         self.cfg = bot.cfg
 
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
             await sendMarkdown(ctx, '> Sorry chap, that command\'s disabled!')

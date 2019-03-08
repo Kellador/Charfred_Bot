@@ -1,4 +1,5 @@
 import logging
+import datetime
 from discord.ext import commands
 from utils.discoutils import promptInput, promptConfirm, sendMarkdown, send
 from utils.flipbooks import NodeFlipbook
@@ -6,7 +7,7 @@ from utils.flipbooks import NodeFlipbook
 log = logging.getLogger('charfred')
 
 
-class Admin:
+class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
@@ -25,6 +26,20 @@ class Admin:
         await self.botCfg.load()
         log.info('Reloaded!')
         await sendMarkdown(ctx, '# Locked and reloaded!')
+
+    @commands.command(hidden=True)
+    async def uptime(self, ctx):
+        """Returns the current uptime."""
+
+        currenttime = datetime.datetime.now()
+        uptimedelta = currenttime - self.bot.uptime
+        s = abs(int(uptimedelta.total_seconds()))
+        d, s = divmod(s, 86400)
+        h, s = divmod(s, 3600)
+        m, s = divmod(s, 60)
+        upstr = f'{d} days, {h} hours, {m} minutes and {s} seconds'
+        log.info(f'Up for {upstr}.')
+        await sendMarkdown(ctx, '# I have been up for {upstr}!')
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):

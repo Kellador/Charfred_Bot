@@ -7,7 +7,7 @@ from utils.discoutils import sendMarkdown
 log = logging.getLogger('charfred')
 
 
-class Gearbox:
+class Gearbox(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dir = bot.dir

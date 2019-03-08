@@ -13,7 +13,7 @@ setup(
         'git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py'
     ],
     extras_require={
-        'uvlooped': ['uvloop']
+        'uvloop': ['uvloop']
     },
     package_data={
         '': ['*.json', '*.json_default']
@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'charfred = charfred:run',
+            'charfreduv = charfred:run [uvloop]',
             'charwizard = charwizard:wizard',
             'spiffy = spiffy:spiffy'
         ]

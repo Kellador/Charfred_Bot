@@ -9,7 +9,7 @@ from utils.discoutils import send
 log = logging.getLogger('charfred')
 
 
-class Evaluate:
+class Evaluate(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self._last_result = None

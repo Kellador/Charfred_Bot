@@ -13,7 +13,7 @@ log = logging.getLogger('charfred')
 Command = namedtuple('Command', 'msg output')
 
 
-class CommandHistorian:
+class CommandHistorian(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
@@ -43,6 +43,7 @@ class CommandHistorian:
         with await self.lock:
             await self.loop.run_in_executor(None, self._writelog, ctx)
 
+    @commands.Cog.listener()
     async def on_command(self, ctx):
         """Saves message attached to command context to the command map,
         and optionally logs command to users command history file.
@@ -55,6 +56,7 @@ class CommandHistorian:
         if self.logcmds:
             await self._log(ctx)
 
+    @commands.Cog.listener()
     async def on_message_delete(self, message):
         """Deletes command output if original invokation
         message is deleted.
@@ -76,6 +78,7 @@ class CommandHistorian:
             else:
                 del self.cmd_map[message.id]
 
+    @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         """Reinvokes a command if it has been edited,
         and deletes previous command output.
@@ -109,6 +112,7 @@ class CommandHistorian:
         except KeyError:
             pass
 
+    @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NotOwner):
             self._removefrommap(ctx)

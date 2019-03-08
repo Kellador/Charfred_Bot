@@ -19,7 +19,7 @@ except ImportError:
     pass
 else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-    log.info('uvloop imported, oh yeah! \*high five\*')
+    log.info('uvloop imported, oh yeah! *high five*')
 
 description = """
 Charfred is a gentleman and a scholar,
@@ -71,7 +71,7 @@ class Charfred(commands.Bot):
         log.info(f'{self.user} reporting for duty!')
         log.info(f'ID: {self.user.id}')
         if not hasattr(self, 'uptime'):
-            self.uptime = datetime.datetime.utcnow()
+            self.uptime = datetime.datetime.now()
 
     async def on_message(self, message):
         if message.author.bot:
