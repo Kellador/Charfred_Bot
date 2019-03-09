@@ -73,7 +73,7 @@ class Gearbox(commands.Cog):
             if c in startupCogs:
                 statusMsgs.append(f'# {c}')
             else:
-                if c.startswith('adminCogs.'):
+                if c.startswith('admincogs.'):
                     adminCogMsgs.append(f'# {c}')
                     continue
                 statusMsgs.append(f'< {c} >')
@@ -101,7 +101,7 @@ class Gearbox(commands.Cog):
         for cogname in list(self.bot.extensions):
             if cogname in self.cogfig['cogs']:
                 continue
-            if cogname.startswith('adminCogs.'):
+            if cogname.startswith('admincogs.'):
                 continue
             self.cogfig['cogs'].append(cogname)
         else:
@@ -144,10 +144,10 @@ class Gearbox(commands.Cog):
     @cog.command(name='reinitiate')
     @commands.is_owner()
     async def reinitiatecogs(self, ctx):
-        """Reloads all cogs, but the adminCogs."""
+        """Reloads all cogs, but the admincogs."""
 
         for cog in list(self.bot.extensions):
-            if not cog.startswith('adminCogs'):
+            if not cog.startswith('admincogs'):
                 self._unload(cog)
         for cog in self.cogfig['cogs']:
             self._load(cog)
@@ -157,7 +157,7 @@ class Gearbox(commands.Cog):
     async def addcog(self, ctx, cogname: str):
         """Adds a cog to be loaded on startup."""
 
-        if cogname.startswith('adminCogs.'):
+        if cogname.startswith('admincogs.'):
             return
         if cogname in self.cogfig['cogs']:
             await sendMarkdown(ctx, f'> \"{cogname}\" already loading on startup!')
@@ -191,7 +191,7 @@ class Gearbox(commands.Cog):
         """Removes all cogs from being loaded on startup and unloads all cogs."""
 
         for cog in list(self.bot.extensions):
-            if cog.startswith('adminCogs.'):
+            if cog.startswith('admincogs.'):
                 continue
             self._unload(cog)
             self.cogfig['cogs'].remove(cog)
