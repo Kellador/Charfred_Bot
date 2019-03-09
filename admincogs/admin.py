@@ -10,12 +10,12 @@ log = logging.getLogger('charfred')
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.botcfg = bot.cfg
+        self.cfg = bot.cfg
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def cfgreload(self, ctx):
-        """Reload botcfg.
+        """Reload cfg.
 
         Useful when you edited botcfg.json
         manually.
@@ -23,7 +23,7 @@ class Admin(commands.Cog):
         """
 
         log.info('Reloading botcfg.json...')
-        await self.botcfg.load()
+        await self.cfg.load()
         log.info('Reloaded!')
         await sendMarkdown(ctx, '# Locked and reloaded!')
 
@@ -49,7 +49,7 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        prefixes = '\n> '.join(self.botcfg['prefixes'])
+        prefixes = '\n> '.join(self.cfg['prefixes'])
         await sendMarkdown(ctx, '> Current prefixes: \n'
                            f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
 
@@ -59,8 +59,8 @@ class Admin(commands.Cog):
         """Add a new prefix."""
 
         log.info(f'Adding a new prefix: {prefix}')
-        self.botcfg['prefixes'].append(prefix)
-        await self.botcfg.save()
+        self.cfg['prefixes'].append(prefix)
+        await self.cfg.save()
         await sendMarkdown(ctx, f'# \'{prefix}\' has been registered!')
 
     @prefix.command(hidden=True)
@@ -69,8 +69,8 @@ class Admin(commands.Cog):
         """Remove a prefix."""
 
         log.info(f'Removing prefix: {prefix}')
-        self.botcfg['prefixes'].remove(prefix)
-        await self.botcfg.save()
+        self.cfg['prefixes'].remove(prefix)
+        await self.cfg.save()
         await sendMarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
 
     def _parserole(role):
@@ -81,14 +81,14 @@ class Admin(commands.Cog):
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['perms'])
     async def permissions(self, ctx):
-        """Permission and special settings commands.
+        """Permission commands.
 
-        This returns a list of all current permission nodes,
-        if no subcommand was given.
+        This returns a list of all current permission nodes
+        and their minimum required role, if no subcommand was given.
         """
 
         log.info('Listing permission nodes.')
-        nodelist = list(self.botcfg['nodes'].items())
+        nodelist = list(self.cfg['nodes'].items())
         nodelist.sort()
         nodeentries = [f'{k}:\n\t{self._parserole(v)}' for k, v in nodelist]
         nodeentries = '\n'.join(nodeentries)
@@ -101,7 +101,7 @@ class Admin(commands.Cog):
     async def edit(self, ctx, node: str):
         """Edit a permission node."""
 
-        if node not in self.botcfg['nodes']:
+        if node not in self.cfg['nodes']:
             await sendMarkdown(ctx, f'> {node} is not registered!')
             return
 
@@ -112,21 +112,56 @@ class Admin(commands.Cog):
             return
         if role == 'everyone' or role == 'Everyone':
             role = '@everyone'
-        self.botcfg['nodes'][node] = role
-        await self.botcfg.save()
+        self.cfg['nodes'][node] = role
+        await self.cfg.save()
         log.info(f'{node} was edited.')
         await sendMarkdown(ctx, f'# Edits to {node} saved successfully!')
 
-    @commands.command()
+    @commands.group(invoke_without_command=True, hidden=True, aliases=['cogcfgs'])
+    @commands.is_owner()
+    async def cogcfg(self, ctx):
+        """Cog-specific configuration commands.
+
+        This returns a list of all currently known cog-specific
+        configurations and their current values, if no subcommand was given.
+        """
+
+        log.info('Listing cog specific configurations.')
+        cogcfgs = list(self.cfg['nodes'].items())
+        cogcfgs.sort()
+        cogcfgentries = [f'{k}:\n\t{v[0]}' for k, v in cogcfgs]
+        cogcfgentries = '\n'.join(cogcfgentries)
+        cogcfgflip = Flipbook(ctx, cogcfgentries, entries_per_page=12,
+                              title='Cog-specific Configurations')
+        await cogcfgflip.flip()
+
+    @cogcfg.command(hidden=True, name='edit')
+    async def cogcfgedit(self, ctx, cfg: str):
+        """Edit cog-specific configuration."""
+
+        if cfg not in self.cfg['cogcfgs']:
+            await sendMarkdown(ctx, f'> {cogcfg} is not registered!')
+            return
+
+        prompt = self.cfg['cogcfgs'][cfg][1]
+        value, _, timedout = await promptInput(ctx, prompt)
+        if timedout:
+            return
+        self.cfg['cogcfgs'][cfg] = (value, prompt)
+        await self.cfg.save()
+        log.info(f'{cfg} was edited.')
+        await sendMarkdown(ctx, f'# Edits to {cfg} saved successfully!')
+
+    @commands.command(hidden=True)
     @commands.is_owner()
     async def debughook(self, ctx, hookurl: str=None):
         """Returns and/or changes webhook url used for debugging purposes."""
 
-        if 'hook' in self.botcfg and self.botcfg['hook'] is not None:
-            await sendMarkdown(ctx, f'> Current debug webhook:\n> {self.botcfg["hook"]}')
+        if 'hook' in self.cfg and self.cfg['hook'] is not None:
+            await sendMarkdown(ctx, f'> Current debug webhook:\n> {self.cfg["hook"]}')
         if hookurl:
-            self.botcfg['hook'] = hookurl
-            await self.botcfg.save()
+            self.cfg['hook'] = hookurl
+            await self.cfg.save()
             log.info('Changed debug webhook url.')
             await sendMarkdown(ctx, f'> Set debug webhook to:\n> {hookurl}')
 
