@@ -1,7 +1,7 @@
+import re
+from asyncio import TimeoutError
 from discord.utils import find
 from discord.ext import commands
-import random
-import re
 
 
 async def node_check(ctx, node):
@@ -9,25 +9,20 @@ async def node_check(ctx, node):
     if is_owner:
         return True
 
-    if node not in ctx.bot.cfg['nodes']:
+    if not ctx.bot.cfg['nodes'][node]:
         return False
 
-    channels = ctx.bot.cfg['nodes'][node]['channels']
-    if channels:
-        if ctx.channel.id not in channels:
-            return False
-
-    roleName = ctx.bot.cfg['nodes'][node]['role']
-    if roleName:
+    roleName = ctx.bot.cfg['nodes'][node]
+    if roleName == '@everyone':
+        return True
+    else:
         minRole = find(lambda r: r.name == roleName, ctx.guild.roles)
         if minRole:
             return ctx.author.top_role >= minRole
         return False
-    else:
-        return True
 
 
-def permissionNode(node):
+def permission_node(node):
     async def predicate(ctx):
         return await node_check(ctx, node)
     return commands.check(predicate)
@@ -52,48 +47,42 @@ async def sendMarkdown(ctx, msg, deletable=True):
         return await ctx.send(f'```markdown\n{msg}\n```')
 
 
-async def sendReply(ctx, msg):
-    return await send(ctx, f"{random.choice(ctx.bot.keywords['replies'])}\n{msg}")
-
-
-async def sendReply_codeblocked(ctx, msg, encoding=None):
-    if encoding is None:
-        mesg = f'\n```markdown\n{msg}\n```'
-    else:
-        mesg = f'\n```{encoding}\n{msg}\n```'
-    return await send(ctx, f"{random.choice(ctx.bot.keywords['replies'])}" + mesg)
-
-
-async def sendEmbed(ctx, emb):
-    return await ctx.send(f"{random.choice(ctx.bot.keywords['replies'])}", embed=emb)
-
-
 async def promptInput(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for text input.
 
     Returns a tuple of acquired input,
-    reply message, and prompt message.
+    reply message, and boolean indicating prompt timeout.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    pm = await sendMarkdown(ctx, prompt, deletable)
-    r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
-    return (r.content, r, pm)
+    await sendMarkdown(ctx, prompt, deletable)
+    try:
+        r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
+    except TimeoutError:
+        await sendMarkdown(ctx, '> Prompt timed out!', deletable)
+        return (None, None, True)
+    else:
+        return (r.content, r, False)
 
 
 async def promptConfirm(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for confirmation.
 
     Returns a triple of acquired confirmation,
-    reply message, and prompt message.
+    reply message, and boolean indicating prompt timeout.
     """
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    pm = await sendMarkdown(ctx, prompt, deletable)
-    r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
-    if re.match('^(y|yes)', r.content, flags=re.I):
-        return (True, r, pm)
+    await sendMarkdown(ctx, prompt, deletable)
+    try:
+        r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
+    except TimeoutError:
+        await sendMarkdown(ctx, '> Prompt timed out!', deletable)
+        return (None, None, True)
     else:
-        return (False, r, pm)
+        if re.match('^(y|yes)', r.content, flags=re.I):
+            return (True, r, False)
+        else:
+            return (False, r, False)

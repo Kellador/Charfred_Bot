@@ -28,7 +28,7 @@ however he can be quite rude sometimes.
 """
 
 
-def _adminCogs(direc):
+def _admincogs(direc):
     for dirpath, _, filenames in os.walk(direc):
         if '__' in dirpath:
             continue
@@ -38,9 +38,19 @@ def _adminCogs(direc):
                     yield os.path.join(dirpath, filename[:-3])
 
 
+def _get_prefixes(bot, msg):
+    bot_id = bot.user.id
+    prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}> ']
+    try:
+        prefixes.extend(bot.cfg['prefixes'])
+    except KeyError:
+        pass
+    return prefixes
+
+
 class Charfred(commands.Bot):
     def __init__(self):
-        super().__init__(command_prefix=self.get_prefixes, description=description,
+        super().__init__(command_prefix=_get_prefixes, description=description,
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.dir = os.path.dirname(os.path.realpath(__file__))
@@ -51,18 +61,22 @@ class Charfred(commands.Bot):
                                default=f'{self.dir}/configs/keywords.json_default')
         try:
             os.chdir(self.dir)
-            for adminCog in _adminCogs('adminCogs'):
-                self.load_extension(adminCog.replace('/', '.').replace('\\', '.'))
+            for admincog in _admincogs('admincogs'):
+                self.load_extension(admincog.replace('/', '.').replace('\\', '.'))
         except ClientException:
-            log.critical(f'Could not load Administrative Cogs!')
+            log.critical(f'Could not load administrative cogs!')
         except ImportError:
-            log.critical(f'Administrative Cogs could not be imported!')
+            log.critical(f'Administrative cogs could not be imported!')
             traceback.print_exc()
 
-    def get_prefixes(self, bot, msg):
-        prefixes = []
-        prefixes.extend(self.cfg['prefixes'])
-        return commands.when_mentioned_or(*prefixes)(bot, msg)
+    def register_nodes(self, nodes):
+        for node in nodes:
+            if node not in self.cfg['nodes']:
+                self.cfg['nodes'][node] = None
+
+    def register_cfg(self, cfg, prompt=None, defaultvalue=None):
+        if cfg not in self.cfg['cogcfgs']:
+            self.cfg['cogcfgs'][cfg] = (defaultvalue, prompt)
 
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
@@ -91,6 +105,10 @@ class Charfred(commands.Bot):
         if token is None:
             log.info('Using pre-configured Token...')
             token = self.cfg['botToken']
+        else:
+            self.cfg['botToken'] = token
+            self.cfg._save()
+            log.info('Token saved for future use!')
         super().run(token, reconnect=True)
 
 

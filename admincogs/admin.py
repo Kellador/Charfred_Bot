@@ -1,8 +1,8 @@
 import logging
 import datetime
 from discord.ext import commands
-from utils.discoutils import promptInput, promptConfirm, sendMarkdown, send
-from utils.flipbooks import NodeFlipbook
+from utils.discoutils import promptInput, sendMarkdown
+from utils.flipbooks import Flipbook
 
 log = logging.getLogger('charfred')
 
@@ -10,20 +10,20 @@ log = logging.getLogger('charfred')
 class Admin(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.botCfg = bot.cfg
+        self.botcfg = bot.cfg
 
     @commands.command(hidden=True)
     @commands.is_owner()
     async def cfgreload(self, ctx):
-        """Reload botCfg.
+        """Reload botcfg.
 
-        Useful when you edited botCfg.json
-        manually or with Charwizard.
+        Useful when you edited botcfg.json
+        manually.
         Will discard all unsaved changes!
         """
 
-        log.info('Reloading botCfg.json...')
-        await self.botCfg.load()
+        log.info('Reloading botcfg.json...')
+        await self.botcfg.load()
         log.info('Reloaded!')
         await sendMarkdown(ctx, '# Locked and reloaded!')
 
@@ -49,9 +49,9 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        prefixes = '\n\t> '.join(self.botCfg['prefixes'])
+        prefixes = '\n> '.join(self.botcfg['prefixes'])
         await sendMarkdown(ctx, '> Current prefixes: \n'
-                           f'\t> {prefixes} \n> Mentioning \@Charfred works too!')
+                           f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
@@ -59,8 +59,8 @@ class Admin(commands.Cog):
         """Add a new prefix."""
 
         log.info(f'Adding a new prefix: {prefix}')
-        self.botCfg['prefixes'].append(prefix)
-        await self.botCfg.save()
+        self.botcfg['prefixes'].append(prefix)
+        await self.botcfg.save()
         await sendMarkdown(ctx, f'# \'{prefix}\' has been registered!')
 
     @prefix.command(hidden=True)
@@ -69,9 +69,15 @@ class Admin(commands.Cog):
         """Remove a prefix."""
 
         log.info(f'Removing prefix: {prefix}')
-        self.botCfg['prefixes'].remove(prefix)
-        await self.botCfg.save()
+        self.botcfg['prefixes'].remove(prefix)
+        await self.botcfg.save()
         await sendMarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
+
+    def _parserole(role):
+        if not role:
+            return 'Owner only'
+        else:
+            return role
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['perms'])
     async def permissions(self, ctx):
@@ -81,87 +87,48 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        nodeList = '\n\t> '.join(list(self.botCfg['nodes']))
-        await sendMarkdown(ctx, '> Current permission nodes:\n'
-                           f'\t> {nodeList}\n> \'spec\' signifies special permission nodes.')
-
-    @permissions.command(hidden=True)
-    @commands.is_owner()
-    async def nodeBook(self, ctx):
-        """Opens the Permission Node Book."""
-
-        nodeFlip = NodeFlipbook(ctx, self.botCfg)
-        await nodeFlip.flip()
-
-    @permissions.command(hidden=True)
-    async def list(self, ctx, node: str):
-        """List current state of a node."""
-
-        if node not in self.botCfg['nodes']:
-            await sendMarkdown(ctx, f'< {node} is not registered! >')
-            return
-
-        n = self.botCfg['nodes'][node]
-        if node.startswith('spec:'):
-            if type(n[0]) is str:
-                await sendMarkdown(ctx, f'> {n[-1]}: {n[0]}')
-            else:
-                await sendMarkdown(ctx, f'> {n[-1]}: {str(n[0])}')
-        else:
-            currrole = n['role']
-            if currrole:
-                await sendMarkdown(ctx, f'> Current minimum role for {node}:\n'
-                                   f'\t> {currrole}')
-            else:
-                await sendMarkdown(ctx, f'> Everyone is free to use {node} commands!')
-            if n['channels']:
-                currChans = []
-                for c in n['channels']:
-                    currChans.append(self.bot.get_channel(c).mention)
-                currChans = '\n\t> '.join(currChans)
-                await sendMarkdown(ctx, f'> Current channels where {node} commands are'
-                                   ' permitted:')
-                await send(ctx, f'{currChans}')
-            else:
-                await sendMarkdown(ctx, f'> {node} commands work everywhere!')
+        log.info('Listing permission nodes.')
+        nodelist = list(self.botcfg['nodes'].items())
+        nodelist.sort()
+        nodeentries = [f'{k}:\n\t{self._parserole(v)}' for k, v in nodelist]
+        nodeentries = '\n'.join(nodeentries)
+        nodeflip = Flipbook(ctx, nodeentries, entries_per_page=12,
+                            title='Permission Nodes')
+        await nodeflip.flip()
 
     @permissions.command(hidden=True)
     @commands.is_owner()
     async def edit(self, ctx, node: str):
         """Edit a permission node."""
 
-        if node not in self.botCfg['nodes']:
+        if node not in self.botcfg['nodes']:
             await sendMarkdown(ctx, f'> {node} is not registered!')
             return
 
-        n = self.botCfg['nodes'][node]
-        if node.startswith('spec:'):
-            if type(n[0]) is str:
-                spec, _, _ = await promptInput(ctx, f'# {n[-1]}')
-            elif type(n[0]) is bool:
-                spec, _, _ = await promptConfirm(ctx, f'# {n[-1]}')
-            else:
-                await sendMarkdown(ctx, f'< {node} is misconfigured; Only str and bool types'
-                                   'are supported at the moment! >')
-                return
-            self.botCfg['nodes'][node] = [spec, n[-1]]
-        else:
-            r, _, _ = await promptInput(ctx, '# Which would you like to edit?\n\trole\n\tchannels')
-            if r == 'role':
-                role, _, _ = await promptInput(ctx, '# Please enter the minimum role required'
-                                               f' to use {node} commands.')
-                self.botCfg['nodes'][node]['role'] = role
-            elif r == 'channels':
-                chans, _, _ = await promptInput(ctx, f'# Enter all channels where you wish {node} to be '
-                                                ' allowed!\n# Delimited only by spaces!')
-                chans = list(map(int, chans.split()))
-                self.botCfg['nodes'][node]['channels'] = chans
-            else:
-                await sendMarkdown(ctx, '< Invalid selection, aborting! >')
-                return
-
-        await self.botCfg.save()
+        role, _, timedout = await promptInput(ctx, '# Please enter the minimum role required'
+                                              f' to use {node} commands.\nEnter "everyone"'
+                                              ' to have no role restriction.')
+        if timedout:
+            return
+        if role == 'everyone' or role == 'Everyone':
+            role = '@everyone'
+        self.botcfg['nodes'][node] = role
+        await self.botcfg.save()
+        log.info(f'{node} was edited.')
         await sendMarkdown(ctx, f'# Edits to {node} saved successfully!')
+
+    @commands.command()
+    @commands.is_owner()
+    async def debughook(self, ctx, hookurl: str=None):
+        """Returns and/or changes webhook url used for debugging purposes."""
+
+        if 'hook' in self.botcfg and self.botcfg['hook'] is not None:
+            await sendMarkdown(ctx, f'> Current debug webhook:\n> {self.botcfg["hook"]}')
+        if hookurl:
+            self.botcfg['hook'] = hookurl
+            await self.botcfg.save()
+            log.info('Changed debug webhook url.')
+            await sendMarkdown(ctx, f'> Set debug webhook to:\n> {hookurl}')
 
 
 def setup(bot):
