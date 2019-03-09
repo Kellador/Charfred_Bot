@@ -60,6 +60,9 @@ class Charfred(commands.Bot):
             self.cfg['prefixes'] = []
         if 'nodes' not in self.cfg:
             self.cfg['nodes'] = {}
+        if 'cogcfgs' not in self.cfg:
+            self.cfg['cogcfgs'] = {}
+        self.cfg._save()
         self.keywords = Config(f'{self.dir}/configs/keywords.json',
                                load=True, loop=self.loop,
                                default=f'{self.dir}/configs/keywords.json_default')
