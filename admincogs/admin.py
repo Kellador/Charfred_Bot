@@ -39,7 +39,7 @@ class Admin(commands.Cog):
         m, s = divmod(s, 60)
         upstr = f'{d} days, {h} hours, {m} minutes and {s} seconds'
         log.info(f'Up for {upstr}.')
-        await sendMarkdown(ctx, '# I have been up for {upstr}!')
+        await sendMarkdown(ctx, f'# I have been up for {upstr}!')
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
