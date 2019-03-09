@@ -56,6 +56,10 @@ class Charfred(commands.Bot):
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
+        if 'prefixes' not in self.cfg:
+            self.cfg['prefixes'] = []
+        if 'nodes' not in self.cfg:
+            self.cfg['nodes'] = {}
         self.keywords = Config(f'{self.dir}/configs/keywords.json',
                                load=True, loop=self.loop,
                                default=f'{self.dir}/configs/keywords.json_default')
