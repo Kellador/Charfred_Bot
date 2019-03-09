@@ -91,7 +91,6 @@ class Admin(commands.Cog):
         nodelist = list(self.cfg['nodes'].items())
         nodelist.sort()
         nodeentries = [f'{k}:\n\t{self._parserole(v)}' for k, v in nodelist]
-        nodeentries = '\n'.join(nodeentries)
         nodeflip = Flipbook(ctx, nodeentries, entries_per_page=12,
                             title='Permission Nodes')
         await nodeflip.flip()
@@ -130,7 +129,6 @@ class Admin(commands.Cog):
         cogcfgs = list(self.cfg['cogcfgs'].items())
         cogcfgs.sort()
         cogcfgentries = [f'{k}:\n\t{v[0]}' for k, v in cogcfgs]
-        cogcfgentries = '\n'.join(cogcfgentries)
         cogcfgflip = Flipbook(ctx, cogcfgentries, entries_per_page=12,
                               title='Cog-specific Configurations')
         await cogcfgflip.flip()
