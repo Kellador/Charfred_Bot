@@ -127,7 +127,7 @@ class Admin(commands.Cog):
         """
 
         log.info('Listing cog specific configurations.')
-        cogcfgs = list(self.cfg['nodes'].items())
+        cogcfgs = list(self.cfg['cogcfgs'].items())
         cogcfgs.sort()
         cogcfgentries = [f'{k}:\n\t{v[0]}' for k, v in cogcfgs]
         cogcfgentries = '\n'.join(cogcfgentries)
@@ -140,7 +140,7 @@ class Admin(commands.Cog):
         """Edit cog-specific configuration."""
 
         if cfg not in self.cfg['cogcfgs']:
-            await sendMarkdown(ctx, f'> {cogcfg} is not registered!')
+            await sendMarkdown(ctx, f'> {cfg} is not registered!')
             return
 
         prompt = self.cfg['cogcfgs'][cfg][1]
