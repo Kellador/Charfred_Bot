@@ -73,7 +73,7 @@ class Admin(commands.Cog):
         await self.cfg.save()
         await sendMarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
 
-    def _parserole(role):
+    def _parserole(self, role):
         if not role:
             return 'Owner only'
         else:
