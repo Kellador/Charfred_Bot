@@ -56,18 +56,19 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             await sendMarkdown(ctx, '< ' + random.choice(self.keywords['nacks']) + ' >')
 
-            hook_url = self.cfg['hook']
-            if hook_url:
-                hook_this = {
-                    "embeds": [
-                        {
-                            "title": f"Exception during Command: {ctx.command.qualified_name}",
-                            "description": f"```py\n{error}:\n{traceback.format_tb(error.original.__traceback__)}\n```",
-                            "color": 15102720
-                        }
-                    ]
-                }
-                await self.session.post(hook_url, json=hook_this)
+            if 'hook' in self.cfg:
+                hook_url = self.cfg['hook']
+                if hook_url:
+                    hook_this = {
+                        "embeds": [
+                            {
+                                "title": f"Exception during Command: {ctx.command.qualified_name}",
+                                "description": f"```py\n{error}:\n{traceback.format_tb(error.original.__traceback__)}\n```",
+                                "color": 15102720
+                            }
+                        ]
+                    }
+                    await self.session.post(hook_url, json=hook_this)
 
             log.error(f'{ctx.command.qualified_name}:')
             log.error(f'{error.original.__class__.__name__}: {error.original}')
