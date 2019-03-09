@@ -4,7 +4,7 @@ from time import sleep, time
 from datetime import datetime
 import tarfile
 import logging
-from cogs.minecraftCogs.utils.mcservutils import isUp, termProc, buildCountdownSteps
+from cogs.minecraftcogs.utils.mcservutils import isUp, termProc, buildCountdownSteps
 
 
 log = logging.getLogger('spiffymanagement')
