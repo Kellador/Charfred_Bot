@@ -80,12 +80,10 @@ class Charfred(commands.Bot):
         for node in nodes:
             if node not in self.cfg['nodes']:
                 self.cfg['nodes'][node] = None
-        self.cfg._save()
 
     def register_cfg(self, cfg, prompt=None, defaultvalue=None):
         if cfg not in self.cfg['cogcfgs']:
             self.cfg['cogcfgs'][cfg] = (defaultvalue, prompt)
-        self.cfg._save()
 
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')
