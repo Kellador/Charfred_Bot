@@ -2,7 +2,7 @@ import logging
 import traceback
 from discord.ext import commands
 from utils.config import Config
-from utils.discoutils import sendMarkdown
+from utils.discoutils import sendmarkdown
 
 log = logging.getLogger('charfred')
 
@@ -90,7 +90,7 @@ class Gearbox(commands.Cog):
             statusMsgs.extend(shouldMsgs)
         statusMsgs = '\n'.join(statusMsgs)
         adminCogMsgs = '\n'.join(adminCogMsgs)
-        await sendMarkdown(ctx, f'Cogs currently loaded:\n{statusMsgs}\n'
+        await sendmarkdown(ctx, f'Cogs currently loaded:\n{statusMsgs}\n'
                            f'Essential Cogs:\n{adminCogMsgs}')
 
     @cog.command(aliases=['current-to-startup'])
@@ -107,7 +107,7 @@ class Gearbox(commands.Cog):
         else:
             await self.cogfig.save()
             cogList = '\n# '.join(self.cogfig['cogs'])
-            await sendMarkdown(ctx, f'# Cogs being loaded on startup:\n# {cogList}')
+            await sendmarkdown(ctx, f'# Cogs being loaded on startup:\n# {cogList}')
 
     @cog.command(name='load')
     @commands.is_owner()
@@ -115,9 +115,9 @@ class Gearbox(commands.Cog):
         """Load a cog."""
 
         if self._load(cogname):
-            await sendMarkdown(ctx, f'# \"{cogname}\" loaded!')
+            await sendmarkdown(ctx, f'# \"{cogname}\" loaded!')
         else:
-            await sendMarkdown(ctx, f'< Could not load \"{cogname}\"! '
+            await sendmarkdown(ctx, f'< Could not load \"{cogname}\"! '
                                'Maybe you got the name wrong? >')
 
     @cog.command(name='unload')
@@ -126,9 +126,9 @@ class Gearbox(commands.Cog):
         """Unload a cog."""
 
         if self._unload(cogname):
-            await sendMarkdown(ctx, f'# \"{cogname}\" unloaded!')
+            await sendmarkdown(ctx, f'# \"{cogname}\" unloaded!')
         else:
-            await sendMarkdown(ctx, f'< Could not unload \"{cogname}\"! >'
+            await sendmarkdown(ctx, f'< Could not unload \"{cogname}\"! >'
                                'Maybe it is already unloaded? >')
 
     @cog.command(name='reload')
@@ -137,9 +137,9 @@ class Gearbox(commands.Cog):
         """Reload a cog."""
 
         if self._reload(cogname):
-            await sendMarkdown(ctx, f'# \"{cogname}\" reloaded!')
+            await sendmarkdown(ctx, f'# \"{cogname}\" reloaded!')
         else:
-            await sendMarkdown(ctx, f'< Could not reload \"{cogname}\"! >')
+            await sendmarkdown(ctx, f'< Could not reload \"{cogname}\"! >')
 
     @cog.command(name='reinitiate')
     @commands.is_owner()
@@ -160,15 +160,15 @@ class Gearbox(commands.Cog):
         if cogname.startswith('admincogs.'):
             return
         if cogname in self.cogfig['cogs']:
-            await sendMarkdown(ctx, f'> \"{cogname}\" already loading on startup!')
+            await sendmarkdown(ctx, f'> \"{cogname}\" already loading on startup!')
             return
         self.cogfig['cogs'].append(cogname)
         await self.cogfig.save()
-        await sendMarkdown(ctx, f'# \"{cogname}\" will now be loaded automatically.')
+        await sendmarkdown(ctx, f'# \"{cogname}\" will now be loaded automatically.')
         if self._load(cogname):
-            await sendMarkdown(ctx, f'# \"{cogname}\" loaded!')
+            await sendmarkdown(ctx, f'# \"{cogname}\" loaded!')
         else:
-            await sendMarkdown(ctx, f'< Could not load \"{cogname}\"! '
+            await sendmarkdown(ctx, f'< Could not load \"{cogname}\"! '
                                'Maybe you got the name wrong? >')
 
     @cog.command(name='remove')
@@ -178,11 +178,11 @@ class Gearbox(commands.Cog):
 
         self.cogfig['cogs'].remove(cogname)
         await self.cogfig.save()
-        await sendMarkdown(ctx, f'# \"{cogname}\" will no longer be loaded automatically.')
+        await sendmarkdown(ctx, f'# \"{cogname}\" will no longer be loaded automatically.')
         if self._unload(cogname):
-            await sendMarkdown(ctx, f'# \"{cogname}\" unloaded!')
+            await sendmarkdown(ctx, f'# \"{cogname}\" unloaded!')
         else:
-            await sendMarkdown(ctx, f'< Could not unload \"{cogname}\"! '
+            await sendmarkdown(ctx, f'< Could not unload \"{cogname}\"! '
                                'Maybe it is already unloaded? >')
 
     @cog.command(aliases=[''])
@@ -196,7 +196,7 @@ class Gearbox(commands.Cog):
             self._unload(cog)
             self.cogfig['cogs'].remove(cog)
         else:
-            await sendMarkdown(ctx, '# Done!')
+            await sendmarkdown(ctx, '# Done!')
 
 
 def setup(bot):

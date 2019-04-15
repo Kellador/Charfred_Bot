@@ -40,14 +40,57 @@ async def send(ctx, msg=None, deletable=True, embed=None):
     return outmsg
 
 
-async def sendMarkdown(ctx, msg, deletable=True):
+async def sendmarkdown(ctx, msg, deletable=True):
     if deletable:
         return await send(ctx, f'```markdown\n{msg}\n```')
     else:
         return await ctx.send(f'```markdown\n{msg}\n```')
 
 
-async def promptInput(ctx, prompt: str, timeout: int=120, deletable=True):
+def _splitup(msg, markdown=False):
+    msg = msg.splitlines(keepends=True)
+    msg.reverse()
+    msgs = []
+    part = ''
+    while True:
+        if len(msg) > 0:
+            next = msg.pop()
+        else:
+            if part:
+                if markdown:
+                    part += '\n```'
+                msgs.append(part)
+            break
+        if (len(part) + len(next)) < 1990:
+            part += next
+        else:
+            if markdown:
+                part += '```'
+            msgs.append(part)
+            if markdown:
+                part = '```\n' + next
+            else:
+                part = next
+    return msgs
+
+
+async def sendlong(ctx, msg, deletable=True, markdown=False):
+    if len(msg) <= 2000:
+        if markdown:
+            await sendmarkdown(ctx, msg, deletable)
+        else:
+            await send(ctx, msg, deletable)
+    else:
+        msgs = _splitup(msg, markdown)
+        if markdown:
+            for msg in msgs:
+                await sendmarkdown(ctx, msg, deletable)
+        else:
+            for msg in msgs:
+                await send(ctx, msg, deletable)
+
+
+async def promptinput(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for text input.
 
     Returns a tuple of acquired input,
@@ -56,17 +99,17 @@ async def promptInput(ctx, prompt: str, timeout: int=120, deletable=True):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await sendMarkdown(ctx, prompt, deletable)
+    await sendmarkdown(ctx, prompt, deletable)
     try:
         r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     except TimeoutError:
-        await sendMarkdown(ctx, '> Prompt timed out!', deletable)
+        await sendmarkdown(ctx, '> Prompt timed out!', deletable)
         return (None, None, True)
     else:
         return (r.content, r, False)
 
 
-async def promptConfirm(ctx, prompt: str, timeout: int=120, deletable=True):
+async def promptconfirm(ctx, prompt: str, timeout: int=120, deletable=True):
     """Prompt for confirmation.
 
     Returns a triple of acquired confirmation,
@@ -75,11 +118,11 @@ async def promptConfirm(ctx, prompt: str, timeout: int=120, deletable=True):
     def check(m):
         return m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
 
-    await sendMarkdown(ctx, prompt, deletable)
+    await sendmarkdown(ctx, prompt, deletable)
     try:
         r = await ctx.bot.wait_for('message', check=check, timeout=timeout)
     except TimeoutError:
-        await sendMarkdown(ctx, '> Prompt timed out!', deletable)
+        await sendmarkdown(ctx, '> Prompt timed out!', deletable)
         return (None, None, True)
     else:
         if re.match('^(y|yes)', r.content, flags=re.I):

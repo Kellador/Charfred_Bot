@@ -1,7 +1,7 @@
 import logging
 import datetime
 from discord.ext import commands
-from utils.discoutils import promptInput, sendMarkdown
+from utils.discoutils import promptinput, sendmarkdown
 from utils.flipbooks import Flipbook
 
 log = logging.getLogger('charfred')
@@ -25,7 +25,7 @@ class Admin(commands.Cog):
         log.info('Reloading botcfg.json...')
         await self.cfg.load()
         log.info('Reloaded!')
-        await sendMarkdown(ctx, '# Locked and reloaded!')
+        await sendmarkdown(ctx, '# Locked and reloaded!')
 
     @commands.command(hidden=True)
     async def uptime(self, ctx):
@@ -39,7 +39,7 @@ class Admin(commands.Cog):
         m, s = divmod(s, 60)
         upstr = f'{d} days, {h} hours, {m} minutes and {s} seconds'
         log.info(f'Up for {upstr}.')
-        await sendMarkdown(ctx, f'# I have been up for {upstr}!')
+        await sendmarkdown(ctx, f'# I have been up for {upstr}!')
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
@@ -50,7 +50,7 @@ class Admin(commands.Cog):
         """
 
         prefixes = '\n> '.join(self.cfg['prefixes'])
-        await sendMarkdown(ctx, '> Current prefixes: \n'
+        await sendmarkdown(ctx, '> Current prefixes: \n'
                            f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
 
     @prefix.command(hidden=True)
@@ -61,7 +61,7 @@ class Admin(commands.Cog):
         log.info(f'Adding a new prefix: {prefix}')
         self.cfg['prefixes'].append(prefix)
         await self.cfg.save()
-        await sendMarkdown(ctx, f'# \'{prefix}\' has been registered!')
+        await sendmarkdown(ctx, f'# \'{prefix}\' has been registered!')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
@@ -71,7 +71,7 @@ class Admin(commands.Cog):
         log.info(f'Removing prefix: {prefix}')
         self.cfg['prefixes'].remove(prefix)
         await self.cfg.save()
-        await sendMarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
+        await sendmarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
 
     def _parserole(self, role):
         if not role:
@@ -101,10 +101,10 @@ class Admin(commands.Cog):
         """Edit a permission node."""
 
         if node not in self.cfg['nodes']:
-            await sendMarkdown(ctx, f'> {node} is not registered!')
+            await sendmarkdown(ctx, f'> {node} is not registered!')
             return
 
-        role, _, timedout = await promptInput(ctx, '# Please enter the minimum role required'
+        role, _, timedout = await promptinput(ctx, '# Please enter the minimum role required'
                                               f' to use {node} commands.\nEnter "everyone"'
                                               ' to have no role restriction.')
         if timedout:
@@ -114,7 +114,7 @@ class Admin(commands.Cog):
         self.cfg['nodes'][node] = role
         await self.cfg.save()
         log.info(f'{node} was edited.')
-        await sendMarkdown(ctx, f'# Edits to {node} saved successfully!')
+        await sendmarkdown(ctx, f'# Edits to {node} saved successfully!')
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['cogcfgs'])
     @commands.is_owner()
@@ -138,17 +138,17 @@ class Admin(commands.Cog):
         """Edit cog-specific configuration."""
 
         if cfg not in self.cfg['cogcfgs']:
-            await sendMarkdown(ctx, f'> {cfg} is not registered!')
+            await sendmarkdown(ctx, f'> {cfg} is not registered!')
             return
 
         prompt = self.cfg['cogcfgs'][cfg][1]
-        value, _, timedout = await promptInput(ctx, prompt)
+        value, _, timedout = await promptinput(ctx, prompt)
         if timedout:
             return
         self.cfg['cogcfgs'][cfg] = (value, prompt)
         await self.cfg.save()
         log.info(f'{cfg} was edited.')
-        await sendMarkdown(ctx, f'# Edits to {cfg} saved successfully!')
+        await sendmarkdown(ctx, f'# Edits to {cfg} saved successfully!')
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -156,12 +156,12 @@ class Admin(commands.Cog):
         """Returns and/or changes webhook url used for debugging purposes."""
 
         if 'hook' in self.cfg and self.cfg['hook'] is not None:
-            await sendMarkdown(ctx, f'> Current debug webhook:\n> {self.cfg["hook"]}')
+            await sendmarkdown(ctx, f'> Current debug webhook:\n> {self.cfg["hook"]}')
         if hookurl:
             self.cfg['hook'] = hookurl
             await self.cfg.save()
             log.info('Changed debug webhook url.')
-            await sendMarkdown(ctx, f'> Set debug webhook to:\n> {hookurl}')
+            await sendmarkdown(ctx, f'> Set debug webhook to:\n> {hookurl}')
 
 
 def setup(bot):
