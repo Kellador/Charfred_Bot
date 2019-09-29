@@ -9,9 +9,6 @@ setup(
         'discord.py',
         'coloredlogs',
         'click'],
-    dependency_links=[
-        'git+https://github.com/Rapptz/discord.py@rewrite#egg=discord.py'
-    ],
     extras_require={
         'uvloop': ['uvloop']
     },
@@ -25,7 +22,6 @@ setup(
     entry_points={
         'console_scripts': [
             'charfred = charfred:run',
-            'charfreduv = charfred:run [uvloop]',
             'charwizard = charwizard:wizard',
             'spiffy = spiffy:spiffy'
         ]
