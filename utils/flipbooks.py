@@ -12,7 +12,8 @@ class Flipbook:
     reactions.
 
     Heavily based on RoboDanny's Paginator."""
-    def __init__(self, ctx, entries, entries_per_page=16, title=None, color=None):
+    def __init__(self, ctx, entries, entries_per_page=16, title=None, color=None,
+                 close_on_exit=False):
         self.bot = ctx.bot
         self.ctx = ctx
         self.helping = False
@@ -30,6 +31,7 @@ class Flipbook:
             self.embed = discord.Embed(color=discord.Color.orange())
         else:
             self.embed = discord.Embed(color=color)
+        self.close_on_exit = close_on_exit
         self.bttns = [
             ('👈', self.flip_back),
             ('🖕', self.flip_off),
@@ -78,8 +80,9 @@ class Flipbook:
 
     async def flip_off(self):
         self.flipable = False
-        await self.msg.edit(embed=None,
-                            content='```markdown\n> FlipBook closed!\n```')
+        if self.close_on_exit:
+            await self.msg.edit(embed=None,
+                                content='```markdown\n> FlipBook closed!\n```')
         await self.msg.clear_reactions()
 
     async def info(self):
@@ -123,9 +126,10 @@ class Flipbook:
 
         while self.flipable:
             try:
-                reaction, user = await self.bot.wait_for('reaction_add', timeout=90, check=check)
+                reaction, user = await self.bot.wait_for('reaction_add', timeout=120, check=check)
             except asyncio.TimeoutError:
                 self.flipable = False
+                self.action = self.flip_off
                 try:
                     await self.msg.clear_reactions()
                 except:
