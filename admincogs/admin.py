@@ -92,7 +92,7 @@ class Admin(commands.Cog):
         nodelist.sort()
         nodeentries = [f'{k}:\n\t{self._parserole(v)}' for k, v in nodelist]
         nodeflip = Flipbook(ctx, nodeentries, entries_per_page=12,
-                            title='Permission Nodes')
+                            title='Permission Nodes', close_on_exit=True)
         await nodeflip.flip()
 
     @permissions.command(hidden=True)
