@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="Charfred",
-    version="1.0beta3",
+    version="1.0beta4",
     packages=find_packages(),
     install_requires=[
         'yarl<1.2',
@@ -10,7 +10,8 @@ setup(
         'coloredlogs',
         'click'],
     extras_require={
-        'uvloop': ['uvloop']
+        'uvloop': ['uvloop'],
+        'aiomysql': ['aiomysql']
     },
     package_data={
         '': ['*.json', '*.json_default']
@@ -22,7 +23,6 @@ setup(
     entry_points={
         'console_scripts': [
             'charfred = charfred:run',
-            'charwizard = charwizard:wizard',
             'spiffy = spiffy:spiffy'
         ]
     }
