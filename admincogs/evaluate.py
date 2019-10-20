@@ -56,7 +56,7 @@ class Evaluate(commands.Cog):
             with redirect_stdout(stdout):
                 log.info('Running func()...')
                 ret = await func()
-        except Exception as e:
+        except Exception:
             log.error('func() failed!')
             traceback.print_exc()
             value = stdout.getvalue()

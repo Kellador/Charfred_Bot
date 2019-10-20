@@ -129,7 +129,3 @@ def run(loglvl, token):
     log.info('Initializing Charfred!')
     char = Charfred()
     char.run(token)
-
-
-if __name__ == '__main__':
-    run()

@@ -56,6 +56,10 @@ class ErrorHandler(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             await sendmarkdown(ctx, '< ' + random.choice(self.keywords['nacks']) + ' >')
 
+            log.error(f'{ctx.command.qualified_name}:')
+            log.error(f'{error.original.__class__.__name__}: {error.original}')
+            traceback.print_tb(error.original.__traceback__)
+
             if 'hook' in self.cfg:
                 hook_url = self.cfg['hook']
                 if hook_url:
@@ -69,10 +73,6 @@ class ErrorHandler(commands.Cog):
                         ]
                     }
                     await self.session.post(hook_url, json=hook_this)
-
-            log.error(f'{ctx.command.qualified_name}:')
-            log.error(f'{error.original.__class__.__name__}: {error.original}')
-            traceback.print_tb(error.original.__traceback__)
 
 
 def setup(bot):

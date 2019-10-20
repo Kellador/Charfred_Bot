@@ -24,7 +24,7 @@ class Gearbox(commands.Cog):
     def _load(self, cog):
         try:
             self.bot.load_extension(cog)
-        except Exception as e:
+        except Exception:
             log.error(f'Could not load \"{cog}\"!')
             traceback.print_exc()
             return False
@@ -35,7 +35,7 @@ class Gearbox(commands.Cog):
     def _unload(self, cog):
         try:
             self.bot.unload_extension(cog)
-        except Exception as e:
+        except Exception:
             log.error(f'Could not unload \"{cog}\"!')
             traceback.print_exc()
             return False
@@ -47,7 +47,7 @@ class Gearbox(commands.Cog):
         try:
             self.bot.unload_extension(cog)
             self.bot.load_extension(cog)
-        except Exception as e:
+        except Exception:
             log.error(f'Could not reload \"{cog}\"!')
             traceback.print_exc()
             return False
