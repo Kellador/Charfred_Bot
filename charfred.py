@@ -53,6 +53,7 @@ class Charfred(commands.Bot):
         super().__init__(command_prefix=_get_prefixes, description=description,
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
+
         self.dir = os.path.dirname(os.path.realpath(__file__))
         self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
@@ -63,9 +64,11 @@ class Charfred(commands.Bot):
         if 'cogcfgs' not in self.cfg:
             self.cfg['cogcfgs'] = {}
         self.cfg._save()
+
         self.keywords = Config(f'{self.dir}/configs/keywords.json',
                                load=True, loop=self.loop,
                                default=f'{self.dir}/configs/keywords.json_default')
+
         try:
             os.chdir(self.dir)
             for admincog in _admincogs('admincogs'):
@@ -105,17 +108,27 @@ class Charfred(commands.Bot):
         await self.invoke(ctx)
 
     async def close(self):
+        log.info('Closing, goodbye!')
         await super().close()
         await self.session.close()
+        try:
+            await self.db.disconnect()
+        except AttributeError:
+            pass
 
     def run(self, token=None):
         if token is None:
             log.info('Using pre-configured Token...')
-            token = self.cfg['botToken']
+            try:
+                token = self.cfg['botToken']
+            except KeyError:
+                log.error('No token given, no token saved, abort!')
+                return
         else:
             self.cfg['botToken'] = token
             self.cfg._save()
             log.info('Token saved for future use!')
+
         super().run(token, reconnect=True)
 
 
