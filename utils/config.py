@@ -1,7 +1,8 @@
 import asyncio
 import os
-import json
 import logging
+import json
+import toml
 from collections.abc import MutableMapping
 
 log = logging.getLogger('charfred')
@@ -9,7 +10,7 @@ log = logging.getLogger('charfred')
 
 class Config(MutableMapping):
     """Config MutableMapping for dynamic configuration options;
-    Parses data to and from json files.
+    Parses data to and from json or toml files.
     """
     def __init__(self, cfgfile, **opts):
         self.cfgfile = cfgfile
@@ -18,11 +19,17 @@ class Config(MutableMapping):
         self.default = opts.pop('default', False)
         if opts.pop('load', False):
             self._load()
+        if opts.pop('toml', False):
+            self.loadfunc = json.load
+            self.dumpfunc = json.dump
+        else:
+            self.loadfunc = toml.load
+            self.dumpfunc = toml.dump
 
     def _load(self):
         try:
             with open(self.cfgfile, 'r') as cf:
-                self.cfgs = json.load(cf)
+                self.cfgs = self.loadfunc(cf)
             log.info(f'{self.cfgfile} loaded.')
         except FileNotFoundError:
             log.warning(f'{self.cfgfile} does not exist.')
@@ -40,7 +47,7 @@ class Config(MutableMapping):
     def _loadDefault(self):
         try:
             with open(self.default, 'r') as cf:
-                self.cfgs = json.load(cf)
+                self.cfgs = self.loadfunc(cf)
             self._save()
         except IOError:
             log.warning(f'{self.default} does not exist.')
@@ -50,7 +57,7 @@ class Config(MutableMapping):
     def _save(self):
         os.makedirs(os.path.dirname(self.cfgfile), exist_ok=True)
         with open(f'{self.cfgfile}.tmp', 'w') as tmp:
-            json.dump(self.cfgs.copy(), tmp)
+            self.dumpfunc(self.cfgs.copy(), tmp)
         os.replace(f'{self.cfgfile}.tmp', self.cfgfile)
 
     async def save(self):

@@ -8,7 +8,8 @@ setup(
         'yarl<1.2',
         'discord.py',
         'coloredlogs',
-        'click'],
+        'click',
+        'toml'],
     extras_require={
         'uvloop': ['uvloop'],
         'aiomysql': ['aiomysql']
