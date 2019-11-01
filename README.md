@@ -39,5 +39,5 @@ so afterwards you only need to run `charfred` to start him up.
 
 The rest of this readme is a work in progress, so just enjoy this cat gif for now:
 
-[![INSERT YOUR GRAPHIC HERE](https://i.imgur.com/lVlPvCB.gif)]()
+[![shifty cat gif](https://i.imgur.com/lVlPvCB.gif)](https://i.imgur.com/lVlPvCB.gif)
 > found on imgur, credit to sheepfilms
