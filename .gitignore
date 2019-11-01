@@ -50,5 +50,4 @@ ENV/
 
 #Project Specific
 /configs/*.json
-/cogs
 .flake8
