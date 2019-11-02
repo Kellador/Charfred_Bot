@@ -17,7 +17,7 @@ class Config(MutableMapping):
         self.cfgfile = Path(cfgfile)
         self.loop = opts.pop('loop', None)
         self.lock = asyncio.Lock()
-        self.default = opts.pop('default', False)
+        self.default = opts.pop('default', None)
         self.toml = True if self.cfgfile.suffix == '.toml' else False
         if self.toml:
             self.loadfunc = toml.load
@@ -50,8 +50,12 @@ class Config(MutableMapping):
         except FileNotFoundError:
             log.warning(f'{loadfile} does not exist.')
             if self.default:
-                self._loadDefault()
-                log.info(f'Initiated {loadfile} from {self.default}!')
+                if isinstance(self.default, dict):
+                    self.cfgs = self.default
+                    log.info(f'Initiated {loadfile} from given dictionary!')
+                else:
+                    self._loadDefault()
+                    log.info(f'Initiated {loadfile} from {self.default}!')
             else:
                 self.cfgs = {}
                 log.info('Loaded as empty dict!')
