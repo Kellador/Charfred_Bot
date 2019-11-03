@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="Charfred",
-    version="1.0beta4",
+    version="1.0beta5",
     packages=find_packages(),
     install_requires=[
         'yarl<1.2',
@@ -12,7 +12,7 @@ setup(
         'toml'],
     extras_require={
         'uvloop': ['uvloop'],
-        'aiomysql': ['aiomysql']
+        'asyncpg': ['asyncpg']
     },
     package_data={
         '': ['*.json', '*.json_default']

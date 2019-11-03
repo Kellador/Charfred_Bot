@@ -1,4 +1,6 @@
 import logging
+import asyncpg
+from asyncio import wait_for, TimeoutError
 from discord.ext import commands
 from utils.discoutils import sendmarkdown
 
@@ -11,37 +13,33 @@ class DBOperator(commands.Cog):
         self.loop = bot.loop
         self.cfg = bot.cfg
         self.db = None
+        self.queryresult = None
+        if self.cfg['dbcredentials']:
+            self.loop.create_task(self._connect())
 
-    def _load_dbmsadapter(self, dbms):
-        if dbms == 'sqlite':
-            from utils.sqlitehelper import SQLiteHelper
-            try:
-                self.db = SQLiteHelper(self.bot, db=self.cfg['dbcredentials']['db'])
-            except KeyError:
-                log.error('Database credentials not found!')
-                log.error('Database adapter could not be loaded.')
-            else:
-                self.loop.create_task(self.db.connect())
-        elif dbms == 'mysql':
-            from utils.mysqlhelper import MySQLHelper
-            try:
-                dbcfg = self.cfg['dbcredentials']
-                self.db = MySQLHelper(
-                    self.bot,
-                    db=dbcfg['db'],
-                    host=dbcfg['host'],
-                    port=dbcfg['port'],
-                    user=dbcfg['user'],
-                    pw=dbcfg['password']
-                )
-            except KeyError:
-                log.error('Database credentials not found!')
-                log.error('Database adapter could not be loaded.')
-            else:
-                self.bot.db = self.db
-                self.loop.create_task(self.db.connect())
+    async def _connect(self):
+        log.info('Creating database connection pool.')
+        self.bot.db = self.db = await asyncpg.create_pool(**self.cfg['dbcredentials'])
+        await self._createtables()
+
+    async def _disconnect(self):
+        log.info('Closing database connection pool...')
+        try:
+            await wait_for(self.db.close(), 60, loop=self.loop)
+        except TimeoutError:
+            log.critical('Database connection pool closing timed out!')
         else:
-            log.warning('Specified DBMS not supported!')
+            log.info('Database connection pool closed.')
+
+    async def _createtables(self):
+        async with self.db.acquire() as con:
+            for (cog, tablecmd) in self.cfg['dbtables']:
+                await con.execute(tablecmd)
+                log.info(f'Created table for {cog} using: {tablecmd}')
+
+    def cog_unload(self):
+        if self.db:
+            self.loop.create_task(self._disconnect())
 
     @commands.group(invoke_without_command=True, hidden=True,
                     aliases=['db', 'datbase'])
@@ -49,76 +47,123 @@ class DBOperator(commands.Cog):
     async def database(self, ctx):
         """Database admin commands.
 
-        This returns whether or not a DBMS adapter is loaded,
-        if no subcommand was given.
+        This returns whether or not a database connection pool
+        exists, if no subcommand was given.
+        It is not a guarantee for the pool being usable.
         """
 
         if self.db:
-            log.info(f'{self.db.__name__} database adapter is currently loaded.')
-            await sendmarkdown(ctx, f'# {self.db.__name__} adapter is currently loaded.')
+            await sendmarkdown(ctx, '> Connection pool available.')
         else:
-            log.info('No database adapter loaded.')
-            await sendmarkdown(ctx, '< No database adapter loaded. >')
+            await sendmarkdown(ctx, '> No connection pool available.')
 
     @database.command(hidden=True)
     @commands.is_owner()
-    async def connect(self, ctx, *args):
-        """Attempts to load the database adapter and connect to the database.
+    async def connect(self, ctx):
+        """Creates a connection pool and creates tables.
 
-        Required arguments are, in order:
-        DBMS to use, database name
-        (also, if using MySQL):
-        host, port, user and password
+        Make sure database credentials are saved in the bot
+        configs first. You can use the 'database credentials'
+        group of commands for this.
         """
-        creds = ['dbms', 'db', 'host', 'port', 'user', 'password']
-        for (key, value) in zip(creds, args):
-            self.cfg['dbcredentials'][key] = value
-        await self.cfg.save()
 
-        if self.db is None and args is None:
-            log.warning('No DBMS specified and none configured, abort!')
-            await sendmarkdown(ctx, '< No DBMS specified or preconfigured. >')
-            return
-        elif self.db is None:
-            self._load_dbmsadapter(args[0])
+        if self.db:
+            await sendmarkdown(ctx, '> Connection pool already established!')
         else:
-            log.warning('Database adapter already loaded.')
-            await sendmarkdown(ctx, '> Database adapter already loaded.')
-        await self.db.connect()
-        log.info('Database adapter loaded and connected.')
-        await sendmarkdown(ctx, '# Database adapter loaded and connected.')
+            await self._connect()
+            await sendmarkdown(ctx, '# Connection pool established, '
+                               'pre-configured tables created.')
 
     @database.command(hidden=True)
     @commands.is_owner()
     async def execute(self, ctx, command, *args):
-        """Runs a given sql command, no return information,
+        """Runs a given sql command,
         use query instead if you want to fetch data.
 
-        A variable number of arguments can be given.
-        Please use qmark style (question marks) for your
-        variable placeholders.
+        A variable number of arguments can be given via $n notation.
         """
 
-        if self.db is None or isinstance(self.db, str):
-            log.warning('No database adapter loaded, abort!')
-            await sendmarkdown(ctx, '< No database adapter laoded, abort command! >')
-            return
+        async with self.db.acquire() as con:
+            if args:
+                stat = await con.execute(command, *args)
+            else:
+                stat = await con.execute(command)
+        log.info(stat)
+        await sendmarkdown(ctx, stat)
 
-        log.info(f'Executing command: {command}')
-        if args:
-            await self.db.execute(command, args)
+    @database.command(hidden=True)
+    @commands.is_owner()
+    async def query(self, ctx, query, *args):
+        """Runs a given sql query and caches returned Record list,
+        use execute instead if you do not want to fetch any data.
+
+        Cached Record list can be accessed with the `record read`
+        subcommand.
+        """
+
+        async with self.db.acquire() as con:
+            if args:
+                rec = await con.fetch(query, args)
+            else:
+                rec = await con.fetch(query)
+        self.queryresult = rec
+        log.info(f'# Query cached with {len(rec)} rows!')
+        await sendmarkdown(ctx, f'# Query cached with {len(rec)} rows!')
+
+    @database.group(invoke_without_command=False, hidden=True)
+    @commands.is_owner()
+    async def record(self, ctx):
+        pass
+
+    @record.command(hidden=True)
+    @commands.is_owner()
+    async def read(self, ctx):
+        """TODO
+        """
+
+        pass
+
+    @database.group(invoke_without_command=True, hidden=True)
+    @commands.is_owner()
+    async def credentials(self, ctx):
+        """Database credentials commands.
+
+        Returns the currently saved credentials,
+        if no subcommand is given.
+        """
+
+        out = []
+        for k, v in self.cfg['dbcredentials']:
+            out.append(f'{k}: {v}')
+        if out:
+            out.insert(0, '# Saved credentials:\n\n')
+            log.info('\n'.join(out))
+            await sendmarkdown(ctx, '\n'.join(out))
         else:
-            await self.db.execute(command)
+            log.info('< No credentials saved! >')
+            await sendmarkdown(ctx, '< No credentials saved! >')
+
+    @credentials.command(hidden=True)
+    @commands.is_owner()
+    async def set(self, ctx, *args):
+        """Save given credentials to bot config.
+        """
+
+        creds = ['database', 'host', 'port', 'user', 'password']
+        self.cfg['dbcredentials'] = {}
+        for (k, v) in zip(creds, args):
+            self.cfg['dbcredentials'][k] = v
+        await self.cfg.save()
+        log.info('Credentials saved!')
+        await sendmarkdown(ctx, '> Credentials saved, '
+                           'hope you entered them correctly!')
 
 
 def setup(bot):
     if 'dbcredentials' not in bot.cfg:
-        bot.cfg['dbcredentials'] = {
-            'db': None,
-            'host': None,
-            'port': None,
-            'user': None,
-            'password': None
-        }
+        bot.cfg['dbcredentials'] = {}
+        bot.cfg._save()
+    if 'dbtables' not in bot.cfg:
+        bot.cfg['dbtables'] = {}
         bot.cfg._save()
     bot.add_cog(DBOperator(bot))
