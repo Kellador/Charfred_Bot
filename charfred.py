@@ -108,13 +108,12 @@ class Charfred(commands.Bot):
         await self.invoke(ctx)
 
     async def close(self):
-        log.info('Closing, goodbye!')
+        log.info('Shutting down, this may take a couple seconds...')
         await super().close()
+        log.info('Client disconnected.')
         await self.session.close()
-        try:
-            await self.db.disconnect()
-        except AttributeError:
-            pass
+        log.info('Session closed.')
+        log.info('All done, goodbye sir!')
 
     def run(self, token=None):
         if token is None:
