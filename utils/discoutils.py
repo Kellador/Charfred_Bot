@@ -9,7 +9,10 @@ async def node_check(ctx, node):
     if is_owner:
         return True
 
-    if not ctx.bot.cfg['nodes'][node]:
+    try:
+        if not ctx.bot.cfg['nodes'][node]:
+            return False
+    except KeyError:
         return False
 
     roleName = ctx.bot.cfg['nodes'][node]
