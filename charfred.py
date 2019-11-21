@@ -55,7 +55,7 @@ class Charfred(commands.Bot):
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self.dir = os.path.dirname(os.path.realpath(__file__))
-        self.cfg = Config(f'{self.dir}/configs/botCfg.toml',
+        self.cfg = Config(f'{self.dir}/configs/botCfg.json',
                           load=True, loop=self.loop)
         if 'prefixes' not in self.cfg:
             self.cfg['prefixes'] = []
