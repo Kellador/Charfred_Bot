@@ -8,11 +8,11 @@
 
 ---
 
-This repository only contains the base bot and administrative extensions, all other extensions are currently included in the 'cogs' submodule.
+This repository only contains the base bot and administrative extensions, but there are a lot more available in a seperate repository [here](https://github.com/Kellador/Charfred_Cogs).
 
-To make full use of Charfred's capabilities you will have to install and run the bot yourself;
+To use Charfred you will have to install and run the bot yourself;
 
-Especially the Minecraft related extentions will not function if Charfred is not hosted on the same machine as your Minecraft server(s).
+Additionally the Minecraft related extensions will not function if Charfred is not hosted on the same machine as your Minecraft server(s).
 
 ## Installation
 
@@ -32,7 +32,7 @@ On first startup you will have to give Charfred a bot token via cli argument:
 
 `charfred --token <yourbottokenhere>`
 
-this will save initialize the bot config file and save the bot token for later,
+this will initialize the bot config file and save the bot token for later,
 so afterwards you only need to run `charfred` to start him up.
 
 ---

@@ -51,4 +51,5 @@ ENV/
 #Project Specific
 /configs/*.json
 /configs/*.toml
+cogs/
 .flake8
