@@ -76,7 +76,7 @@ async def send(ctx, msg=None, deletable=True, embed=None, codeblocked=False):
     Returns the message object for the sent message,
     if a split was performed only the last sent message is returned.
     """
-    if len(msg) <= 2000:
+    if (msg is None) or (len(msg) <= 2000):
         outmsg = await ctx.send(content=msg, embed=embed)
         if deletable:
             try:
