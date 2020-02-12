@@ -44,7 +44,7 @@ class Installer(commands.Cog):
         """
 
         log.info('Updating Charfred...')
-        self._gitpull(ctx, self.dir)
+        await self._gitpull(ctx, self.dir)
 
     @update.command(hidden=True, name='cogs', aliases=['extension'])
     @commands.is_owner()
@@ -73,7 +73,7 @@ class Installer(commands.Cog):
             return
 
         log.info(f'Updating {directory} cogs...')
-        self._gitpull(ctx, cogrepo)
+        await self._gitpull(ctx, cogrepo)
 
 
 def setup(bot):
