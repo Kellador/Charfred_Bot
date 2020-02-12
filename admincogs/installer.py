@@ -74,3 +74,7 @@ class Installer(commands.Cog):
 
         log.info(f'Updating {directory} cogs...')
         self._gitpull(ctx, cogrepo)
+
+
+def setup(bot):
+    bot.add_cog(Installer(bot))
