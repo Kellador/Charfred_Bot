@@ -48,6 +48,8 @@ class GitOperator(commands.Cog):
                 await sendmarkdown(ctx, f'< {repo} does not contain a git repository! >')
             return False
 
+        return True
+
     def _convertfullsubpath(self, directory):
         if self.dir in directory:
             repo = Path(directory)
