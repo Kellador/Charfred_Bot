@@ -14,12 +14,12 @@ class Installer(commands.Cog):
         self.loop = bot.loop
         self.cfg = bot.cfg
 
-    async def _gitpull(self, ctx, path):
+    async def _gitcmd(self, ctx, path, cmd):
         proc = await asyncio.create_subprocess_exec(
             'git',
             '-C',
             f'{path}',
-            'pull',
+            cmd,
             loop=self.loop,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
@@ -44,7 +44,7 @@ class Installer(commands.Cog):
         """
 
         log.info('Updating Charfred...')
-        await self._gitpull(ctx, self.dir)
+        await self._gitcmd(ctx, self.dir, 'pull')
 
     @update.command(hidden=True, name='cogs', aliases=['extension'])
     @commands.is_owner()
@@ -73,7 +73,32 @@ class Installer(commands.Cog):
             return
 
         log.info(f'Updating {directory} cogs...')
-        await self._gitpull(ctx, cogrepo)
+        await self._gitcmd(ctx, cogrepo, 'pull')
+
+    @update.command(hidden=True, aliases=['saveforlater'])
+    @commands.is_owner()
+    async def stash(self, ctx, directory: str=None):
+        """Stash local repo changes.
+        """
+
+        if directory:
+            if self.dir in directory:
+                repo = Path(directory)
+            else:
+                repo = Path(self.dir) / directory
+
+        if not repo.exists():
+            log.warning(f'{repo} is not a valid directory.')
+            await sendmarkdown(ctx, f'< {repo} is not a valid directory! >')
+            return
+
+        if not (repo / '.git').exists():
+            log.warning(f'{repo} does not contain a git repository.')
+            await sendmarkdown(ctx, f'< {repo} does not contain a git repository! >')
+            return
+
+        log.info(f'Stashing changes in {directory}...')
+        await self._gitcmd(ctx, repo, 'stash')
 
 
 def setup(bot):
