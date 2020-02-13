@@ -145,7 +145,13 @@ def terminate(cfg, server):
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
         return
-    return termProc(server)
+
+    result = termProc(server)
+    if result:
+        log.info(f'{server} has been terminated!')
+    else:
+        log.warning(f'{server} termination failed! Oh dear...')
+    return result
 
 
 def status(cfg, server):
@@ -249,7 +255,7 @@ def questbackup(cfg, server):
             for entry in d:
                 if not entry.name.startswith('.') and entry.is_file():
                     stats = entry.stat()
-                    if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                    if stats.st_mtime < now - (10080 * 60):
                         try:
                             os.remove(entry.path)
                         except OSError as e:
