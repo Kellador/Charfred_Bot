@@ -26,10 +26,10 @@ class Installer(commands.Cog):
         )
         stdout, stderr = await proc.communicate()
         if proc.returncode == 0:
-            log.info('"git pull" executed.')
+            log.info(f'"git {cmd}" executed.')
         else:
-            log.warning('"git pull" failed!')
-            await sendmarkdown(ctx, '< Update failed, command exited with error! >')
+            log.warning(f'"git {cmd}" failed!')
+            await sendmarkdown(ctx, '< Command failed, exited with error! >')
             return
         output = stdout.decode().strip()
         log.info(output)
