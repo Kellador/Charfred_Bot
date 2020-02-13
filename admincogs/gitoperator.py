@@ -7,7 +7,7 @@ from utils.discoutils import sendmarkdown
 log = logging.getLogger('charfred')
 
 
-class Installer(commands.Cog):
+class GitOperator(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dir = bot.dir
@@ -35,6 +35,26 @@ class Installer(commands.Cog):
         log.info(output)
         await sendmarkdown(ctx, f'# Command output:\n{output}')
 
+    async def _validate(self, repo, ctx=None):
+        if not repo.exists():
+            log.warning(f'{repo} is not a valid directory.')
+            if ctx:
+                await sendmarkdown(ctx, f'< {repo} is not a valid directory! >')
+            return False
+
+        if not (repo / '.git').exists():
+            log.warning(f'{repo} does not contain a git repository.')
+            if ctx:
+                await sendmarkdown(ctx, f'< {repo} does not contain a git repository! >')
+            return False
+
+    def _convertfullsubpath(self, directory):
+        if self.dir in directory:
+            repo = Path(directory)
+        else:
+            repo = Path(self.dir) / directory
+        return repo
+
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
     async def update(self, ctx):
@@ -57,49 +77,37 @@ class Installer(commands.Cog):
         need to be subdirectories of the base repo.
         """
 
-        if self.dir in directory:
-            cogrepo = Path(directory)
-        else:
-            cogrepo = Path(self.dir) / directory
+        repo = self._convertfullsubpath(directory)
 
-        if not cogrepo.exists():
-            log.warning(f'{cogrepo} is not a valid directory.')
-            await sendmarkdown(ctx, f'< {cogrepo} is not a valid directory! >')
-            return
+        valid = await self._validate(repo, ctx)
+        if valid:
+            log.info(f'Updating {directory} cogs...')
+            await self._gitcmd(ctx, repo, 'pull')
 
-        if not (cogrepo / '.git').exists():
-            log.warning(f'{cogrepo} does not contain a git repository.')
-            await sendmarkdown(ctx, f'< {cogrepo} does not contain a git repository! >')
-            return
-
-        log.info(f'Updating {directory} cogs...')
-        await self._gitcmd(ctx, cogrepo, 'pull')
-
-    @update.command(hidden=True, aliases=['saveforlater'])
+    @update.command(hidden=True, aliases=['stashlocal'])
     @commands.is_owner()
     async def stash(self, ctx, directory: str=None):
         """Stash local repo changes.
         """
 
         if directory:
-            if self.dir in directory:
-                repo = Path(directory)
-            else:
-                repo = Path(self.dir) / directory
+            repo = self._convertfullsubpath(directory)
+        else:
+            repo = Path(directory)
 
-        if not repo.exists():
-            log.warning(f'{repo} is not a valid directory.')
-            await sendmarkdown(ctx, f'< {repo} is not a valid directory! >')
-            return
+        valid = await self._validate(repo, ctx)
+        if valid:
+            log.info(f'Stashing changes in {directory}...')
+            await self._gitcmd(ctx, repo, 'stash')
 
-        if not (repo / '.git').exists():
-            log.warning(f'{repo} does not contain a git repository.')
-            await sendmarkdown(ctx, f'< {repo} does not contain a git repository! >')
-            return
+    @commands.group(hidden=True)
+    @commands.is_owner()
+    async def git(self, ctx):
+        """Git command group.
+        """
 
-        log.info(f'Stashing changes in {directory}...')
-        await self._gitcmd(ctx, repo, 'stash')
+        pass
 
 
 def setup(bot):
-    bot.add_cog(Installer(bot))
+    bot.add_cog(GitOperator(bot))
