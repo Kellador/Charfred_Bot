@@ -49,7 +49,14 @@ ENV/
 /site
 
 #Project Specific
+/*
+!.gitignore
+!.gitmodules
+!/configs
 /configs/*.json
 /configs/*.toml
-cogs/
-.flake8
+!/utils
+!/admincogs
+!/*.py
+!/*.txt
+!/*.md
