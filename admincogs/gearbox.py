@@ -86,7 +86,7 @@ class Gearbox(commands.Cog):
                 continue
             else:
                 shouldMsgs.append(f'> {c}')
-        if shouldMsgs:
+        if len(shouldMsgs) > 1:
             statusMsgs.extend(shouldMsgs)
         statusMsgs = '\n'.join(statusMsgs)
         adminCogMsgs = '\n'.join(adminCogMsgs)
