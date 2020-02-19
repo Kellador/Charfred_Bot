@@ -1,5 +1,4 @@
 import logging
-import asyncpg
 from asyncio import wait_for, TimeoutError
 from discord.ext import commands
 from utils.discoutils import sendmarkdown
@@ -159,11 +158,19 @@ class DBOperator(commands.Cog):
                            'hope you entered them correctly!')
 
 
-def setup(bot):
-    if 'dbcredentials' not in bot.cfg:
-        bot.cfg['dbcredentials'] = {}
-        bot.cfg._save()
-    if 'dbtables' not in bot.cfg:
-        bot.cfg['dbtables'] = {}
-        bot.cfg._save()
-    bot.add_cog(DBOperator(bot))
+try:
+    import asyncpg
+except ImportError:
+    log.error('Could not import asyncpg, dboperator not loaded!')
+
+    def setup(bot):
+        pass
+else:
+    def setup(bot):
+        if 'dbcredentials' not in bot.cfg:
+            bot.cfg['dbcredentials'] = {}
+            bot.cfg._save()
+        if 'dbtables' not in bot.cfg:
+            bot.cfg['dbtables'] = {}
+            bot.cfg._save()
+        bot.add_cog(DBOperator(bot))

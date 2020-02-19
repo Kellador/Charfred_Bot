@@ -57,6 +57,7 @@ ENV/
 /configs/*.toml
 !/utils
 !/admincogs
+!/utilitycogs
 !/*.py
 !/*.txt
 !/*.md
