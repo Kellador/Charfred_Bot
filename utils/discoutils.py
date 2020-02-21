@@ -21,7 +21,10 @@ async def node_check(ctx, node):
     else:
         minRole = find(lambda r: r.name == roleName, ctx.guild.roles)
         if minRole:
-            return ctx.author.top_role >= minRole
+            hierarchy = set(ctx.bot.cfg['hierarchy'])
+            roles = [r for r in ctx.author.roles if r.name in hierarchy]
+            if roles:
+                return roles[-1] >= minRole
         return False
 
 

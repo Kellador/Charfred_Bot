@@ -61,6 +61,8 @@ class Charfred(commands.Bot):
             self.cfg['prefixes'] = []
         if 'nodes' not in self.cfg:
             self.cfg['nodes'] = {}
+        if 'hierarchy' not in self.cfg:
+            self.cfg['hierarchy'] = []
         if 'cogcfgs' not in self.cfg:
             self.cfg['cogcfgs'] = {}
         self.cfg._save()

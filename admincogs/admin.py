@@ -106,15 +106,70 @@ class Admin(commands.Cog):
 
         role, _, timedout = await promptinput(ctx, '# Please enter the minimum role required'
                                               f' to use {node} commands.\nEnter "everyone"'
-                                              ' to have no role restriction.')
+                                              ' to have no role restriction.\n'
+                                              'Enter "owner_only" to restrict to bot owner.')
         if timedout:
             return
-        if role == 'everyone' or role == 'Everyone':
-            role = '@everyone'
-        self.cfg['nodes'][node] = role
+        if role == 'owner_only':
+            self.cfg['nodes'][node] = None
+        else:
+            if role == 'everyone' or role == 'Everyone':
+                role = '@everyone'
+            self.cfg['nodes'][node] = role
         await self.cfg.save()
         log.info(f'{node} was edited.')
         await sendmarkdown(ctx, f'# Edits to {node} saved successfully!')
+
+    @permissions.groups(invoke_without_command=True, hidden=True)
+    async def hierarchy(self, ctx):
+        """Role hierarchy commands.
+
+        This returns a list of all roles currently in the hierarchy,
+        if no subcommand was given.
+
+        Please note that the order within the hierarchy as listed here
+        does not matter, in essence this hierarchy only sets which roles
+        to take into consideration when checking for command permissions.
+
+        That way you can have lower ranking members with special roles,
+        that put them above higher ranking members in the guilds role
+        hierarchy, but not have them inherit said higher ranking members
+        command permissions, by just not adding that special role to this
+        hierarchy.
+        """
+
+        log.info('Listing role hierarchy.')
+        if not self.cfg['hierarchy']:
+            await sendmarkdown(ctx, '< No hierarchy set up! >')
+        else:
+            hierarchy = '\n'.join(self.cfg['hierarchy'])
+            await sendmarkdown(ctx, f'# Role hierarchy:\n{hierarchy}')
+
+    @hierarchy.command(hidden=True, name='add')
+    @commands.is_owner()
+    async def addtohierarchy(self, ctx, role):
+        """Adds a role to the hierarchy."""
+
+        if role in self.cfg['hierarchy']:
+            await sendmarkdown(ctx, f'> {role} is already in the hierarchy.')
+        else:
+            log.info(f'Adding {role} to hierarchy.')
+            self.cfg['hierarchy'].append(role)
+            await self.cfg.save()
+            await sendmarkdown(ctx, f'# {role} added to hierarchy.')
+
+    @hierarchy.command(hidden=True, name='remove')
+    @commands.is_owner()
+    async def removefromhierarchy(self, ctx, role):
+        """Removes a role from the hierarchy."""
+
+        if role not in self.cfg['hierarchy']:
+            await sendmarkdown(ctx, f'> {role} was not in hierarchy.')
+        else:
+            log.info(f'Removing {role} from hierarchy.')
+            self.cfg['hierarchy'].remove(role)
+            await self.cfg.save()
+            await sendmarkdown(ctx, f'# {role} removed from hierarchy.')
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['cogcfgs'])
     @commands.is_owner()
