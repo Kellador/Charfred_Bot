@@ -120,7 +120,7 @@ class Admin(commands.Cog):
         log.info(f'{node} was edited.')
         await sendmarkdown(ctx, f'# Edits to {node} saved successfully!')
 
-    @permissions.groups(invoke_without_command=True, hidden=True)
+    @permissions.group(invoke_without_command=True, hidden=True)
     async def hierarchy(self, ctx):
         """Role hierarchy commands.
 
