@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import discord
-from utils.discoutils import send
 
 log = logging.getLogger('charfred')
 
@@ -64,7 +63,7 @@ class Flipbook:
         self.embed.description = '\n'.join(content)
 
         if first:
-            self.msg = await send(self.ctx, embed=self.embed)
+            self.msg = await self.ctx.send(embed=self.embed)
 
             if self.flipable:
                 for (bttn, _) in self.bttns:
@@ -162,7 +161,7 @@ class EmbedFlipbook(Flipbook):
                                   'Wait... why make a Flipbook for just one embed?')
 
         if first:
-            self.msg = await send(self.ctx, embed=self.embed)
+            self.msg = await self.ctx.send(embed=self.embed)
 
             for (bttn, _) in self.bttns:
                 await self.msg.add_reaction(bttn)
