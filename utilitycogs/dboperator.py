@@ -1,7 +1,6 @@
 import logging
 from asyncio import wait_for, TimeoutError
 from discord.ext import commands
-from utils.discoutils import sendmarkdown
 
 log = logging.getLogger('charfred')
 
@@ -52,9 +51,9 @@ class DBOperator(commands.Cog):
         """
 
         if self.db:
-            await sendmarkdown(ctx, '> Connection pool available.')
+            await ctx.sendmarkdown('> Connection pool available.')
         else:
-            await sendmarkdown(ctx, '> No connection pool available.')
+            await ctx.sendmarkdown('> No connection pool available.')
 
     @database.command(hidden=True)
     @commands.is_owner()
@@ -67,11 +66,11 @@ class DBOperator(commands.Cog):
         """
 
         if self.db:
-            await sendmarkdown(ctx, '> Connection pool already established!')
+            await ctx.sendmarkdown('> Connection pool already established!')
         else:
             await self._connect()
-            await sendmarkdown(ctx, '# Connection pool established, '
-                               'pre-configured tables created.')
+            await ctx.sendmarkdown('# Connection pool established, '
+                                   'pre-configured tables created.')
 
     @database.command(hidden=True)
     @commands.is_owner()
@@ -88,7 +87,7 @@ class DBOperator(commands.Cog):
             else:
                 stat = await con.execute(command)
         log.info(stat)
-        await sendmarkdown(ctx, stat)
+        await ctx.sendmarkdown(stat)
 
     @database.command(hidden=True)
     @commands.is_owner()
@@ -107,7 +106,7 @@ class DBOperator(commands.Cog):
                 rec = await con.fetch(query)
         self.queryresult = rec
         log.info(f'# Query cached with {len(rec)} rows!')
-        await sendmarkdown(ctx, f'# Query cached with {len(rec)} rows!')
+        await ctx.sendmarkdown(f'# Query cached with {len(rec)} rows!')
 
     @database.group(invoke_without_command=False, hidden=True)
     @commands.is_owner()
@@ -137,10 +136,10 @@ class DBOperator(commands.Cog):
         if out:
             out.insert(0, '# Saved credentials:\n\n')
             log.info('\n'.join(out))
-            await sendmarkdown(ctx, '\n'.join(out))
+            await ctx.sendmarkdown('\n'.join(out))
         else:
             log.info('< No credentials saved! >')
-            await sendmarkdown(ctx, '< No credentials saved! >')
+            await ctx.sendmarkdown('< No credentials saved! >')
 
     @credentials.command(hidden=True)
     @commands.is_owner()
@@ -154,8 +153,8 @@ class DBOperator(commands.Cog):
             self.cfg['dbcredentials'][k] = v
         await self.cfg.save()
         log.info('Credentials saved!')
-        await sendmarkdown(ctx, '> Credentials saved, '
-                           'hope you entered them correctly!')
+        await ctx.sendmarkdown('> Credentials saved, '
+                               'hope you entered them correctly!')
 
 
 try:

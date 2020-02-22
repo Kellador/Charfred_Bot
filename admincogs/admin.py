@@ -1,7 +1,6 @@
 import logging
 import datetime
 from discord.ext import commands
-from utils.discoutils import promptinput, sendmarkdown
 from utils.flipbooks import Flipbook
 
 log = logging.getLogger('charfred')
@@ -25,7 +24,7 @@ class Admin(commands.Cog):
         log.info('Reloading botcfg.json...')
         await self.cfg.load()
         log.info('Reloaded!')
-        await sendmarkdown(ctx, '# Locked and reloaded!')
+        await ctx.sendmarkdown('# Locked and reloaded!')
 
     @commands.command(hidden=True)
     async def uptime(self, ctx):
@@ -39,7 +38,7 @@ class Admin(commands.Cog):
         m, s = divmod(s, 60)
         upstr = f'{d} days, {h} hours, {m} minutes and {s} seconds'
         log.info(f'Up for {upstr}.')
-        await sendmarkdown(ctx, f'# I have been up for {upstr}!')
+        await ctx.sendmarkdown(f'# I have been up for {upstr}!')
 
     @commands.group(invoke_without_command=True)
     async def prefix(self, ctx):
@@ -50,8 +49,8 @@ class Admin(commands.Cog):
         """
 
         prefixes = '\n> '.join(self.cfg['prefixes'])
-        await sendmarkdown(ctx, '> Current prefixes: \n'
-                           f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
+        await ctx.sendmarkdown('> Current prefixes: \n'
+                               f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
@@ -61,7 +60,7 @@ class Admin(commands.Cog):
         log.info(f'Adding a new prefix: {prefix}')
         self.cfg['prefixes'].append(prefix)
         await self.cfg.save()
-        await sendmarkdown(ctx, f'# \'{prefix}\' has been registered!')
+        await ctx.sendmarkdown(f'# \'{prefix}\' has been registered!')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
@@ -71,7 +70,7 @@ class Admin(commands.Cog):
         log.info(f'Removing prefix: {prefix}')
         self.cfg['prefixes'].remove(prefix)
         await self.cfg.save()
-        await sendmarkdown(ctx, f'# \'{prefix}\' has been unregistered!')
+        await ctx.sendmarkdown(f'# \'{prefix}\' has been unregistered!')
 
     def _parserole(self, role):
         if not role:
@@ -101,13 +100,13 @@ class Admin(commands.Cog):
         """Edit a permission node."""
 
         if node not in self.cfg['nodes']:
-            await sendmarkdown(ctx, f'> {node} is not registered!')
+            await ctx.sendmarkdown(f'> {node} is not registered!')
             return
 
-        role, _, timedout = await promptinput(ctx, '# Please enter the minimum role required'
-                                              f' to use {node} commands.\nEnter "everyone"'
-                                              ' to have no role restriction.\n'
-                                              'Enter "owner_only" to restrict to bot owner.')
+        role, _, timedout = await ctx.promptinput('# Please enter the minimum role required'
+                                                  f' to use {node} commands.\nEnter "everyone"'
+                                                  ' to have no role restriction.\n'
+                                                  'Enter "owner_only" to restrict to bot owner.')
         if timedout:
             return
         if role == 'owner_only':
@@ -118,7 +117,7 @@ class Admin(commands.Cog):
             self.cfg['nodes'][node] = role
         await self.cfg.save()
         log.info(f'{node} was edited.')
-        await sendmarkdown(ctx, f'# Edits to {node} saved successfully!')
+        await ctx.sendmarkdown(f'# Edits to {node} saved successfully!')
 
     @permissions.group(invoke_without_command=True, hidden=True)
     async def hierarchy(self, ctx):
@@ -140,10 +139,10 @@ class Admin(commands.Cog):
 
         log.info('Listing role hierarchy.')
         if not self.cfg['hierarchy']:
-            await sendmarkdown(ctx, '< No hierarchy set up! >')
+            await ctx.sendmarkdown('< No hierarchy set up! >')
         else:
             hierarchy = '\n'.join(self.cfg['hierarchy'])
-            await sendmarkdown(ctx, f'# Role hierarchy:\n{hierarchy}')
+            await ctx.sendmarkdown(f'# Role hierarchy:\n{hierarchy}')
 
     @hierarchy.command(hidden=True, name='add')
     @commands.is_owner()
@@ -151,12 +150,12 @@ class Admin(commands.Cog):
         """Adds a role to the hierarchy."""
 
         if role in self.cfg['hierarchy']:
-            await sendmarkdown(ctx, f'> {role} is already in the hierarchy.')
+            await ctx.sendmarkdown(f'> {role} is already in the hierarchy.')
         else:
             log.info(f'Adding {role} to hierarchy.')
             self.cfg['hierarchy'].append(role)
             await self.cfg.save()
-            await sendmarkdown(ctx, f'# {role} added to hierarchy.')
+            await ctx.sendmarkdown(f'# {role} added to hierarchy.')
 
     @hierarchy.command(hidden=True, name='remove')
     @commands.is_owner()
@@ -164,12 +163,12 @@ class Admin(commands.Cog):
         """Removes a role from the hierarchy."""
 
         if role not in self.cfg['hierarchy']:
-            await sendmarkdown(ctx, f'> {role} was not in hierarchy.')
+            await ctx.sendmarkdown(f'> {role} was not in hierarchy.')
         else:
             log.info(f'Removing {role} from hierarchy.')
             self.cfg['hierarchy'].remove(role)
             await self.cfg.save()
-            await sendmarkdown(ctx, f'# {role} removed from hierarchy.')
+            await ctx.sendmarkdown(f'# {role} removed from hierarchy.')
 
     @commands.group(invoke_without_command=True, hidden=True, aliases=['cogcfgs'])
     @commands.is_owner()
@@ -193,17 +192,17 @@ class Admin(commands.Cog):
         """Edit cog-specific configuration."""
 
         if cfg not in self.cfg['cogcfgs']:
-            await sendmarkdown(ctx, f'> {cfg} is not registered!')
+            await ctx.sendmarkdown(f'> {cfg} is not registered!')
             return
 
         prompt = self.cfg['cogcfgs'][cfg][1]
-        value, _, timedout = await promptinput(ctx, prompt)
+        value, _, timedout = await ctx.promptinput(prompt)
         if timedout:
             return
         self.cfg['cogcfgs'][cfg] = (value, prompt)
         await self.cfg.save()
         log.info(f'{cfg} was edited.')
-        await sendmarkdown(ctx, f'# Edits to {cfg} saved successfully!')
+        await ctx.sendmarkdown(f'# Edits to {cfg} saved successfully!')
 
     @commands.command(hidden=True)
     @commands.is_owner()
@@ -211,12 +210,12 @@ class Admin(commands.Cog):
         """Returns and/or changes webhook url used for debugging purposes."""
 
         if 'hook' in self.cfg and self.cfg['hook'] is not None:
-            await sendmarkdown(ctx, f'> Current debug webhook:\n> {self.cfg["hook"]}')
+            await ctx.sendmarkdown(f'> Current debug webhook:\n> {self.cfg["hook"]}')
         if hookurl:
             self.cfg['hook'] = hookurl
             await self.cfg.save()
             log.info('Changed debug webhook url.')
-            await sendmarkdown(ctx, f'> Set debug webhook to:\n> {hookurl}')
+            await ctx.sendmarkdown(f'> Set debug webhook to:\n> {hookurl}')
 
 
 def setup(bot):

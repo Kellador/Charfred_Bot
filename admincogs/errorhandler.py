@@ -2,7 +2,6 @@ from discord.ext import commands
 import traceback
 import logging
 import random
-from utils.discoutils import sendmarkdown
 
 log = logging.getLogger('charfred')
 
@@ -17,44 +16,44 @@ class ErrorHandler(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.DisabledCommand):
-            await sendmarkdown(ctx, '> Sorry chap, that command\'s disabled!')
+            await ctx.sendmarkdown('> Sorry chap, that command\'s disabled!')
             log.warning(f'DisabledCommand: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NotOwner):
-            await sendmarkdown(ctx, '< You\'re not the boss of me, sir! >')
+            await ctx.sendmarkdown('< You\'re not the boss of me, sir! >')
             log.warning(f'NotOwner: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CheckFailure):
-            await sendmarkdown(ctx, '< ' + random.choice(self.keywords['errormsgs']) + ' >')
+            await ctx.sendmarkdown('< ' + random.choice(self.keywords['errormsgs']) + ' >')
             log.warning(f'CheckFailure: {ctx.author.name}: {ctx.command.qualified_name} in {ctx.channel.name}!')
 
         elif isinstance(error, commands.CommandNotFound):
-            await sendmarkdown(ctx, '> ' + random.choice(self.keywords['nacks']))
+            await ctx.sendmarkdown('> ' + random.choice(self.keywords['nacks']))
             log.warning(f'CommandNotFound: {ctx.invoked_with}')
 
         elif isinstance(error, commands.MissingRequiredArgument):
-            await sendmarkdown(ctx, '> You\'re missing some arguments there, mate!')
+            await ctx.sendmarkdown('> You\'re missing some arguments there, mate!')
             log.warning(f'MissingRequiredArgument: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.NoPrivateMessage):
-            await sendmarkdown(ctx, '# Stop it, you\'re making me blush...')
+            await ctx.sendmarkdown('# Stop it, you\'re making me blush...')
             log.warning(f'NoPrivateMessage: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.MissingPermissions):
-            await sendmarkdown(ctx, '< ' + random.choice(self.keywords['errormsgs']) + ' >')
+            await ctx.sendmarkdown('< ' + random.choice(self.keywords['errormsgs']) + ' >')
             log.warning(f'MissingPermissions: {ctx.author.name}: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.BotMissingPermissions):
-            await sendmarkdown(ctx, '< I am not allowed to do that, sir, it is known! >')
+            await ctx.sendmarkdown('< I am not allowed to do that, sir, it is known! >')
             log.warning(f'BotMissingPermissions: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandOnCooldown):
-            await sendmarkdown(ctx, '> Sorry lass, that command\'s on cooldown!\n'
-                               f'> Try again in {error.retry_after} seconds.')
+            await ctx.sendmarkdown('> Sorry lass, that command\'s on cooldown!\n'
+                                   f'> Try again in {error.retry_after} seconds.')
             log.warning(f'CommandOnCooldown: {ctx.command.qualified_name}')
 
         elif isinstance(error, commands.CommandInvokeError):
-            await sendmarkdown(ctx, '< ' + random.choice(self.keywords['nacks']) + ' >')
+            await ctx.sendmarkdown('< ' + random.choice(self.keywords['nacks']) + ' >')
 
             log.error(f'{ctx.command.qualified_name}:')
             log.error(f'{error.original.__class__.__name__}: {error.original}')

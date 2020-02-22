@@ -5,7 +5,6 @@ import asyncio
 from collections import namedtuple
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
-from utils.discoutils import sendmarkdown
 from utils.sizeddict import SizedDict
 
 log = logging.getLogger('charfred')
@@ -142,7 +141,7 @@ class CommandHistorian(commands.Cog):
             await self.bot.on_message(lastcmd.msg)
         else:
             log.info('No last command found!')
-            await sendmarkdown(ctx, '> No recent command found in current channel!')
+            await ctx.sendmarkdown('> No recent command found in current channel!')
 
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
@@ -154,7 +153,7 @@ class CommandHistorian(commands.Cog):
         """
 
         log.info('Logging is currently ' + ('active!' if self.logcmds else 'inactive!'))
-        await sendmarkdown(ctx, '# Logging is currently ' + ('active!' if self.logcmds else 'inactive!'))
+        await ctx.sendmarkdown('# Logging is currently ' + ('active!' if self.logcmds else 'inactive!'))
 
     @cmdlogging.command(hidden=True)
     @commands.is_owner()
@@ -166,7 +165,7 @@ class CommandHistorian(commands.Cog):
         else:
             self.logcmds = True
         log.info('Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
-        await sendmarkdown(ctx, '# Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
+        await ctx.sendmarkdown('# Toggled command logging ' + ('off!' if self.logcmds else 'on!'))
 
     @commands.group(invoke_without_command=True, hidden=True)
     @commands.is_owner()
@@ -179,7 +178,7 @@ class CommandHistorian(commands.Cog):
 
         log.info('Showing cmd_map.')
         rep = self.pprinter.pformat(self.cmd_map)
-        await sendmarkdown(ctx, rep)
+        await ctx.sendmarkdown(rep)
 
     @cmdmap.command(hidden=True)
     @commands.is_owner()
@@ -194,12 +193,12 @@ class CommandHistorian(commands.Cog):
             log.info(f'Clearing cmd_map, setting maximum size to: {max_size}.')
             self.cmd_map.clear()
             self.cmd_map.max_size = max_size
-            await sendmarkdown(ctx, 'Command map cleared, new maximum size set '
-                               f'to {max_size}!')
+            await ctx.sendmarkdown('Command map cleared, new maximum size set '
+                                   f'to {max_size}!')
         else:
             log.warning('cmd_map clear with insufficient max_size!')
-            await sendmarkdown(ctx, '< Insufficient maximum size, you can\'t '
-                               'even store a single command in there! >')
+            await ctx.sendmarkdown('< Insufficient maximum size, you can\'t '
+                                   'even store a single command in there! >')
 
 
 def setup(bot):

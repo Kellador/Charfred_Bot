@@ -9,6 +9,7 @@ import traceback
 import datetime
 import aiohttp
 from utils.config import Config
+from utils.context import CharfredContext
 
 log = logging.getLogger('charfred')
 
@@ -89,6 +90,9 @@ class Charfred(commands.Bot):
     def register_cfg(self, cfg, prompt=None, defaultvalue=None):
         if cfg not in self.cfg['cogcfgs']:
             self.cfg['cogcfgs'][cfg] = (defaultvalue, prompt)
+
+    async def get_context(self, message, *, cls=CharfredContext):
+        return await super().get_context(message, cls=cls)
 
     async def on_command(self, ctx):
         log.info(f'[{ctx.author.name}]: {ctx.message.content}')

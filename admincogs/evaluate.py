@@ -4,7 +4,6 @@ import traceback
 import logging
 from contextlib import redirect_stdout
 from discord.ext import commands
-from utils.discoutils import send
 
 log = logging.getLogger('charfred')
 
@@ -26,7 +25,7 @@ class Evaluate(commands.Cog):
             body = '\n'.join(body.split('\n')[1:-1])
         else:
             await ctx.message.add_reaction('\N{THUMBS DOWN SIGN}')
-            return await send(ctx, 'You forgot to use a py codeblock!')
+            return await ctx.send('You forgot to use a py codeblock!')
 
         env = {
             'bot': self.bot,
@@ -48,7 +47,7 @@ class Evaluate(commands.Cog):
             log.error('exec failed!')
             traceback.print_exc()
             await ctx.message.add_reaction('\N{THUMBS DOWN SIGN}')
-            return await send(ctx, f'```py\n{e.__class__.__name__}: {e}\n```')
+            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
 
         func = env['func']
 
@@ -61,7 +60,7 @@ class Evaluate(commands.Cog):
             traceback.print_exc()
             value = stdout.getvalue()
             await ctx.message.add_reaction('\N{THUMBS DOWN SIGN}')
-            await send(ctx, f'```py\n{value}{traceback.format_exc()}\n```')
+            await ctx.send(f'```py\n{value}{traceback.format_exc()}\n```')
         else:
             value = stdout.getvalue()
             try:
@@ -71,10 +70,10 @@ class Evaluate(commands.Cog):
 
             if ret is None:
                 if value:
-                    await send(ctx, f'```py\n{value}\n```')
+                    await ctx.send(f'```py\n{value}\n```')
             else:
                 self._last_result = ret
-                await send(ctx, f'```py\n{value}{ret}\n```')
+                await ctx.send(f'```py\n{value}{ret}\n```')
 
 
 def setup(bot):

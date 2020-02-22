@@ -2,7 +2,6 @@ import asyncio
 import logging
 from pathlib import Path
 from discord.ext import commands
-from utils.discoutils import sendmarkdown
 
 log = logging.getLogger('charfred')
 
@@ -29,23 +28,23 @@ class GitOperator(commands.Cog):
             log.info(f'"git {cmd}" executed.')
         else:
             log.warning(f'"git {cmd}" failed!')
-            await sendmarkdown(ctx, '< Command failed, exited with error! >')
+            await ctx.sendmarkdown('< Command failed, exited with error! >')
             return
         output = stdout.decode().strip()
         log.info(output)
-        await sendmarkdown(ctx, f'# Command output:\n{output}')
+        await ctx.sendmarkdown(f'# Command output:\n{output}')
 
     async def _validate(self, repo, ctx=None):
         if not repo.exists():
             log.warning(f'{repo} is not a valid directory.')
             if ctx:
-                await sendmarkdown(ctx, f'< {repo} is not a valid directory! >')
+                await ctx.sendmarkdown(f'< {repo} is not a valid directory! >')
             return False
 
         if not (repo / '.git').exists():
             log.warning(f'{repo} does not contain a git repository.')
             if ctx:
-                await sendmarkdown(ctx, f'< {repo} does not contain a git repository! >')
+                await ctx.sendmarkdown(f'< {repo} does not contain a git repository! >')
             return False
 
         return True
