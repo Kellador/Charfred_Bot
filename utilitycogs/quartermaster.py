@@ -1,6 +1,7 @@
 import logging
 import psutil
 from datetime import datetime as dt
+from statistics import median_high
 from humanize import naturalsize
 from discord.ext import commands
 from utils.discoutils import permission_node
@@ -49,8 +50,11 @@ class ProcessConverter(commands.Converter):
 
 def getProcInfo(proc):
     procinfo = {}
+    data = []
+    for _ in range(50):
+        data.append(proc.cpu_percent(interval=0.1))
+    procinfo['cpu_percent'] = median_high(data)
     with proc.oneshot():
-        procinfo['cpu_percent'] = proc.cpu_percent(interval=5)
         procinfo['create_time'] = proc.create_time()
         procinfo['cmdline'] = proc.cmdline()
         procinfo['memory_full_info'] = proc.memory_full_info()
@@ -103,8 +107,7 @@ class Quartermaster(commands.Cog):
             pass
 
         listing = [
-            f'{num}: PID={proc.pid}, name={proc.name}, '
-            f'cmdline(shortened)={proc.info["cmdline"][0]}[...]{proc.info["cmdline"][-1]}'
+            f'{num}: PID={proc.pid}, name={proc.name()}'
             for num, proc in enumerate(process)
         ]
         reply, _, _ = await ctx.promptinput(
