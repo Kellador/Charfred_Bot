@@ -48,10 +48,13 @@ class ProcessConverter(commands.Converter):
 
 
 def getProcInfo(proc):
-    procinfo = proc.as_dict(attrs=[
-        'cpu_percent', 'create_time', 'cmdline',
-        'memory_full_info', 'num_threads'
-    ])
+    procinfo = {}
+    with proc.oneshot():
+        procinfo['cpu_percent'] = proc.cpu_percent(interval=5)
+        procinfo['create_time'] = proc.create_time()
+        procinfo['cmdline'] = proc.cmdline()
+        procinfo['memory_full_info'] = proc.memory_full_info()
+        procinfo['num_threads'] = proc.num_threads()
     return procinfo
 
 
@@ -99,12 +102,17 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
+        listing = [
+            f'{num}: PID={proc.pid}, name={proc.name}, '
+            f'cmdline(shortened)={proc.info["cmdline"][0]}[...]{proc.info["cmdline"][-1]}'
+            for num, proc in enumerate(process)
+        ]
         reply, _, _ = await ctx.promptinput(
-            '< Multiple matching processes found! >\n' +
-            '\n'.join([f'{num}: {cmd}' for num, cmd in enumerate(process)]) +
-            '\n< Please select which one to profile by replying with the '
-            'number listed next to the commandline that best matches the '
-            'process you want. >'
+            '< Multiple matching processes found! >\n\n' +
+            '\n'.join(listing) +
+            '\n\n< Please select which one to profile by replying with the '
+            'number listed next to the process that best matches the one '
+            'you are looking for. >'
         )
 
         if reply:
@@ -116,8 +124,10 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
+        tmpmsg = await ctx.sendmarkdown('> Profiling...')
         procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
         msg = format_info(process, procinfo)
+        await tmpmsg.delete()
         await ctx.sendmarkdown(msg)
 
     @commands.command(aliases=['chartop'])
@@ -134,8 +144,10 @@ class Quartermaster(commands.Cog):
             await ctx.sendmarkdown('< psutil failed with "access denied"! >')
         else:
 
+            tmpmsg = await ctx.sendmarkdown('> Profiling...')
             procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
             msg = format_info(process, procinfo)
+            await tmpmsg.delete()
             await ctx.sendmarkdown(msg)
 
 
