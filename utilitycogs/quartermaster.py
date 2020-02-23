@@ -99,10 +99,9 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
-        choices = enumerate(process)
         reply, _, _ = await ctx.promptinput(
             '< Multiple matching processes found! >\n' +
-            '\n'.join([f'{num}: {cmd}' for num, cmd in choices]) +
+            '\n'.join([f'{num}: {cmd}' for num, cmd in enumerate(process)]) +
             '\n< Please select which one to profile by replying with the '
             'number listed next to the commandline that best matches the '
             'process you want. >'
@@ -110,7 +109,7 @@ class Quartermaster(commands.Cog):
 
         if reply:
             try:
-                process = choices[reply][1]
+                process = process[reply]
             except KeyError:
                 await ctx.sendmarkdown('< Invalid choice! >')
                 return
