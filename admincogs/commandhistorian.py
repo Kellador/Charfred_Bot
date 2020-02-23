@@ -1,7 +1,8 @@
 import logging
 import pprint
-import os
 import asyncio
+import discord
+from copy import copy
 from collections import namedtuple
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
@@ -20,27 +21,11 @@ class CommandHistorian(commands.Cog):
         self.loop = bot.loop
         self.lock = asyncio.Lock()
         self.pprinter = pprint.PrettyPrinter()
-        self.logcmds = False
         if not hasattr(bot, 'cmd_map'):
             self.cmd_map = SizedDict()
             bot.cmd_map = self.cmd_map
         else:
             self.cmd_map = bot.cmd_map
-
-    def _writelog(self, ctx):
-        logname = f'{self.dir}/logs/commandlogs/{ctx.message.author.id}.log'
-        if os.path.exists(logname):
-            openmode = 'a'
-        else:
-            openmode = 'w'
-            os.makedirs(os.path.dirname(logname), exist_ok=True)
-            log.info(f'Created potentially missing dirs for {id}.log!')
-        with open(logname, openmode) as cmdlog:
-            cmdlog.write(f'cmd failed: {ctx.command_failed}; msg: \"{ctx.message.content}\"')
-
-    async def _log(self, ctx):
-        with await self.lock:
-            await self.loop.run_in_executor(None, self._writelog, ctx)
 
     @commands.Cog.listener()
     async def on_command(self, ctx):
@@ -52,8 +37,6 @@ class CommandHistorian(commands.Cog):
             msg=ctx.message,
             output=[]
         )
-        if self.logcmds:
-            await self._log(ctx)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
@@ -130,7 +113,7 @@ class CommandHistorian(commands.Cog):
     async def last(self, ctx):
         """Reinvokes the last command executed by the user.
 
-        Specifically the last command invoked in the channel that last
+        Specifically the last command invoked in the channel that 'last'
         was invoked in.
         """
 
@@ -142,6 +125,46 @@ class CommandHistorian(commands.Cog):
         else:
             log.info('No last command found!')
             await ctx.sendmarkdown('> No recent command found in current channel!')
+
+    async def rejig_ctx(self, ctx, content=None, author=None, channel=None):
+        """Create a copy of a Context with some variables changed."""
+
+        copiedmsg = copy(ctx.message)
+        if content:
+            copiedmsg.content = content
+        if author:
+            copiedmsg.author = author
+        if channel:
+            copiedmsg.channel = channel
+
+        return await ctx.bot.get_context(copiedmsg)
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def su(self, ctx, user: discord.User, *, cmd: str):
+        """Substitute user, like the unix command!"""
+
+        try:
+            user = ctx.guild.get_member(user.id) or user
+        except AttributeError:
+            pass
+
+        rectx = await self.rejig_ctx(ctx, content=f'{ctx.prefix}{cmd}', author=user)
+        if rectx.command:
+            await rectx.command.invoke(rectx)
+        else:
+            await ctx.sendmarkdown(f'No valid command for "{rectx.invoked_with}" found!')
+
+    @commands.command(hidden=True)
+    @commands.is_owner()
+    async def cast(self, ctx, channel: discord.TextChannel, *, cmd: str):
+        """Cast a command to another channel."""
+
+        rectx = await self.rejig_ctx(ctx, content=f'{ctx.prefix}{cmd}', channel=channel)
+        if rectx.command:
+            await rectx.command.invoke(rectx)
+        else:
+            await ctx.sendmarkdown(f'No valid command for "{rectx.invoked_with}" found!')
 
     @commands.group(hidden=True, invoke_without_command=True)
     @commands.is_owner()
