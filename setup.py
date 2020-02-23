@@ -2,14 +2,16 @@ from setuptools import setup, find_packages
 
 setup(
     name="Charfred",
-    version="1.0beta5",
+    version="1.0beta6",
     packages=find_packages(),
     install_requires=[
         'yarl<1.2',
         'discord.py',
         'coloredlogs',
         'click',
-        'toml'],
+        'toml',
+        'humanize',
+        'psutil'],
     extras_require={
         'uvloop': ['uvloop'],
         'asyncpg': ['asyncpg']
