@@ -209,10 +209,12 @@ class Quartermaster(commands.Cog):
         msg = [
             '# Memory Usage:',
             '>     Total   Avail.     %',
-            f'{prefix} {mem.total:>8} {mem.available:>8} {mem.percent:>5}%{suffix}',
+            f'{prefix} {naturalsize(mem.total):>8} {naturalsize(mem.available):>8}'
+            f' {mem.percent:>5}%{suffix}',
             '\n# Swap:',
             '>     Total     Used     %',
-            f'{prefixs}{swp.total:>8} {swp.used:>8} {swp.percent:>5}%{suffixs}'
+            f'{prefixs}{naturalsize(swp.total):>8} {naturalsize(swp.used):>8} '
+            f'{swp.percent:>5}%{suffixs}'
         ]
         await ctx.sendmarkdown('\n'.join(msg))
 
