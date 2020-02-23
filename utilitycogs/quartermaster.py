@@ -109,8 +109,8 @@ class Quartermaster(commands.Cog):
 
         if reply:
             try:
-                process = process[reply]
-            except KeyError:
+                process = process[int(reply)]
+            except (KeyError, ValueError):
                 await ctx.sendmarkdown('< Invalid choice! >')
                 return
         else:
