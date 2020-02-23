@@ -103,9 +103,9 @@ class Quartermaster(commands.Cog):
         reply, _, _ = await ctx.promptinput(
             '< Multiple matching processes found! >\n',
             '\n'.join([f'{num}: {cmd}' for num, cmd in choices]),
-            '\nPlease select which one to profile by replying with the '
+            '\n< Please select which one to profile by replying with the '
             'number listed next to the commandline that best matches the '
-            'process you want.'
+            'process you want. >'
         )
 
         if reply:
