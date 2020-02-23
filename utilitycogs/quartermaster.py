@@ -60,10 +60,10 @@ def format_info(process, procinfo):
     msg = [
         f'# Process Information for PID: {process.pid}:',
         ' '.join(procinfo['cmdline']),
-        '\n',
+        '',
         'Created on:',
         dt.fromtimestamp(procinfo['create_time']).strftime("%Y-%m-%d %H:%M:%S"),
-        '\n',
+        '',
         f'# CPU Utilization: {procinfo["cpu_percent"]} %',
         f'# Number of Threads: {procinfo["num_threads"]}',
         f'# Memory usage: {naturalsize(memory.rss)}',
