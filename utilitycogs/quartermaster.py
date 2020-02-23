@@ -102,6 +102,8 @@ class Quartermaster(commands.Cog):
         The process may be specified by its PID, name, substring of its
         commandline or full commandline.
 
+        Note: Screen processes are filtered out.
+
         If searching via name or commandline returns more than one process
         you will be offered an enumerated list of returned processes to pick
         from.
@@ -113,26 +115,35 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
-        listing = [
-            f'{num}: PID={proc.pid}, name={proc.name()}'
-            for num, proc in enumerate(process)
-        ]
-        reply, _, _ = await ctx.promptinput(
-            '< Multiple matching processes found! >\n\n' +
-            '\n'.join(listing) +
-            '\n\n< Please select which one to profile by replying with the '
-            'number listed next to the process that best matches the one '
-            'you are looking for. >'
-        )
+        process = [proc for proc in process if not (proc.name() == 'screen')]
 
-        if reply:
-            try:
-                process = process[int(reply)]
-            except (KeyError, ValueError):
-                await ctx.sendmarkdown('< Invalid choice! >')
+        if not process:
+            await ctx.sendmarkdown('< No matching non-screen processes found! >')
+            return
+
+        if len(process) > 1:
+            listing = [
+                f'{num}: PID={proc.pid}, name={proc.name()}'
+                for num, proc in enumerate(process)
+            ]
+            reply, _, _ = await ctx.promptinput(
+                '< Multiple matching processes found! >\n\n' +
+                '\n'.join(listing) +
+                '\n\n< Please select which one to profile by replying with the '
+                'number listed next to the process that best matches the one '
+                'you are looking for. >'
+            )
+
+            if reply:
+                try:
+                    process = process[int(reply)]
+                except (KeyError, ValueError):
+                    await ctx.sendmarkdown('< Invalid choice! >')
+                    return
+            else:
                 return
         else:
-            pass
+            process = process[0]
 
         tmpmsg = await ctx.sendmarkdown('> Profiling...')
         procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
