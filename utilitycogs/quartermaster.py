@@ -38,7 +38,7 @@ class ProcessConverter(commands.Converter):
             if proc.info['cmdline']:
                 if argument in proc.info['cmdline']:
                     proclist.append(proc)
-                if ''.join(proc.info['cmdline']) == argument:
+                if ' '.join(proc.info['cmdline']) == argument:
                     proclist.append(proc)
 
         if proclist:
@@ -59,7 +59,7 @@ def format_info(process, procinfo):
     memory = procinfo['memory_full_info']
     msg = [
         f'# Process Information for PID: {process.pid}:',
-        procinfo['cmdline'],
+        ' '.join(procinfo['cmdline']),
         '\n',
         'Created on:',
         dt.fromtimestamp(procinfo['create_time']).strftime("%Y-%m-%d %H:%M:%S"),
@@ -99,12 +99,30 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
+        choices = enumerate(process)
+        reply, _, _ = await ctx.promptinput(
+            '< Multiple matching processes found! >\n',
+            '\n'.join([f'{num}: {cmd}' for num, cmd in choices]),
+            '\n< Please select which one to profile by replying with the '
+            'number listed next to the commandline that best matches the '
+            'process you want. >'
+        )
+
+        if reply:
+            try:
+                process = choices[reply][1]
+            except KeyError:
+                await ctx.sendmarkdown('< Invalid choice! >')
+                return
+        else:
+            pass
+
         procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
         msg = format_info(process, procinfo)
         await ctx.sendmarkdown(msg)
 
-    @profile.command(aliases=['charfred'])
-    async def char(self, ctx):
+    @commands.command(aliases=['chartop'])
+    async def charprofile(self, ctx):
         """Get CPU and memory usage info on Charfred."""
 
         try:
