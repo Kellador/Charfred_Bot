@@ -208,11 +208,11 @@ class Quartermaster(commands.Cog):
             suffixs = ''
         msg = [
             '# Memory Usage:',
-            '>     Total   Avail.     %',
+            '>     Total   Avail.      %',
             f'{prefix} {naturalsize(mem.total):>8} {naturalsize(mem.available):>8}'
             f' {mem.percent:>5}%{suffix}',
             '\n# Swap:',
-            '>     Total     Used     %',
+            '>    Total     Used     %',
             f'{prefixs}{naturalsize(swp.total):>8} {naturalsize(swp.used):>8} '
             f'{swp.percent:>5}%{suffixs}'
         ]
