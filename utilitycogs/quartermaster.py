@@ -58,7 +58,7 @@ def getProcInfo(proc):
 def format_info(process, procinfo):
     memory = procinfo['memory_full_info']
     msg = [
-        f'# Process Information for PID: {process.info["pid"]}:',
+        f'# Process Information for PID: {process.pid}:',
         procinfo['cmdline'],
         '\n',
         'Created on:',
@@ -95,6 +95,7 @@ class Quartermaster(commands.Cog):
 
         if process is None:
             await ctx.sendmarkdown('< No matching process found! >')
+            return
         else:
             pass
 
@@ -115,6 +116,7 @@ class Quartermaster(commands.Cog):
             log.warning('QM: Access denied!')
             await ctx.sendmarkdown('< psutil failed with "access denied"! >')
         else:
+
             procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
             msg = format_info(process, procinfo)
             await ctx.sendmarkdown(msg)
