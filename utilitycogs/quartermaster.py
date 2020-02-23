@@ -1,7 +1,6 @@
 import logging
 import psutil
 from datetime import datetime as dt
-from statistics import median_high
 from humanize import naturalsize
 from discord.ext import commands
 from utils.discoutils import permission_node
@@ -50,10 +49,12 @@ class ProcessConverter(commands.Converter):
 
 def getProcInfo(proc):
     procinfo = {}
-    data = []
+    high = 0.0
     for _ in range(50):
-        data.append(proc.cpu_percent(interval=0.1))
-    procinfo['cpu_percent'] = median_high(data)
+        point = proc.cpu_percent(interval=0.1)
+        if point > high:
+            high = point
+    procinfo['cpu_percent'] = high
     with proc.oneshot():
         procinfo['create_time'] = proc.create_time()
         procinfo['cmdline'] = proc.cmdline()
@@ -71,7 +72,7 @@ def format_info(process, procinfo):
         'Created on:',
         dt.fromtimestamp(procinfo['create_time']).strftime("%Y-%m-%d %H:%M:%S"),
         '',
-        f'# CPU Utilization: {procinfo["cpu_percent"]} %',
+        f'# CPU Utilization: {procinfo["cpu_percent"]} % (highest value over 5 seconds)',
         f'# Number of Threads: {procinfo["num_threads"]}',
         f'# Memory usage: {naturalsize(memory.rss)}',
         f'# Virtual Memory Size: {naturalsize(memory.vms)}',
@@ -87,8 +88,14 @@ class Quartermaster(commands.Cog):
         self.bot = bot
         self.loop = bot.loop
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(aliases=['quartermaster'])
     @permission_node(f'{__name__}')
+    async def qm(self, ctx):
+        """System resource information commands."""
+
+        pass
+
+    @qm.command(invoke_without_command=True)
     async def profile(self, ctx, process: ProcessConverter):
         """Get CPU and memory usage info on a process.
 
@@ -133,7 +140,7 @@ class Quartermaster(commands.Cog):
         await tmpmsg.delete()
         await ctx.sendmarkdown(msg)
 
-    @commands.command(aliases=['chartop'])
+    @qm.command(aliases=['chartop'])
     async def charprofile(self, ctx):
         """Get CPU and memory usage info on Charfred."""
 
@@ -152,6 +159,62 @@ class Quartermaster(commands.Cog):
             msg = format_info(process, procinfo)
             await tmpmsg.delete()
             await ctx.sendmarkdown(msg)
+
+    @qm.command(aliases=['du'])
+    async def diskusage(self, ctx):
+        """Get disk usage information.
+
+        Results are color coded based on use percentage:
+        orange = >80%
+        white = >20%
+        grey = <=20%
+        """
+
+        msg = ['# Disk Usage:', '> Device        Total     Used     Free     % Mount']
+        for dev in psutil.disk_partitions():
+            use = psutil.disk_usage(dev.mountpoint)
+            if int(use.percent) > 80:
+                prefix = '< '
+                suffix = ' >'
+            elif int(use.percent) < 20:
+                prefix = '> '
+                suffix = ''
+            else:
+                prefix = '  '
+                suffix = ''
+            msg.append(
+                f'{prefix}{dev.device:10} {naturalsize(use.total):>8} {naturalsize(use.used):>8}'
+                f' {naturalsize(use.free):>8} {int(use.percent):>4}% {dev.mountpoint}{suffix}'
+            )
+        await ctx.sendmarkdown('\n'.join(msg))
+
+    @qm.command(aliases=['mem'])
+    async def meminfo(self, ctx):
+        """Get memory usage information."""
+
+        mem = psutil.virtual_memory()
+        swp = psutil.swap_memory()
+        if mem.percent > 80.0:
+            prefix = '< '
+            suffix = ' >'
+        else:
+            prefix = '  '
+            suffix = ''
+        if swp.percent > 80.0:
+            prefixs = '< '
+            suffixs = ' >'
+        else:
+            prefixs = '  '
+            suffixs = ''
+        msg = [
+            '# Memory Usage:',
+            '>     Total   Avail.     %',
+            f'{prefix} {mem.total:>8} {mem.available:>8} {mem.percent:>5}%{suffix}',
+            '\n# Swap:',
+            '>     Total     Used     %',
+            f'{prefixs}{swp.total:>8} {swp.used:>8} {swp.percent:>5}%{suffixs}'
+        ]
+        await ctx.sendmarkdown('\n'.join(msg))
 
 
 def setup(bot):
