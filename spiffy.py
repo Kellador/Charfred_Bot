@@ -11,7 +11,7 @@ coloredlogs.install(level='DEBUG',
                     fmt='%(asctime)s:%(msecs)03d %(name)s: %(levelname)s %(message)s')
 
 dirp = os.path.dirname(os.path.realpath(__file__))
-cfg = Config(f'{dirp}/configs/serverCfgs.json')
+cfg = Config(f'{dirp}/configs/serverCfgs.toml')
 
 
 @click.group()
