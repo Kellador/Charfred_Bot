@@ -1,7 +1,7 @@
 import logging
 import datetime
 from discord.ext import commands
-from utils.flipbooks import Flipbook
+from utils import Flipbook
 
 log = logging.getLogger('charfred')
 

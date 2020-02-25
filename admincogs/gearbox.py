@@ -1,7 +1,7 @@
 import logging
 import traceback
 from discord.ext import commands
-from utils.config import Config
+from utils import Config
 
 log = logging.getLogger('charfred')
 

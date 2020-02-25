@@ -3,7 +3,7 @@ import os
 import logging
 import coloredlogs
 import spiffymanagement
-from utils.config import Config
+from utils import Config
 
 log = logging.getLogger('spiffymanagement')
 coloredlogs.install(level='DEBUG',

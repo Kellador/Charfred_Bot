@@ -8,8 +8,7 @@ import coloredlogs
 import traceback
 import datetime
 import aiohttp
-from utils.config import Config
-from utils.context import CharfredContext
+from utils import Config, CharfredContext
 
 log = logging.getLogger('charfred')
 

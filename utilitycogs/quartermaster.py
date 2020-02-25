@@ -3,7 +3,7 @@ import psutil
 from datetime import datetime as dt
 from humanize import naturalsize
 from discord.ext import commands
-from utils.discoutils import permission_node
+from utils import permission_node
 
 log = logging.getLogger('charfred')
 

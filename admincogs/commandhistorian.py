@@ -6,7 +6,7 @@ from copy import copy
 from collections import namedtuple
 from discord.errors import Forbidden, NotFound
 from discord.ext import commands
-from utils.sizeddict import SizedDict
+from utils import SizedDict
 
 log = logging.getLogger('charfred')
 
