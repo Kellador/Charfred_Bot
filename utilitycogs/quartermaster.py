@@ -96,7 +96,7 @@ class Quartermaster(commands.Cog):
         pass
 
     @qm.command(invoke_without_command=True)
-    async def profile(self, ctx, process: ProcessConverter):
+    async def profile(self, ctx, process: ProcessConverter, includeScreens: bool=False):
         """Get CPU and memory usage info on a process.
 
         The process may be specified by its PID, name, substring of its
@@ -115,11 +115,12 @@ class Quartermaster(commands.Cog):
         else:
             pass
 
-        process = [proc for proc in process if not (proc.name() == 'screen')]
+        if not includeScreens:
+            process = [proc for proc in process if not (proc.name() == 'screen')]
 
-        if not process:
-            await ctx.sendmarkdown('< No matching non-screen processes found! >')
-            return
+            if not process:
+                await ctx.sendmarkdown('< No matching non-screen processes found! >')
+                return
 
         if len(process) > 1:
             listing = [
