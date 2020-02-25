@@ -1,5 +1,7 @@
 from .config import Config
-from .discoutils import permission_node, node_check, cached_property, CharfredContext
+from .permissions import permission_node, node_check
+from .mixed import cached_property, splitup
+from .context import CharfredContext
 from .flipbooks import Flipbook, EmbedFlipbook
 from .collections import SimpleTTLDict, SizedDict
 
