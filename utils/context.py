@@ -39,7 +39,7 @@ def _splitup(msg, codeblocked=False):
 
 
 class CharfredContext(commands.Context):
-    async def send(self, msg=None, deletable=True, embed=None, codeblocked=False):
+    async def send(self, msg=None, deletable=True, embed=None, codeblocked=False, **kwargs):
         """Helper function to send all sorts of things!
 
         Messages are automatically split into multiple messages if they're too long,
@@ -50,7 +50,7 @@ class CharfredContext(commands.Context):
         if a split was performed only the last sent message is returned.
         """
         if (msg is None) or (len(msg) <= 2000):
-            outmsg = await super().send(content=msg, embed=embed)
+            outmsg = await super().send(content=msg, embed=embed, **kwargs)
             if deletable:
                 try:
                     self.bot.cmd_map[self.message.id].output.append(outmsg)
