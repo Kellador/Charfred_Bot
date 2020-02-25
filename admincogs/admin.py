@@ -36,7 +36,7 @@ class Admin(commands.Cog):
         d, s = divmod(s, 86400)
         h, s = divmod(s, 3600)
         m, s = divmod(s, 60)
-        upstr = f'{d} days, {h} hours, {m} minutes and {s} seconds'
+        upstr = f'{d} day(s), {h} hour(s), {m} minute(s) and {s} second(s)'
         log.info(f'Up for {upstr}.')
         await ctx.sendmarkdown(f'# I have been up for {upstr}!')
 
