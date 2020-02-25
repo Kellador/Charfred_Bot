@@ -1,7 +1,8 @@
-from discord.ext import commands
 import traceback
 import logging
 import random
+from discord import Webhook, AsyncWebhookAdapter, Embed
+from discord.ext import commands
 
 log = logging.getLogger('charfred')
 
@@ -12,6 +13,10 @@ class ErrorHandler(commands.Cog):
         self.keywords = bot.keywords
         self.session = bot.session
         self.cfg = bot.cfg
+        try:
+            self.hook = Webhook.from_url(self.cfg['hook'], adapter=AsyncWebhookAdapter(self.session))
+        except KeyError:
+            self.hook = None
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -59,19 +64,13 @@ class ErrorHandler(commands.Cog):
             log.error(f'{error.original.__class__.__name__}: {error.original}')
             traceback.print_tb(error.original.__traceback__)
 
-            if 'hook' in self.cfg:
-                hook_url = self.cfg['hook']
-                if hook_url:
-                    hook_this = {
-                        "embeds": [
-                            {
-                                "title": f"Exception during Command: {ctx.command.qualified_name}",
-                                "description": f"```py\n{error}:\n{traceback.format_tb(error.original.__traceback__)}\n```",
-                                "color": 15102720
-                            }
-                        ]
-                    }
-                    await self.session.post(hook_url, json=hook_this)
+            if self.hook:
+                hook_embed = Embed(
+                    title=f"Exception during Command: {ctx.command.qualified_name}",
+                    description=f"```py\n{error}:\n{traceback.format_tb(error.original.__traceback__)}\n```",
+                    color=15102720
+                )
+                await self.hook.send(embed=hook_embed)
 
 
 def setup(bot):
