@@ -1,6 +1,8 @@
 import logging
 import traceback
 from discord.ext import commands
+from discord.ext.commands import ExtensionNotLoaded, ExtensionNotFound, \
+    NoEntryPointError, ExtensionFailed, ExtensionAlreadyLoaded
 from utils import Config
 
 log = logging.getLogger('charfred')
@@ -23,36 +25,55 @@ class Gearbox(commands.Cog):
     def _load(self, cog):
         try:
             self.bot.load_extension(cog)
-        except Exception:
-            log.error(f'Could not load \"{cog}\"!')
+        except ExtensionAlreadyLoaded:
+            status = (False, f'Could not load "{cog}", already loaded!')
+            log.warning(status[1])
+        except ExtensionNotFound:
+            status = (False, f'Could not load "{cog}", not found!')
+            log.warning(status[1])
+        except ExtensionFailed:
+            status = (False, f'Exception occurred when loading "{cog}"!')
             traceback.print_exc()
-            return False
+            log.error(status[1])
+        except NoEntryPointError:
+            status = (False, f'"{cog}" does not have a setup function!')
+            log.warning(status[1])
         else:
-            log.info(f'\"{cog}\" loaded!')
-            return True
+            status = (True, f'"{cog}" reloaded!')
+            log.info(status[1])
+        return status
 
     def _unload(self, cog):
         try:
             self.bot.unload_extension(cog)
-        except Exception:
-            log.error(f'Could not unload \"{cog}\"!')
-            traceback.print_exc()
-            return False
+        except ExtensionNotLoaded:
+            status = (False, f'Could not unload "{cog}", not loaded!')
+            log.warning(status[1])
         else:
-            log.info(f'\"{cog}\" unloaded!')
-            return True
+            status = (True, f'"{cog}" unloaded!')
+            log.info(status[1])
+        return status
 
     def _reload(self, cog):
         try:
-            self.bot.unload_extension(cog)
-            self.bot.load_extension(cog)
-        except Exception:
-            log.error(f'Could not reload \"{cog}\"!')
+            self.bot.reload_extension(cog)
+        except ExtensionNotLoaded:
+            status = (False, f'Could not reload "{cog}", not loaded!')
+            log.warning(status[1])
+        except ExtensionNotFound:
+            status = (False, f'Could not load "{cog}", not found!')
+            log.warning(status[1])
+        except ExtensionFailed:
+            status = (False, f'Exception occurred when loading "{cog}"!')
             traceback.print_exc()
-            return False
+            log.error(status[1])
+        except NoEntryPointError:
+            status = (False, f'"{cog}" does not have a setup function!')
+            log.warning(status[1])
         else:
-            log.info(f'\"{cog}\" reloaded!')
-            return True
+            status = (True, f'"{cog}" reloaded!')
+            log.info(status[1])
+        return status
 
     @commands.group(hidden=True, aliases=['extension', 'cogs'], invoke_without_command=True)
     @commands.is_owner()
@@ -113,43 +134,39 @@ class Gearbox(commands.Cog):
     async def loadcog(self, ctx, cogname: str):
         """Load a cog."""
 
-        if self._load(cogname):
-            await ctx.sendmarkdown(f'# \"{cogname}\" loaded!')
-        else:
-            await ctx.sendmarkdown(f'< Could not load \"{cogname}\"! '
-                                   'Maybe you got the name wrong? >')
+        success, reply = self._load(cogname)
+        await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(name='unload')
     @commands.is_owner()
     async def unloadcog(self, ctx, cogname: str):
         """Unload a cog."""
 
-        if self._unload(cogname):
-            await ctx.sendmarkdown(f'# \"{cogname}\" unloaded!')
-        else:
-            await ctx.sendmarkdown(f'< Could not unload \"{cogname}\"! >'
-                                   'Maybe it is already unloaded? >')
+        success, reply = self._unload(cogname)
+        await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(name='reload')
     @commands.is_owner()
     async def reloadcog(self, ctx, cogname: str):
         """Reload a cog."""
 
-        if self._reload(cogname):
-            await ctx.sendmarkdown(f'# \"{cogname}\" reloaded!')
-        else:
-            await ctx.sendmarkdown(f'< Could not reload \"{cogname}\"! >')
+        success, reply = self._reload(cogname)
+        await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(name='reinitiate')
     @commands.is_owner()
     async def reinitiatecogs(self, ctx):
         """Reloads all cogs, but the admincogs."""
 
+        out = ["# Reinitiation:"]
         for cog in list(self.bot.extensions):
             if not cog.startswith('admincogs'):
-                self._unload(cog)
-        for cog in self.cogfig['cogs']:
-            self._load(cog)
+                success, reply = self._reload(cog)
+                out.append(f'# {reply}' if success else f'< {reply} >')
+        if len(out) > 1:
+            await ctx.sendmarkdown('\n'.join(out))
+        else:
+            await ctx.sendmarkdown('< No non-admin cogs to reload! >')
 
     @cog.command(name='add')
     @commands.is_owner()
@@ -164,11 +181,8 @@ class Gearbox(commands.Cog):
         self.cogfig['cogs'].append(cogname)
         await self.cogfig.save()
         await ctx.sendmarkdown(f'# \"{cogname}\" will now be loaded automatically.')
-        if self._load(cogname):
-            await ctx.sendmarkdown(f'# \"{cogname}\" loaded!')
-        else:
-            await ctx.sendmarkdown(f'< Could not load \"{cogname}\"! '
-                                   'Maybe you got the name wrong? >')
+        success, reply = self._load(cogname)
+        await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(name='remove')
     @commands.is_owner()
@@ -178,16 +192,15 @@ class Gearbox(commands.Cog):
         self.cogfig['cogs'].remove(cogname)
         await self.cogfig.save()
         await ctx.sendmarkdown(f'# \"{cogname}\" will no longer be loaded automatically.')
-        if self._unload(cogname):
-            await ctx.sendmarkdown(f'# \"{cogname}\" unloaded!')
-        else:
-            await ctx.sendmarkdown(f'< Could not unload \"{cogname}\"! '
-                                   'Maybe it is already unloaded? >')
+        success, reply = self._unload(cogname)
+        await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(aliases=[''])
     @commands.is_owner()
     async def clear(self, ctx):
-        """Removes all cogs from being loaded on startup and unloads all cogs."""
+        """Removes all cogs, except admincogs,
+        from being loaded on startup and unloads them.
+        """
 
         for cog in list(self.bot.extensions):
             if cog.startswith('admincogs.'):
