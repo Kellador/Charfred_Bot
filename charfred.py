@@ -1,6 +1,3 @@
-from discord.ext import commands
-from discord import ClientException
-import os
 import asyncio
 import click
 import logging
@@ -8,6 +5,10 @@ import coloredlogs
 import traceback
 import datetime
 import aiohttp
+import os
+from pathlib import Path
+from discord.ext import commands
+from discord import ClientException
 from utils import Config, CharfredContext
 
 log = logging.getLogger('charfred')
@@ -54,7 +55,7 @@ class Charfred(commands.Bot):
                          pm_help=False)
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        self.dir = os.path.dirname(os.path.realpath(__file__))
+        self.dir = Path(__file__).parent
         self.cfg = Config(f'{self.dir}/configs/botCfg.toml',
                           load=True, loop=self.loop)
         if 'prefixes' not in self.cfg:

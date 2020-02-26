@@ -17,7 +17,6 @@ class CommandHistorian(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
-        self.dir = bot.dir
         self.loop = bot.loop
         self.lock = asyncio.Lock()
         self.pprinter = pprint.PrettyPrinter()

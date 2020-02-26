@@ -1,5 +1,6 @@
 import logging
 import traceback
+from pathlib import Path
 from discord.ext import commands
 from discord.ext.commands import ExtensionNotLoaded, ExtensionNotFound, \
     NoEntryPointError, ExtensionFailed, ExtensionAlreadyLoaded
@@ -22,15 +23,53 @@ class Gearbox(commands.Cog):
             log.info('No cog configurations exist. Initializing empty config.')
             self.cogfig['cogs'] = []
 
-    def _load(self, cog):
+    def _searchpaths(self, cogname):
+        maybedots = Path('/'.join(cogname.split('.')))
+        if (self.dir / maybedots).exists():
+            return maybedots
+        matches = self.dir.rglob(f'{maybedots}.py')
+        if matches:
+            if len(matches) > 1:
+                return matches
+            else:
+                return matches[0]
+        else:
+            return None
+
+    def _searchloaded(self, cogname):
+        loaded = list(self.bot.extensions)
+        matches = [cog for cog in loaded if cogname in cog]
+        if matches:
+            if len(matches) > 1:
+                return matches
+            else:
+                return matches[0]
+        else:
+            return None
+
+    def _load(self, cog, search=True):
         try:
             self.bot.load_extension(cog)
         except ExtensionAlreadyLoaded:
             status = (False, f'Could not load "{cog}", already loaded!')
             log.warning(status[1])
         except ExtensionNotFound:
-            status = (False, f'Could not load "{cog}", not found!')
-            log.warning(status[1])
+            if search:
+                candidates = self._searchpaths(cog)
+                if candidates:
+                    if isinstance(candidates, list):
+                        status = (False, f'Found multiple matching cogs: >\n' +
+                                  "\n".join(candidates) +
+                                  '\n< Please be more specific!')
+                        log.info('Direct load failed, search inconclusive.')
+                    else:
+                        self._load(candidates, search=False)
+                else:
+                    status = (False, f'Could not load "{cog}", search yielded no matches!')
+                    log.info('Direct load failed, search yielded no matches.')
+            else:
+                status = (False, f'Could not load "{cog}", not found!')
+                log.info(status[1])
         except ExtensionFailed:
             status = (False, f'Exception occurred when loading "{cog}"!')
             traceback.print_exc()
@@ -43,12 +82,26 @@ class Gearbox(commands.Cog):
             log.info(status[1])
         return status
 
-    def _unload(self, cog):
+    def _unload(self, cog, search=True):
         try:
             self.bot.unload_extension(cog)
         except ExtensionNotLoaded:
-            status = (False, f'Could not unload "{cog}", not loaded!')
-            log.warning(status[1])
+            if search:
+                candidates = self._searchloaded(cog)
+                if candidates:
+                    if isinstance(candidates, list):
+                        status = (False, f'Found multiple matching cogs: >\n' +
+                                  "\n".join(candidates) +
+                                  '\n< Please be more specific!')
+                        log.info('Direct unload failed, search inconclusive.')
+                    else:
+                        self._unload(candidates, search=False)
+                else:
+                    status = (False, f'Could not unload "{cog}", search yielded no matches!')
+                    log.info('Direct unload failed, search yielded no matches.')
+            else:
+                status = (False, f'Could not unload "{cog}", not loaded!')
+                log.warning(status[1])
         else:
             status = (True, f'"{cog}" unloaded!')
             log.info(status[1])
@@ -178,10 +231,11 @@ class Gearbox(commands.Cog):
         if cogname in self.cogfig['cogs']:
             await ctx.sendmarkdown(f'> \"{cogname}\" already loading on startup!')
             return
-        self.cogfig['cogs'].append(cogname)
-        await self.cogfig.save()
-        await ctx.sendmarkdown(f'# \"{cogname}\" will now be loaded automatically.')
         success, reply = self._load(cogname)
+        if success:
+            self.cogfig['cogs'].append(cogname)
+            await self.cogfig.save()
+            await ctx.sendmarkdown(f'# \"{cogname}\" will now be loaded automatically.')
         await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
     @cog.command(name='remove')
@@ -189,9 +243,13 @@ class Gearbox(commands.Cog):
     async def removecog(self, ctx, cogname: str):
         """Removes a cog from being loaded on startup."""
 
-        self.cogfig['cogs'].remove(cogname)
-        await self.cogfig.save()
-        await ctx.sendmarkdown(f'# \"{cogname}\" will no longer be loaded automatically.')
+        try:
+            self.cogfig['cogs'].remove(cogname)
+        except ValueError:
+            await ctx.sendmarkdown(f'> {cogname} was not set to load on startup.')
+        else:
+            await self.cogfig.save()
+            await ctx.sendmarkdown(f'# \"{cogname}\" will no longer be loaded automatically.')
         success, reply = self._unload(cogname)
         await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
@@ -205,9 +263,10 @@ class Gearbox(commands.Cog):
         for cog in list(self.bot.extensions):
             if cog.startswith('admincogs.'):
                 continue
-            self._unload(cog)
+            self._unload(cog, search=False)
             self.cogfig['cogs'].remove(cog)
         else:
+            await self.cogfig.save()
             await ctx.sendmarkdown('# Done!')
 
 

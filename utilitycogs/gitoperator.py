@@ -50,10 +50,10 @@ class GitOperator(commands.Cog):
         return True
 
     def _convertfullsubpath(self, directory):
-        if self.dir in directory:
+        if f'{self.dir}' in directory:
             repo = Path(directory)
         else:
-            repo = Path(self.dir) / directory
+            repo = self.dir / directory
         return repo
 
     @commands.group(hidden=True, invoke_without_command=True)
