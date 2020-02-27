@@ -79,9 +79,10 @@ class Gearbox(commands.Cog):
             status = (False, f'"{cog}" does not have a setup function!')
             log.warning(status[1])
         else:
-            status = (True, f'"{cog}" reloaded!')
+            status = (True, f'"{cog}" loaded!')
             log.info(status[1])
-        return status
+        finally:
+            return status
 
     def _unload(self, cog, search=True):
         try:
@@ -106,7 +107,8 @@ class Gearbox(commands.Cog):
         else:
             status = (True, f'"{cog}" unloaded!')
             log.info(status[1])
-        return status
+        finally:
+            return status
 
     def _reload(self, cog, search=True):
         try:
@@ -141,7 +143,8 @@ class Gearbox(commands.Cog):
         else:
             status = (True, f'"{cog}" reloaded!')
             log.info(status[1])
-        return status
+        finally:
+            return status
 
     @commands.group(hidden=True, aliases=['extension', 'cogs'], invoke_without_command=True)
     @commands.is_owner()
