@@ -24,7 +24,7 @@ class Gearbox(commands.Cog):
             self.cogfig['cogs'] = []
 
     def _dotify(self, path):
-        return path.relative_to(self.dir).stem.replace('/', '.')
+        return f'{path.relative_to(self.dir)}'.replace('/', '.')[:-3]
 
     def _searchpaths(self, cogname):
         maybedots = Path('/'.join(cogname.split('.')))
