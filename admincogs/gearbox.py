@@ -114,8 +114,22 @@ class Gearbox(commands.Cog):
         try:
             self.bot.reload_extension(cog)
         except ExtensionNotLoaded:
-            status = (False, f'Could not reload "{cog}", not loaded!')
-            log.warning(status[1])
+            if search:
+                candidates = self._searchloaded(cog)
+                if candidates:
+                    if isinstance(candidates, list):
+                        status = (False, f'Found multiple matching cogs: >\n' +
+                                  "\n".join(candidates) +
+                                  '\n< Please be more specific!')
+                        log.info('Direct unload failed, search inconclusive.')
+                    else:
+                        return self._reload(candidates, search=False)
+                else:
+                    status = (False, f'Could not reload "{cog}", search yielded no matches!')
+                    log.info('Direct unload failed, search yielded no matches.')
+            else:
+                status = (False, f'Could not reload "{cog}", not loaded!')
+                log.warning(status[1])
         except ExtensionNotFound:
             if search:
                 candidates = self._searchloaded(cog)
@@ -131,7 +145,7 @@ class Gearbox(commands.Cog):
                     status = (False, f'Could not reload "{cog}", search yielded no matches!')
                     log.info('Direct unload failed, search yielded no matches.')
             else:
-                status = (False, f'Could not unload "{cog}", not loaded!')
+                status = (False, f'Could not reload "{cog}", not loaded!')
                 log.warning(status[1])
         except ExtensionFailed:
             status = (False, f'Exception occurred when loading "{cog}"!')
