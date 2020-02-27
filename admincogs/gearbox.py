@@ -28,6 +28,8 @@ class Gearbox(commands.Cog):
 
     def _searchpaths(self, cogname):
         maybedots = Path('/'.join(cogname.split('.')))
+        if (self.dir / maybedots).exists():
+            return cogname
         matches = list(self.dir.rglob(f'{maybedots}.py'))
         if matches:
             if len(matches) > 1:
@@ -124,7 +126,7 @@ class Gearbox(commands.Cog):
                                   '\n< Please be more specific!')
                         log.info('Direct unload failed, search inconclusive.')
                     else:
-                        return self._unload(candidates, search=False)
+                        return self._reload(candidates, search=False)
                 else:
                     status = (False, f'Could not reload "{cog}", search yielded no matches!')
                     log.info('Direct unload failed, search yielded no matches.')
@@ -245,6 +247,20 @@ class Gearbox(commands.Cog):
             return
         if cogname in self.cogfig['cogs']:
             await ctx.sendmarkdown(f'> \"{cogname}\" already loading on startup!')
+            return
+        candidates = self._searchpaths(cogname)
+        if candidates:
+            if isinstance(candidates, list):
+                await ctx.sendmarkdown(
+                    f'< Found multiple matching cogs: >\n' +
+                    "\n".join(candidates) +
+                    '\n< Please be more specific! >'
+                )
+                return
+            else:
+                cogname = candidates
+        else:
+            await ctx.sendmarkdown(f'< Could not add {cogname}, no such cog found! >')
             return
         success, reply = self._load(cogname)
         if success:
