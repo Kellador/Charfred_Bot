@@ -81,8 +81,7 @@ class Gearbox(commands.Cog):
         else:
             status = (True, f'"{cog}" loaded!')
             log.info(status[1])
-        finally:
-            return status
+        return status
 
     def _unload(self, cog, search=True):
         try:
@@ -107,8 +106,7 @@ class Gearbox(commands.Cog):
         else:
             status = (True, f'"{cog}" unloaded!')
             log.info(status[1])
-        finally:
-            return status
+        return status
 
     def _reload(self, cog, search=True):
         try:
@@ -143,8 +141,7 @@ class Gearbox(commands.Cog):
         else:
             status = (True, f'"{cog}" reloaded!')
             log.info(status[1])
-        finally:
-            return status
+        return status
 
     @commands.group(hidden=True, aliases=['extension', 'cogs'], invoke_without_command=True)
     @commands.is_owner()
