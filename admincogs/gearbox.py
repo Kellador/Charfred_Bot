@@ -23,16 +23,17 @@ class Gearbox(commands.Cog):
             log.info('No cog configurations exist. Initializing empty config.')
             self.cogfig['cogs'] = []
 
+    def _dotify(self, path):
+        return path.relative_to(self.dir).stem.replace('/', '.')
+
     def _searchpaths(self, cogname):
         maybedots = Path('/'.join(cogname.split('.')))
-        if (self.dir / maybedots).exists():
-            return maybedots
-        matches = self.dir.rglob(f'{maybedots}.py')
+        matches = list(self.dir.rglob(f'{maybedots}.py'))
         if matches:
             if len(matches) > 1:
-                return matches
+                return list(map(self._dotify, matches))
             else:
-                return matches[0]
+                return self._dotify(matches[0])
         else:
             return None
 
@@ -107,15 +108,29 @@ class Gearbox(commands.Cog):
             log.info(status[1])
         return status
 
-    def _reload(self, cog):
+    def _reload(self, cog, search=True):
         try:
             self.bot.reload_extension(cog)
         except ExtensionNotLoaded:
             status = (False, f'Could not reload "{cog}", not loaded!')
             log.warning(status[1])
         except ExtensionNotFound:
-            status = (False, f'Could not load "{cog}", not found!')
-            log.warning(status[1])
+            if search:
+                candidates = self._searchloaded(cog)
+                if candidates:
+                    if isinstance(candidates, list):
+                        status = (False, f'Found multiple matching cogs: >\n' +
+                                  "\n".join(candidates) +
+                                  '\n< Please be more specific!')
+                        log.info('Direct unload failed, search inconclusive.')
+                    else:
+                        self._unload(candidates, search=False)
+                else:
+                    status = (False, f'Could not reload "{cog}", search yielded no matches!')
+                    log.info('Direct unload failed, search yielded no matches.')
+            else:
+                status = (False, f'Could not unload "{cog}", not loaded!')
+                log.warning(status[1])
         except ExtensionFailed:
             status = (False, f'Exception occurred when loading "{cog}"!')
             traceback.print_exc()
