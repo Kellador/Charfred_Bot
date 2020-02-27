@@ -52,7 +52,7 @@ class Gearbox(commands.Cog):
         try:
             self.bot.load_extension(cog)
         except ExtensionAlreadyLoaded:
-            status = (False, f'Could not load "{cog}", already loaded!')
+            status = (True, f'Could not load "{cog}", already loaded!')
             log.warning(status[1])
         except ExtensionNotFound:
             if search:
@@ -101,7 +101,7 @@ class Gearbox(commands.Cog):
                     status = (False, f'Could not unload "{cog}", search yielded no matches!')
                     log.info('Direct unload failed, search yielded no matches.')
             else:
-                status = (False, f'Could not unload "{cog}", not loaded!')
+                status = (True, f'Could not unload "{cog}", not loaded!')
                 log.warning(status[1])
         else:
             status = (True, f'"{cog}" unloaded!')
