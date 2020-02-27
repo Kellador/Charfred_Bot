@@ -64,7 +64,7 @@ class Gearbox(commands.Cog):
                                   '\n< Please be more specific!')
                         log.info('Direct load failed, search inconclusive.')
                     else:
-                        self._load(candidates, search=False)
+                        return self._load(candidates, search=False)
                 else:
                     status = (False, f'Could not load "{cog}", search yielded no matches!')
                     log.info('Direct load failed, search yielded no matches.')
@@ -97,7 +97,7 @@ class Gearbox(commands.Cog):
                                   '\n< Please be more specific!')
                         log.info('Direct unload failed, search inconclusive.')
                     else:
-                        self._unload(candidates, search=False)
+                        return self._unload(candidates, search=False)
                 else:
                     status = (False, f'Could not unload "{cog}", search yielded no matches!')
                     log.info('Direct unload failed, search yielded no matches.')
@@ -126,7 +126,7 @@ class Gearbox(commands.Cog):
                                   '\n< Please be more specific!')
                         log.info('Direct unload failed, search inconclusive.')
                     else:
-                        self._unload(candidates, search=False)
+                        return self._unload(candidates, search=False)
                 else:
                     status = (False, f'Could not reload "{cog}", search yielded no matches!')
                     log.info('Direct unload failed, search yielded no matches.')
