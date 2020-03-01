@@ -59,7 +59,8 @@ def terminate(servers):
 
 
 @spiffy.command()
+@click.argument('quests')
 @click.argument('servers', nargs=-1)
-def questbackup(servers):
+def questbackup(quests, servers):
     for server in servers:
-        spiffymanagement.questbackup(cfg, server)
+        spiffymanagement.questbackup(cfg, quests, server)

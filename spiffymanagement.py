@@ -228,7 +228,7 @@ def backup(cfg, server):
             )
 
 
-def questbackup(cfg, server):
+def questbackup(cfg, quests, server):
     """Silly solution to a silly problem."""
 
     bpath = cfg['backupspath']
@@ -240,8 +240,8 @@ def questbackup(cfg, server):
         world = cfg['servers'][server]['worldname']
         log.info(f'Starting backup for {server}\'s quests...')
         if isUp(server):
-            log.info(f'{server} is running, don\'t care, just want QUESTS!')
-        sbpath = f'{bpath}/{server}/quests'
+            log.info(f'{server} is running, don\'t care, just want {quests.upper()}!')
+        sbpath = f'{bpath}/{server}/questing/{quests}'
         try:
             os.makedirs(sbpath, exist_ok=True)
         except Exception as e:
@@ -263,11 +263,11 @@ def questbackup(cfg, server):
                         else:
                             log.info(f'Deleted {entry.path} for being too old!')
         log.info('Creating quest backup...')
-        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-QUESTS.tar.gz'
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-{quests}.tar.gz'
         os.chdir(sbpath)
         serverpath = cfg['serverspath']
         with tarfile.open(bname, 'w:gz') as tf:
-            tf.add(f'{serverpath}/{server}/{world}/betterquesting', 'betterquesting')
+            tf.add(f'{serverpath}/{server}/{world}/{quests}', quests)
         log.info('Quest backup created!')
         if isUp(server):
             log.info(f'{server} is running, STILL DON\'T CARE!')
