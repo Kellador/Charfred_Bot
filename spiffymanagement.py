@@ -263,7 +263,7 @@ def questbackup(cfg, quests, server):
                         else:
                             log.info(f'Deleted {entry.path} for being too old!')
         log.info('Creating quest backup...')
-        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-{quests.replace('/', '_')}.tar.gz'
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-{quests.replace("/", "_")}.tar.gz'
         os.chdir(sbpath)
         serverpath = cfg['serverspath']
         with tarfile.open(bname, 'w:gz') as tf:
