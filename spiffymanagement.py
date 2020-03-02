@@ -228,16 +228,19 @@ def backup(cfg, server):
             )
 
 
-def questbackup(cfg, quests, server):
+def questbackup(cfg, server):
     """Silly solution to a silly problem."""
 
-    bpath = cfg['backupspath']
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
     elif 'worldname' not in cfg['servers'][server]:
         log.warning(f'{server} has no world directory specified!')
+    elif 'questing' not in cfg['servers'][server]:
+        log.warning(f'{server} has is not setup for questing backup!')
     else:
+        bpath = cfg['backupspath']
         world = cfg['servers'][server]['worldname']
+        quests = cfg['servers'][server]['questing']
         log.info(f'Starting backup for {server}\'s quests...')
         if isUp(server):
             log.info(f'{server} is running, don\'t care, just want {quests.upper()}!')
