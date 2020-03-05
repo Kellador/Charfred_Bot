@@ -112,9 +112,9 @@ class StreamServer(commands.Cog):
 
     async def _serverstatus(self):
         if self.running:
-            await ctx.sendmarkdown('# Stream Server is up.')
+            return '# Stream Server is up.'
         else:
-            await ctx.sendmarkdown('< Stream server is down! >')
+            return '< Stream server is down! >'
 
     @commands.group(invoke_without_command=True)
     @permission_node(f'{__name__}')
@@ -124,14 +124,16 @@ class StreamServer(commands.Cog):
         Returns whether or not the server is up.
         """
 
-        await self._serverstatus()
+        msg = await self._serverstatus()
+        await ctx.sendmarkdown(msg)
 
     @streamserver.command()
     async def start(self, ctx):
         """Starts the stream server."""
 
         await self._start_server()
-        await self._serverstatus()
+        msg = await self._serverstatus()
+        await ctx.sendmarkdown(msg)
 
     @streamserver.command()
     async def stop(self, ctx):
@@ -139,7 +141,8 @@ class StreamServer(commands.Cog):
 
         self._close_server(wait=False)
         await self.server.wait_closed()
-        await self._serverstatus()
+        msg = await self._serverstatus()
+        await ctx.sendmarkdown(msg)
 
     @streamserver.command()
     @permission_node(f'{__name__}.setport')
@@ -148,6 +151,7 @@ class StreamServer(commands.Cog):
 
         self.cfg['streamserverport'] = port
         await self.cfg.save()
+        await ctx.sendmarkdown('# Port saved!')
 
     @streamserver.command()
     @permission_node(f'{__name__}.disable')
