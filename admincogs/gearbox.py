@@ -305,6 +305,7 @@ class Gearbox(commands.Cog):
 
         if not order:
             await ctx.sendmarkdown('> Load order unchanged!')
+            return
 
         order = order.split()
         try:
