@@ -116,7 +116,7 @@ class StreamServer(commands.Cog):
         else:
             await ctx.sendmarkdown('< Stream server is down! >')
 
-    @command.group(invoke_without_command=True)
+    @commands.group(invoke_without_command=True)
     @permission_node(f'{__name__}')
     async def streamserver(self, ctx):
         """Stream server commands.
