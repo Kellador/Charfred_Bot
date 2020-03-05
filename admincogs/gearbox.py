@@ -253,6 +253,19 @@ class Gearbox(commands.Cog):
     async def removecog(self, ctx, cogname: str):
         """Removes a cog from being loaded on startup."""
 
+        if cogname not in self.cogfig['cogs']:
+            candidates = []
+            for cog in self.config['cogs']:
+                if cogname in cog:
+                    candidates.append(cog)
+            if candidates:
+                if len(candidates) > 1:
+                    await ctx.sendmarkdown(f'< Multiple matches for {cogname}'
+                                           ' in current loading list, please be'
+                                           ' more specific! >')
+                    return
+                else:
+                    cogname = candidates[0]
         try:
             self.cogfig['cogs'].remove(cogname)
         except ValueError:
