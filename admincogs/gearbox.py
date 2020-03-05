@@ -255,7 +255,7 @@ class Gearbox(commands.Cog):
 
         if cogname not in self.cogfig['cogs']:
             candidates = []
-            for cog in self.config['cogs']:
+            for cog in self.cogfig['cogs']:
                 if cogname in cog:
                     candidates.append(cog)
             if candidates:
