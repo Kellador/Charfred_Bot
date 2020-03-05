@@ -319,9 +319,13 @@ class Gearbox(commands.Cog):
                 await ctx.sendmarkdown('< Invalid entries, load order unchanged! >')
                 return
 
-        for i, num in enumerate(order):
-            cogfig.insert(i, cogfig.pop(num))
+        ordered = []
+        for num in order:
+            ordered.append(cogfig[num])
+        for num in order:
+            cogfig.pop(num)
 
+        self.cogfig['cogs'] = ordered + cogfig
         await self.cogfig.save()
         await ctx.sendmarkdown('# Load order changed!')
 
