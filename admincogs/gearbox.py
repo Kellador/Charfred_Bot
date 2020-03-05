@@ -322,8 +322,8 @@ class Gearbox(commands.Cog):
         ordered = []
         for num in order:
             ordered.append(cogfig[num])
-        for num in order:
-            cogfig.pop(num)
+        for cog in ordered:
+            cogfig.remove(cog)
 
         self.cogfig['cogs'] = ordered + cogfig
         await self.cogfig.save()
