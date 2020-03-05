@@ -77,8 +77,8 @@ class StreamServer(commands.Cog):
             writer.close()
             return
 
-        handshake = handshake.decode().split('::')
-        if handshake[0] in self.handlers:
+        handshake = handshake.decode().split('::')[0]
+        if handshake in self.handlers:
             self.loop.create_task(self.handlers[handshake](reader, writer))
         else:
             log.warning(f'StreamServ: No handler available for {handshake},'
