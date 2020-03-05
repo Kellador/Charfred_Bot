@@ -263,6 +263,67 @@ class Gearbox(commands.Cog):
         success, reply = self._unload(cogname)
         await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
 
+    @cog.command(aliases=['changeloadorder'])
+    @commands.is_owner()
+    async def loadorder(self, ctx):
+        """Edit the loadorder.
+
+        For when one cog relies on another being loaded first,
+        such an inconvenience.
+
+        To change the load order you need to enter the numbers
+        of the cogs you want to rearrange in the order that you want them
+        to be in.
+
+        Given the load order of:
+        1: cog, 2: cogg, 3: coggg,
+        you might enter:
+        3 2
+        Resulting in the new load order being:
+        3: coggg, 2: cogg, 1: cog
+
+        You do not need to enter a full load order, the ones you do list
+        will simply be moved to the front of the load order, in the order
+        you have listed them.
+        """
+
+        if not self.cogfig['cogs']:
+            await ctx.sendmarkdown('> There are no cogs set to load on startup!')
+            return
+
+        cogfig = self.cogfig['cogs']
+
+        order, _, timedout = await ctx.promptconfirm_or_input(
+            '# Current load order:\n' +
+            '\n'.join([f'{i}: {cog}' for i, cog in enumerate(cogfig)]) +
+            '\n> Please note that admincogs are not included in the loadorder.\n'
+            '< Please enter the new loadorder now, or enter "no" to abort. >',
+            confirm=False
+        )
+        if timedout:
+            return
+
+        if not order:
+            await ctx.sendmarkdown('> Load order unchanged!')
+
+        order = order.split()
+        try:
+            order = list(map(int, order))
+        except ValueError:
+            await ctx.sendmarkdown('< Invalid entries, load order unchanged! >')
+            return
+
+        for num in order:
+            if num not in range(len(cogfig)):
+                await ctx.sendmarkdown('< Invalid entries, load order unchanged! >')
+                return
+
+        for i, num in enumerate(order):
+            cogfig.insert(i, cogfig.pop(num))
+
+        await self.cogfig.save()
+        await ctx.sendmarkdown('# Load order changed!')
+
     @cog.command(aliases=[''])
     @commands.is_owner()
     async def clear(self, ctx):
