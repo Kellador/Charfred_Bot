@@ -1,10 +1,9 @@
 from .config import Config
-from .invertableconfig import InvertableConfig
 from .permissions import permission_node, node_check
 from .mixed import cached_property, splitup
 from .context import CharfredContext
 from .flipbooks import Flipbook, EmbedFlipbook
-from .collections import SimpleTTLDict, SizedDict
+from .collections import SimpleTTLDict, SizedDict, InvertableMapping
 
 # Colors from http://colourlovers.com;
 # names correspond to the color names on the site.
