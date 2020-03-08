@@ -45,23 +45,23 @@ class Config(MutableMapping):
             loadfunc = self.loadfunc
         try:
             with open(loadfile, 'r') as cf:
-                self.cfgs = loadfunc(cf)
+                self.store = loadfunc(cf)
             log.info(f'{loadfile} loaded.')
         except FileNotFoundError:
             log.warning(f'{loadfile} does not exist.')
             if self.default:
                 if isinstance(self.default, dict):
-                    self.cfgs = self.default
+                    self.store = self.default
                     log.info(f'Initiated {loadfile} from given dictionary!')
                 else:
                     self._loadDefault()
                     log.info(f'Initiated {loadfile} from {self.default}!')
             else:
-                self.cfgs = {}
+                self.store = {}
                 log.info('Loaded as empty dict!')
         except IOError:
             log.critical(f'Could not load {loadfile}!')
-            self.cfgs = {}
+            self.store = {}
             log.info('Loaded as empty dict!')
         if convertee.exists():
             self._save()
@@ -71,18 +71,18 @@ class Config(MutableMapping):
     def _loadDefault(self):
         try:
             with open(self.default, 'r') as cf:
-                self.cfgs = self.loadfunc(cf)
+                self.store = self.loadfunc(cf)
             self._save()
         except IOError:
             log.warning(f'{self.default} does not exist.')
-            self.cfgs = {}
+            self.store = {}
             log.info('Loaded as empty dict!')
 
     def _save(self):
         self.cfgfile.parent.mkdir(parents=True, exist_ok=True)
         tmpfile = self.cfgfile.with_suffix('.tmp')
         with open(tmpfile, 'w') as tmp:
-            self.dumpfunc(self.cfgs.copy(), tmp)
+            self.dumpfunc(self.store.copy(), tmp)
         tmpfile.replace(self.cfgfile)
 
     async def save(self):
@@ -94,16 +94,16 @@ class Config(MutableMapping):
             await self.loop.run_in_executor(None, self._load)
 
     def __getitem__(self, key):
-        return self.cfgs[key]
+        return self.store[key]
 
     def __iter__(self):
-        return iter(self.cfgs)
+        return iter(self.store)
 
     def __len__(self):
-        return len(self.cfgs)
+        return len(self.store)
 
     def __setitem__(self, key, value):
-        self.cfgs[key] = value
+        self.store[key] = value
 
     def __delitem__(self, key):
-        del self.cfgs[key]
+        del self.store[key]

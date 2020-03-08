@@ -27,7 +27,7 @@ class InvertableConfig(Config):
 
     def _invert(self):
         self._inverted = {}
-        for k, v in self.cfgs.items():
+        for k, v in self.items():
             self._inverted.setdefault(v, []).append(k)
 
     def __setitem__(self, key, value):
