@@ -1,4 +1,5 @@
 from .config import Config
+from .invertableconfig import InvertableConfig
 from .permissions import permission_node, node_check
 from .mixed import cached_property, splitup
 from .context import CharfredContext
