@@ -78,11 +78,13 @@ class Config(MutableMapping):
             self.store = {}
             log.info('Loaded as empty dict!')
 
-    def _save(self):
+    def _save(self, savee=None):
+        if savee is None:
+            savee = self.store
         self.cfgfile.parent.mkdir(parents=True, exist_ok=True)
         tmpfile = self.cfgfile.with_suffix('.tmp')
         with open(tmpfile, 'w') as tmp:
-            self.dumpfunc(self.store.copy(), tmp)
+            self.dumpfunc(savee.copy(), tmp)
         tmpfile.replace(self.cfgfile)
 
     async def save(self):

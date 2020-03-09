@@ -88,8 +88,8 @@ class InvertableMapping(MutableMapping):
     an inverted read only version of its store.
     """
 
-    def __init__(self):
-        self.store = {}
+    def __init__(self, initial):
+        self.store = initial
         self._inverted = {}
 
     @property
