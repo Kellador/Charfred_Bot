@@ -86,6 +86,10 @@ class SizedDict(OrderedDict):
 class InvertableMapping(MutableMapping):
     """MutableMapping which generates and updates
     an inverted read only version of its store.
+
+    Special handling for mappings with values that are
+    lists, in which case the first element will be
+    swapped with the key.
     """
 
     def __init__(self, initial):
@@ -107,7 +111,10 @@ class InvertableMapping(MutableMapping):
     def _invert(self):
         self._inverted = {}
         for k, v in self.store.items():
-            self._inverted.setdefault(v, []).append(k)
+            if isinstance(v, list):
+                self._inverted.setdefault(v[0], []).append([k] + v[1:])
+            else:
+                self._inverted.setdefault(v, []).append(k)
 
     def __getitem__(self, key):
         return self.store[key]
