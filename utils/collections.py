@@ -112,7 +112,7 @@ class InvertableMapping(MutableMapping):
         self._inverted = {}
         for k, v in self.store.items():
             if isinstance(v, list):
-                self._inverted.setdefault(v[0], []).append([k] + v[1:])
+                self._inverted.setdefault(v[0], []).extend([k] + v[1:])
             else:
                 self._inverted.setdefault(v, []).append(k)
 
