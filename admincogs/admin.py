@@ -52,15 +52,18 @@ class Admin(commands.Cog):
             out = []
             for guild_id, prefixes in self.cfg['prefix'].items():
                 guild = self.bot.get_guild(int(guild_id))
-                out.append(f'\n# {guild.name}:' if guild else f'\n# {guild_id}:')
-                out.extend([f'\n\t {prefix}' for prefix in prefixes])
+                out.append(f'# {guild.name}:' if guild else f'\n# {guild_id}:')
+                out.extend([f'\t {prefix}' for prefix in prefixes])
+                out.append('\n')
         elif ctx.guild:
-            out = '\n\t '.join(self.cfg['prefix'][str(ctx.guild.id)])
+            out = self.cfg['prefix'][str(ctx.guild.id)]
         else:
             out = []
-        out.extend([f'<@{self.bot.user.id}> ', f'<@!{self.bot.user.id}> ',
+        out.extend(['\n# Bot mentions (always work):',
+                    f'<@{self.bot.user.id}> ', f'<@!{self.bot.user.id}> ',
                     '> There\'s a space after the mentions which is part of the prefix!'])
-        await ctx.sendmarkdown(f'# Current prefixes:\n\t {out}')
+        out = '\n'.join(out)
+        await ctx.sendmarkdown(f'# Current prefixes:\n {out}')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
