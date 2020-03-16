@@ -48,29 +48,55 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        prefixes = '\n> '.join(self.cfg['prefixes'])
-        await ctx.sendmarkdown('> Current prefixes: \n'
-                               f'\t> {prefixes} \n> Mentioning {self.bot.user.name} works too!')
+        if self.bot.is_owner(ctx.author):
+            out = []
+            for guild_id, prefixes in self.cfg['prefix'].items():
+                guild = self.bot.get_guild(int(guild_id))
+                out.append(f'\n# {guild.name}:' if guild else f'\n# {guild_id}:')
+                out.extend([f'\n\t {prefix}' for prefix in prefixes])
+        elif ctx.guild:
+            out = '\n\t '.join(self.cfg['prefix'][str(ctx.guild.id)])
+        else:
+            out = []
+        out.extend([f'<@{self.bot.user.id}> ', f'<@!{self.bot.user.id}> ',
+                    '> There\'s a space after the mentions which is part of the prefix!'])
+        await ctx.sendmarkdown(f'# Current prefixes:\n\t {out}')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
     async def add(self, ctx, *, prefix: str):
         """Add a new prefix."""
 
-        log.info(f'Adding a new prefix: {prefix}')
-        self.cfg['prefixes'].append(prefix)
-        await self.cfg.save()
-        await ctx.sendmarkdown(f'# \'{prefix}\' has been registered!')
+        if ctx.guild:
+            log.info(f'Adding a new prefix: {prefix}')
+
+            try:
+                self.cfg['prefix'][str(ctx.guild.id)].append(prefix)
+            except KeyError:
+                self.cfg['prefix'][str(ctx.guild.id)] = [prefix]
+
+            await self.cfg.save()
+            await ctx.sendmarkdown(f'# \'{prefix}\' has been registered!')
+        else:
+            await ctx.sendmarkdown(f'< Cannot save prefixes outside of a guild! >')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
     async def remove(self, ctx, *, prefix: str):
         """Remove a prefix."""
 
-        log.info(f'Removing prefix: {prefix}')
-        self.cfg['prefixes'].remove(prefix)
-        await self.cfg.save()
-        await ctx.sendmarkdown(f'# \'{prefix}\' has been unregistered!')
+        if ctx.guild:
+            log.info(f'Removing prefix: {prefix}')
+
+            try:
+                self.cfg['prefix'][str(ctx.guild.id)].remove(prefix)
+            except KeyError:
+                await ctx.sendmarkdown('< This guild has no saved prefixes. >')
+            except ValueError:
+                await ctx.sendmarkdown('> Prefix unknown.')
+            else:
+                await self.cfg.save()
+                await ctx.sendmarkdown(f'# \'{prefix}\' has been unregistered!')
 
     def _parserole(self, role):
         if not role:

@@ -42,10 +42,11 @@ def _admincogs(direc):
 def _get_prefixes(bot, msg):
     bot_id = bot.user.id
     prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}> ']
-    try:
-        prefixes.extend(bot.cfg['prefixes'])
-    except KeyError:
-        pass
+    if msg.guild:
+        try:
+            prefixes.extend(bot.cfg['prefix'][str(msg.guild.id)])
+        except KeyError:
+            pass
     return prefixes
 
 
@@ -58,8 +59,8 @@ class Charfred(commands.Bot):
         self.dir = Path(__file__).parent
         self.cfg = Config(f'{self.dir}/configs/botCfg.toml',
                           load=True, loop=self.loop)
-        if 'prefixes' not in self.cfg:
-            self.cfg['prefixes'] = []
+        if 'prefix' not in self.cfg:
+            self.cfg['prefix'] = {}
         if 'nodes' not in self.cfg:
             self.cfg['nodes'] = {}
         if 'hierarchy' not in self.cfg:
