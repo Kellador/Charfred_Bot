@@ -1,6 +1,5 @@
 import logging
 import asyncio
-from concurrent.futures import CancelledError
 from discord.ext import commands
 from utils import permission_node
 
@@ -128,6 +127,7 @@ class StreamServer(commands.Cog):
         await ctx.sendmarkdown(msg)
 
     @streamserver.command()
+    @permission_node(f'{__name__}')
     async def start(self, ctx):
         """Starts the stream server."""
 
@@ -136,6 +136,7 @@ class StreamServer(commands.Cog):
         await ctx.sendmarkdown(msg)
 
     @streamserver.command()
+    @permission_node(f'{__name__}')
     async def stop(self, ctx):
         """Stops the stream server."""
 

@@ -216,6 +216,7 @@ class Admin(commands.Cog):
         await cogcfgflip.flip()
 
     @cogcfg.command(hidden=True, name='edit')
+    @commands.is_owner()
     async def cogcfgedit(self, ctx, cfg: str):
         """Edit cog-specific configuration."""
 

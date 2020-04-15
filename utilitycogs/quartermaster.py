@@ -95,7 +95,7 @@ class Quartermaster(commands.Cog):
 
         pass
 
-    @qm.command(invoke_without_command=True)
+    @qm.command()
     async def profile(self, ctx, process: ProcessConverter, includeScreens: bool=False):
         """Get CPU and memory usage info on a process.
 
