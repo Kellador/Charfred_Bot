@@ -6,7 +6,7 @@ formatpat = re.compile('^[`]{3}(?P<format>\w+|\s)')
 def splitup(msg, codeblocked=False):
     msg = msg.splitlines(keepends=True)
     if codeblocked:
-        s = formatpat.search(msg)
+        s = formatpat.search(msg[0])
         if s.group('format'):
             front = f'```{s.group("format")}\n'
         back = '\n```'
