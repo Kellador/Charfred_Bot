@@ -168,7 +168,7 @@ def status(cfg, server):
         return False
 
 
-def backup(cfg, server):
+def backup(cfg, server, world=None):
     """Backup a server's world directory.
 
     Also deletes backups older than a configured age.
@@ -177,55 +177,69 @@ def backup(cfg, server):
     bpath = cfg['backupspath']
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
-    elif 'worldname' not in cfg['servers'][server]:
-        log.warning(f'{server} has no world directory specified!')
-    else:
-        world = cfg['servers'][server]['worldname']
-        log.info(f'Starting backup for {server}...')
-        if isUp(server):
-            log.info(f'{server} is running, announcing backup and toggling save!')
-            screenCmd(
-                server,
-                'Starting Backup!',
-                'save-off',
-                'save-all'
-            )
-            sleep(10)
-        sbpath = f'{bpath}/{server}'
+        return
+
+    if world is None:
         try:
-            os.makedirs(sbpath, exist_ok=True)
-        except Exception as e:
-            log.error(e + '\nBackups aborted!')
-            return False
+            world = cfg['servers'][server]['worldname']
+        except KeyError:
+            log.warning(f'{server} has no main world directory specified!')
+            return
         else:
-            log.info('Created missing directories! (if they were missing)')
-        log.info('Deleting outdated backups...')
-        now = time()
-        with os.scandir(sbpath) as d:
-            for entry in d:
-                if not entry.name.startswith('.') and entry.is_file():
-                    stats = entry.stat()
-                    if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
-                        try:
-                            os.remove(entry.path)
-                        except OSError as e:
-                            log.error(e)
-                        else:
-                            log.info(f'Deleted {entry.path} for being too old!')
-        log.info('Creating backup...')
-        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}.tar.gz'
+            try:
+                moreworlds = cfg['servers'][server]['moreworlds']
+            except KeyError:
+                moreworlds = []
+
+    log.info(f'Starting backup for {server}...')
+    if isUp(server):
+        log.info(f'{server} is running, announcing backup and toggling save!')
+        screenCmd(
+            server,
+            'Starting Backup!',
+            'save-off',
+            'save-all'
+        )
+        sleep(10)
+    sbpath = f'{bpath}/{server}'
+    try:
+        os.makedirs(sbpath, exist_ok=True)
+    except Exception as e:
+        log.error(e + '\nBackups aborted!')
+        return False
+    else:
+        log.info('Created missing directories! (if they were missing)')
+    log.info('Deleting outdated backups...')
+    now = time()
+    with os.scandir(sbpath) as d:
+        for entry in d:
+            if not entry.name.startswith('.') and entry.is_file():
+                stats = entry.stat()
+                if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                    try:
+                        os.remove(entry.path)
+                    except OSError as e:
+                        log.error(e)
+                    else:
+                        log.info(f'Deleted {entry.path} for being too old!')
+    log.info('Creating backup(s)...')
+    for w in ([world] + moreworlds):
+        log.info(f'Backing up {w}...')
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{w}.tar.gz'
         os.chdir(sbpath)
         serverpath = cfg['serverspath']
         with tarfile.open(bname, 'w:gz') as tf:
-            tf.add(f'{serverpath}/{server}/{world}', f'{world}')
-        log.info('Backup created!')
-        if isUp(server):
-            log.info(f'{server} is running, re-enabling save!')
-            screenCmd(
-                server,
-                'save-on',
-                'say Backup complete!'
-            )
+            tf.add(f'{serverpath}/{server}/{w}', f'{w}')
+        log.info(f'{w} backed up!')
+
+    log.info('Backup(s) created!')
+    if isUp(server):
+        log.info(f'{server} is running, re-enabling save!')
+        screenCmd(
+            server,
+            'save-on',
+            'say Backup complete!'
+        )
 
 
 def questbackup(cfg, server):
