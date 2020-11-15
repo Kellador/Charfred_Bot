@@ -8,7 +8,7 @@ import aiohttp
 import os
 from pathlib import Path
 from discord.ext import commands
-from discord import ClientException
+from discord import ClientException, Intents
 from utils import Config, CharfredContext
 
 log = logging.getLogger('charfred')
@@ -53,7 +53,7 @@ def _get_prefixes(bot, msg):
 class Charfred(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=_get_prefixes, description=description,
-                         pm_help=False)
+                         pm_help=False, intents=Intents.all())
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self.dir = Path(__file__).parent
@@ -78,9 +78,9 @@ class Charfred(commands.Bot):
             for admincog in _admincogs('admincogs'):
                 self.load_extension(admincog.replace('/', '.').replace('\\', '.'))
         except ClientException:
-            log.critical(f'Could not load administrative cogs!')
+            log.critical('Could not load administrative cogs!')
         except ImportError:
-            log.critical(f'Administrative cogs could not be imported!')
+            log.critical('Administrative cogs could not be imported!')
             traceback.print_exc()
 
     def register_nodes(self, nodes):
