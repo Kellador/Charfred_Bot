@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from json import loads, JSONDecodeError
 from discord.ext import commands
 from utils import permission_node
 
@@ -76,11 +77,30 @@ class StreamServer(commands.Cog):
             writer.close()
             return
 
-        handshake = handshake.decode().split('::')[0]
-        if handshake in self.handlers:
-            self.loop.create_task(self.handlers[handshake](reader, writer))
+        try:
+            handshake = loads(handshake)
+            is_handshake = handshake['type'] == 'handshake'
+        except JSONDecodeError:
+            log.warning(f'StreamServ: Recieved non-json data from {peer},'
+                        ' dropping connection.')
+            writer.close()
+            return
+        except KeyError:
+            log.warning(f'StreamServ: Malformed handshake recieved from {peer},'
+                        ' dropping connection.')
+            writer.close()
+            return
+
+        if is_handshake:
+            if handshake['source_type'] in self.handlers:
+                self.loop.create_task(self.handlers[handshake](reader, writer))
+            else:
+                log.warning(f'StreamServ: No handler available for {handshake},'
+                            ' dropping connection.')
+                writer.close()
+                return
         else:
-            log.warning(f'StreamServ: No handler available for {handshake},'
+            log.warning(f'StreamServ: Initial data from {peer} was not a handshake,'
                         ' dropping connection.')
             writer.close()
             return
