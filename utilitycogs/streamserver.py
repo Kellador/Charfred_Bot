@@ -4,7 +4,7 @@ from json import loads, JSONDecodeError
 from discord.ext import commands
 from utils import permission_node
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class StreamServer(commands.Cog):
@@ -25,19 +25,19 @@ class StreamServer(commands.Cog):
 
     def cog_unload(self):
         if self.server:
-            log.info('StreamServ: Closing server.')
+            log.info('Closing server.')
             self.server.close()
 
             self.loop.create_task(self.server.wait_closed())
 
     async def _start_server(self):
         if self.running:
-            log.info('StreamServ: Server already running!')
+            log.info('Server already running!')
         else:
             try:
                 port = self.cfg['streamserverport']
             except KeyError:
-                log.warning('StreamServ: No port configured!')
+                log.warning('No port configured!')
                 return
 
             self.server = await asyncio.start_server(
@@ -46,11 +46,11 @@ class StreamServer(commands.Cog):
                 port,
                 loop=self.loop
             )
-            log.info('StreamServ: Server started.')
+            log.info('Server started.')
 
     def _close_server(self, wait=True):
         if self.server:
-            log.info('StreamServ: Closing server.')
+            log.info('Closing server.')
             self.server.close()
 
             if wait:
@@ -68,11 +68,11 @@ class StreamServer(commands.Cog):
         """
 
         peer = str(writer.get_extra_info('peername'))
-        log.info(f'StreamServ: New connection established with {peer}.')
+        log.info(f'New connection established with {peer}.')
 
         handshake = await reader.readline()
         if not handshake:
-            log.warning(f'StreamServ: No handshake recieved from {peer},'
+            log.warning(f'No handshake recieved from {peer},'
                         ' dropping connection.')
             writer.close()
             return
@@ -81,12 +81,12 @@ class StreamServer(commands.Cog):
             handshake = loads(handshake)
             is_handshake = handshake['type'] == 'handshake'
         except JSONDecodeError:
-            log.warning(f'StreamServ: Recieved non-json data from {peer},'
+            log.warning(f'Recieved non-json data from {peer},'
                         ' dropping connection.')
             writer.close()
             return
         except KeyError:
-            log.warning(f'StreamServ: Malformed handshake recieved from {peer},'
+            log.warning(f'Malformed handshake recieved from {peer},'
                         ' dropping connection.')
             writer.close()
             return
@@ -95,7 +95,7 @@ class StreamServer(commands.Cog):
             try:
                 handler = handshake['handler']
             except KeyError:
-                log.warning(f'StreamServ: {peer} did not specify a handler,'
+                log.warning(f'{peer} did not specify a handler,'
                             ' dropping connection.')
                 writer.close()
                 return
@@ -103,12 +103,12 @@ class StreamServer(commands.Cog):
             if handler in self.handlers:
                 self.loop.create_task(self.handlers[handler](reader, writer, handshake))
             else:
-                log.warning(f'StreamServ: Handler "{handler}" specified by {peer} is unknown,'
+                log.warning(f'Handler "{handler}" specified by {peer} is unknown,'
                             ' dropping connection.')
                 writer.close()
                 return
         else:
-            log.warning(f'StreamServ: Initial data from {peer} was not a handshake,'
+            log.warning(f'Initial data from {peer} was not a handshake,'
                         ' dropping connection.')
             writer.close()
             return
@@ -123,19 +123,19 @@ class StreamServer(commands.Cog):
         """
 
         if handler in self.handlers:
-            log.info(f'StreamServ: {handler} already registered.')
+            log.info(f'{handler} already registered.')
         else:
-            log.info(f'StreamServ: Registering {handler}.')
+            log.info(f'Registering {handler}.')
             self.handlers[handler] = func
 
     def unregister_handler(self, handler):
         """Unregisters a handler."""
 
         if handler in self.handlers:
-            log.info(f'StreamServ: Unregistering {handler}.')
+            log.info(f'Unregistering {handler}.')
             del self.handlers[handler]
         else:
-            log.info(f'StreamServ: {handler} is not registered.')
+            log.info(f'{handler} is not registered.')
 
     async def _serverstatus(self):
         if self.running:

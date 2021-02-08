@@ -5,7 +5,7 @@ import toml
 from pathlib import Path
 from collections.abc import MutableMapping
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Config(MutableMapping):

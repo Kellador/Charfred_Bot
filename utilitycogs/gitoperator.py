@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from discord.ext import commands
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class GitOperator(commands.Cog):

@@ -5,7 +5,7 @@ from humanize import naturalsize
 from discord.ext import commands
 from utils import permission_node
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class ProcessConverter(commands.Converter):

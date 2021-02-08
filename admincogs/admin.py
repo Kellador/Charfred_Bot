@@ -3,7 +3,7 @@ import datetime
 from discord.ext import commands
 from utils import Flipbook
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Admin(commands.Cog):

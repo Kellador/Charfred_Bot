@@ -2,7 +2,7 @@ import logging
 from asyncio import wait_for, TimeoutError
 from discord.ext import commands
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class DBOperator(commands.Cog):

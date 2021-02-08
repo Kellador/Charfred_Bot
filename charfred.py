@@ -144,7 +144,7 @@ class Charfred(commands.Bot):
 def run(loglvl, token):
     coloredlogs.install(level=loglvl,
                         logger=log,
-                        fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
+                        fmt='%(asctime)s:%(msecs)03d [%(name)s]: %(levelname)s %(message)s')
     log.info('Initializing Charfred!')
     char = Charfred()
     char.run(token)

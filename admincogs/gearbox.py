@@ -6,7 +6,7 @@ from discord.ext.commands import ExtensionNotLoaded, ExtensionNotFound, \
     NoEntryPointError, ExtensionFailed, ExtensionAlreadyLoaded
 from utils import Config
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Gearbox(commands.Cog):
