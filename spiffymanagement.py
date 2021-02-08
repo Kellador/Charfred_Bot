@@ -37,14 +37,39 @@ def start(cfg, server):
             return False
 
 
-def stop(cfg, server):
+def stop(cfg, server, countdown=None):
     """Stops a server immediately, if it is currently running."""
 
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
         return False
     if isUp(server):
-        log.info(f'Stopping {server}...')
+        if countdown:
+            countdownSteps = ["20m", "15m", "10m", "5m", "3m",
+                              "2m", "1m", "30s", "10s", "5s"]
+            if countdown not in countdownSteps:
+                log.error(f'{countdown} is an undefined step, aborting!')
+                availableSteps1 = ', '.join(countdownSteps[:5])
+                availableSteps2 = ', '.join(countdownSteps[5:])
+                log.info('> Available countdown steps are:\n'
+                         f'> {availableSteps1},\n'
+                         f'> {availableSteps2}')
+                return False
+            log.info(f'Stopping {server} with {countdown}-countdown.')
+            indx = countdownSteps.index(countdown)
+            cntd = countdownSteps[indx:]
+            steps = buildCountdownSteps(cntd)
+            for step in steps:
+                screenCmd(
+                    server,
+                    'title @a times 20 40 20',
+                    f'title @a subtitle {{\"text\":\"in {step[0]} {step[2]}!\",\"italic\":true}}',
+                    'title @a title {\"text\":\"Stopping\", \"bold\":true}',
+                    f'broadcast Stopping in {step[0]} {step[2]}!'
+                )
+                sleep(step[1])
+
+        log.info(f'Stopping {server} now...')
         screenCmd(
             server,
             'title @a times 20 40 20',
@@ -63,10 +88,14 @@ def stop(cfg, server):
             sleep(20)
         if isUp(server):
             log.warning(f'{server} does not appear to have stopped!')
-            return False
-        else:
-            log.info(f'{server} was stopped.')
-            return True
+
+            log.warning(f'Terminating {server} process!')
+            terminated = terminate(cfg, server)
+            if not terminated:
+                return
+
+        log.info(f'{server} was stopped.')
+        return True
     else:
         log.info(f'{server} already is not running.')
         return True
@@ -121,19 +150,24 @@ def restart(cfg, server, countdown=None):
             sleep(20)
         if isUp(server):
             log.warning(f'Restart failed, {server} appears not to have stopped!')
+
+            log.warning(f'Terminating {server} process!')
+            terminated = terminate(cfg, server)
+            if not terminated:
+                return
+
+        log.info('Restart in progress...')
+        log.info(f'Starting {server}')
+        os.chdir(cfg['serverspath'] + f'/{server}')
+        run(['screen', '-h', '5000', '-dmS', server,
+            *(cfg['servers'][server]['invocation']).split(), 'nogui'])
+        sleep(5)
+        if isUp(server):
+            log.info(f'Restart successful, {server} is now running!')
+            return True
         else:
-            log.info(f'Restart in progress, {server} was stopped.')
-            log.info(f'Starting {server}')
-            os.chdir(cfg['serverspath'] + f'/{server}')
-            run(['screen', '-h', '5000', '-dmS', server,
-                *(cfg['servers'][server]['invocation']).split(), 'nogui'])
-            sleep(5)
-            if isUp(server):
-                log.info(f'Restart successful, {server} is now running!')
-                return True
-            else:
-                log.warning(f'Restart failed, {server} does not appear to have started!')
-                return False
+            log.warning(f'Restart failed, {server} does not appear to have started!')
+            return False
     else:
         log.warning(f'Restart cancelled, {server} is offline!')
         return False

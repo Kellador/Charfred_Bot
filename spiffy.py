@@ -27,7 +27,8 @@ def start(server):
 
 @spiffy.command()
 @click.argument('server')
-def stop(server):
+@click.option('-c', '--countdown')
+def stop(server, countdown):
     spiffymanagement.stop(cfg, server)
 
 
