@@ -92,10 +92,18 @@ class StreamServer(commands.Cog):
             return
 
         if is_handshake:
-            if handshake['source_type'] in self.handlers:
-                self.loop.create_task(self.handlers[handshake](reader, writer))
+            try:
+                handler = handshake['handler']
+            except KeyError:
+                log.warning(f'StreamServ: {peer} did not specify a handler,'
+                            ' dropping connection.')
+                writer.close()
+                return
+
+            if handler in self.handlers:
+                self.loop.create_task(self.handlers[handler](reader, writer, handshake))
             else:
-                log.warning(f'StreamServ: No handler available for {handshake},'
+                log.warning(f'StreamServ: Handler "{handler}" specified by {peer} is unknown,'
                             ' dropping connection.')
                 writer.close()
                 return
@@ -105,29 +113,29 @@ class StreamServer(commands.Cog):
             writer.close()
             return
 
-    def register_handshake(self, handshake, handler):
-        """Register a handshake and accompanying handler.
+    def register_handler(self, handler, func):
+        """Register a handler.
 
-        The handshake must be a string.
+        The name must be a string.
 
         The handler must accept only a StreamReader and StreamWriter
         object and should implement some form of connection closing logic.
         """
 
-        if handshake in self.handlers:
-            log.info(f'StreamServ: {handshake} already registered.')
+        if handler in self.handlers:
+            log.info(f'StreamServ: {handler} already registered.')
         else:
-            log.info(f'StreamServ: Registering {handshake}.')
-            self.handlers[handshake] = handler
+            log.info(f'StreamServ: Registering {handler}.')
+            self.handlers[handler] = func
 
-    def unregister_handshake(self, handshake):
-        """Unregisters a handshake and accompanying handler."""
+    def unregister_handler(self, handler):
+        """Unregisters a handler."""
 
-        if handshake in self.handlers:
-            log.info(f'StreamServ: Unregistering {handshake}.')
-            del self.handlers[handshake]
+        if handler in self.handlers:
+            log.info(f'StreamServ: Unregistering {handler}.')
+            del self.handlers[handler]
         else:
-            log.info(f'StreamServ: {handshake} is not registered.')
+            log.info(f'StreamServ: {handler} is not registered.')
 
     async def _serverstatus(self):
         if self.running:
