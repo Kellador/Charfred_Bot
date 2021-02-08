@@ -48,7 +48,8 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        if self.bot.is_owner(ctx.author):
+        is_owner = self.bot.is_owner(ctx.author)
+        if is_owner:
             out = []
             for guild_id, prefixes in self.cfg['prefix'].items():
                 guild = self.bot.get_guild(int(guild_id))
@@ -80,7 +81,7 @@ class Admin(commands.Cog):
             await self.cfg.save()
             await ctx.sendmarkdown(f'# \'{prefix}\' has been registered!')
         else:
-            await ctx.sendmarkdown(f'< Cannot save prefixes outside of a guild! >')
+            await ctx.sendmarkdown('< Cannot save prefixes outside of a guild! >')
 
     @prefix.command(hidden=True)
     @commands.is_owner()
