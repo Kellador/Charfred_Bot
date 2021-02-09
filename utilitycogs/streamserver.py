@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from json import loads, JSONDecodeError
+from collections.abc import Callable
 from discord.ext import commands
 from utils import permission_node
 
@@ -17,8 +18,17 @@ class StreamServer(commands.Cog):
         self.loop.create_task(self._start_server())
 
     @property
-    def running(self):
-        if self.server and self.server.sockets:
+    def running(self) -> bool:
+        """Status property, indicating whether the
+        stream server is running or not.
+
+        Returns
+        -------
+        bool
+            True when server is available and serving.
+        """
+
+        if self.server and self.server.is_serving():
             return True
         else:
             return False
@@ -113,13 +123,18 @@ class StreamServer(commands.Cog):
             writer.close()
             return
 
-    def register_handler(self, handler, func):
-        """Register a handler.
+    def register_handler(
+            self, handler: str,
+            func: Callable[[asyncio.StreamReader, asyncio.StreamWriter, str], None]
+    ) -> None:
+        """Registers a new connection handler.
 
-        The name must be a string.
-
-        The handler must accept only a StreamReader and StreamWriter
-        object and should implement some form of connection closing logic.
+        Parameters
+        ----------
+        handler : str
+            name of the handler
+        func : Callable[[asyncio.StreamReader, asyncio.StreamWriter, str], None]
+            handler callable
         """
 
         if handler in self.handlers:
@@ -128,8 +143,14 @@ class StreamServer(commands.Cog):
             log.info(f'Registering {handler}.')
             self.handlers[handler] = func
 
-    def unregister_handler(self, handler):
-        """Unregisters a handler."""
+    def unregister_handler(self, handler: str) -> None:
+        """Unregister a known connection handler.
+
+        Parameters
+        ----------
+        handler : str
+            name of the handler
+        """
 
         if handler in self.handlers:
             log.info(f'Unregistering {handler}.')
@@ -157,7 +178,7 @@ class StreamServer(commands.Cog):
     @streamserver.command()
     @permission_node(f'{__name__}')
     async def start(self, ctx):
-        """Starts the stream server."""
+        """Start the stream server."""
 
         await self._start_server()
         msg = await self._serverstatus()
@@ -166,7 +187,7 @@ class StreamServer(commands.Cog):
     @streamserver.command()
     @permission_node(f'{__name__}')
     async def stop(self, ctx):
-        """Stops the stream server."""
+        """Stop the stream server."""
 
         self._close_server(wait=False)
         await self.server.wait_closed()
@@ -176,7 +197,7 @@ class StreamServer(commands.Cog):
     @streamserver.command()
     @permission_node(f'{__name__}.setport')
     async def setport(self, ctx, port: int):
-        """Sets the port the stream server should use."""
+        """Set the port the stream server should listen on."""
 
         self.cfg['streamserverport'] = port
         await self.cfg.save()
@@ -185,12 +206,12 @@ class StreamServer(commands.Cog):
     @streamserver.command()
     @permission_node(f'{__name__}.disable')
     async def disable(self, ctx):
-        """Disables the stream server by stopping it and removing
-        the configured port, essentially stopping the server from
+        """Disable the stream server by stopping it and removing
+        the configured port, preventing the server from
         launching again.
 
-        Not sure why you'd want to do this, unloading the cog would
-        be the better option.
+        Useful in case you want to unload the cog and not have the
+        server start up when you load it up again.
         """
 
         self._close_server(wait=False)
