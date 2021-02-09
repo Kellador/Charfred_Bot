@@ -4,6 +4,7 @@ setup(
     name="Charfred",
     version="1.0beta6",
     packages=find_packages(),
+    python_requires='>=3.7',
     install_requires=[
         'discord.py',
         'coloredlogs',
