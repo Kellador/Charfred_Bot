@@ -1,5 +1,5 @@
 import time
-from collections import OrderedDict, MutableMapping
+from collections import OrderedDict
 
 
 class SimpleTTLDict(OrderedDict):
@@ -81,54 +81,3 @@ class SizedDict(OrderedDict):
                 return value
         else:
             return None
-
-
-class InvertableMapping(MutableMapping):
-    """MutableMapping which generates and updates
-    an inverted read only version of its store.
-
-    Special handling for mappings with values that are
-    lists, in which case the first element will be
-    swapped with the key.
-    """
-
-    def __init__(self, initial):
-        self.store = initial
-        self._inverted = {}
-
-    @property
-    def inverted(self):
-        if self._inverted:
-            return self._inverted
-        else:
-            try:
-                self._invert()
-            except AttributeError:
-                pass  # Too early, Config hasn't loaded yet.
-            finally:
-                return self._inverted
-
-    def _invert(self):
-        self._inverted = {}
-        for k, v in self.store.items():
-            if isinstance(v, list):
-                self._inverted.setdefault(v[0], []).extend([k] + v[1:])
-            else:
-                self._inverted.setdefault(v, []).append(k)
-
-    def __getitem__(self, key):
-        return self.store[key]
-
-    def __iter__(self):
-        return iter(self.store)
-
-    def __len__(self):
-        return len(self.store)
-
-    def __setitem__(self, key, value):
-        self.store[key] = value
-        self._invert()
-
-    def __delitem__(self, key):
-        del self.store[key]
-        self._invert()
