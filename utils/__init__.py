@@ -3,7 +3,7 @@ from .permissions import permission_node, node_check
 from .mixed import cached_property, splitup
 from .context import CharfredContext
 from .flipbooks import Flipbook, EmbedFlipbook
-from .collections import SimpleTTLDict, SizedDict, InvertableMapping
+from .collections import SimpleTTLDict, SizedDict
 
 # Colors from http://colourlovers.com;
 # names correspond to the color names on the site.
