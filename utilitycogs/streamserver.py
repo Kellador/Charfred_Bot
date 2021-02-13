@@ -133,11 +133,8 @@ class StreamServer(commands.Cog):
             handler callable
         """
 
-        if handler in self.handlers:
-            log.info(f'{handler} already registered.')
-        else:
-            log.info(f'Registering {handler}.')
-            self.handlers[handler] = func
+        log.info(f'Registering {handler}.')
+        self.handlers[handler] = func
 
     def unregister_handler(self, handler: str) -> None:
         """Unregister a known connection handler.
