@@ -1,7 +1,6 @@
 import logging
 import asyncio
 from json import loads, JSONDecodeError
-from collections.abc import Callable
 from discord.ext import commands
 from utils import permission_node
 
@@ -123,10 +122,7 @@ class StreamServer(commands.Cog):
             writer.close()
             return
 
-    def register_handler(
-            self, handler: str,
-            func: Callable[[asyncio.StreamReader, asyncio.StreamWriter, str], None]
-    ) -> None:
+    def register_handler(self, handler: str, func) -> None:
         """Registers a new connection handler.
 
         Parameters
