@@ -1,7 +1,7 @@
 import re
 from asyncio import TimeoutError
 from discord.ext import commands
-from utils import cached_property, splitup
+from utils import splitup
 
 
 class CharfredContext(commands.Context):
