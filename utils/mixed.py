@@ -10,13 +10,13 @@ def splitup(msg, codeblocked=False):
         back = ''
 
     msgs = []
-    count = 1990
+    count = 1900
     lastidx = 0
     for idx, line in enumerate(lines):
         if (count := count - len(line)) < 0:
             msg = front + ''.join(lines[lastidx:idx]) + back
             msgs.append(msg)
-            count = 1990
+            count = 1900
             lastidx = idx
 
     return msgs
