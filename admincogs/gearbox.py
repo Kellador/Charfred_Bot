@@ -54,7 +54,7 @@ class Gearbox(commands.Cog):
         candidates = searchfunc(cog)
         if candidates:
             if isinstance(candidates, list):
-                status = (False, f'Found multiple matching cogs: >\n' +
+                status = (False, 'Found multiple matching cogs: >\n' +
                           "\n".join(candidates) +
                           '\n< Please be more specific!')
                 log.info(f'Direct {actionword} failed, search inconclusive.')
@@ -231,7 +231,7 @@ class Gearbox(commands.Cog):
         if candidates:
             if isinstance(candidates, list):
                 await ctx.sendmarkdown(
-                    f'< Found multiple matching cogs: >\n' +
+                    '< Found multiple matching cogs: >\n' +
                     "\n".join(candidates) +
                     '\n< Please be more specific! >'
                 )
