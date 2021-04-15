@@ -6,7 +6,7 @@ from discord.ext.commands import ExtensionNotLoaded, ExtensionNotFound, \
     NoEntryPointError, ExtensionFailed, ExtensionAlreadyLoaded
 from utils import Config
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Gearbox(commands.Cog):
@@ -50,6 +50,21 @@ class Gearbox(commands.Cog):
         else:
             return None
 
+    def _seek(self, cog, searchfunc, retryfunc, actionword):
+        candidates = searchfunc(cog)
+        if candidates:
+            if isinstance(candidates, list):
+                status = (False, 'Found multiple matching cogs: >\n' +
+                          "\n".join(candidates) +
+                          '\n< Please be more specific!')
+                log.info(f'Direct {actionword} failed, search inconclusive.')
+            else:
+                return retryfunc(candidates, search=False)
+        else:
+            status = (False, f'Could not {actionword} "{cog}", search yielded no matches!')
+            log.info(f'Direct {actionword} failed, search yielded no matches.')
+        return status
+
     def _load(self, cog, search=True):
         try:
             self.bot.load_extension(cog)
@@ -58,18 +73,7 @@ class Gearbox(commands.Cog):
             log.warning(status[1])
         except ExtensionNotFound:
             if search:
-                candidates = self._searchpaths(cog)
-                if candidates:
-                    if isinstance(candidates, list):
-                        status = (False, f'Found multiple matching cogs: >\n' +
-                                  "\n".join(candidates) +
-                                  '\n< Please be more specific!')
-                        log.info('Direct load failed, search inconclusive.')
-                    else:
-                        return self._load(candidates, search=False)
-                else:
-                    status = (False, f'Could not load "{cog}", search yielded no matches!')
-                    log.info('Direct load failed, search yielded no matches.')
+                status = self._seek(cog, self._searchpaths, self._load, 'load')
             else:
                 status = (False, f'Could not load "{cog}", not found!')
                 log.info(status[1])
@@ -90,18 +94,7 @@ class Gearbox(commands.Cog):
             self.bot.unload_extension(cog)
         except ExtensionNotLoaded:
             if search:
-                candidates = self._searchloaded(cog)
-                if candidates:
-                    if isinstance(candidates, list):
-                        status = (False, f'Found multiple matching cogs: >\n' +
-                                  "\n".join(candidates) +
-                                  '\n< Please be more specific!')
-                        log.info('Direct unload failed, search inconclusive.')
-                    else:
-                        return self._unload(candidates, search=False)
-                else:
-                    status = (False, f'Could not unload "{cog}", search yielded no matches!')
-                    log.info('Direct unload failed, search yielded no matches.')
+                status = self._seek(cog, self._searchloaded, self._unload, 'unload')
             else:
                 status = (True, f'Could not unload "{cog}", not loaded!')
                 log.warning(status[1])
@@ -113,37 +106,9 @@ class Gearbox(commands.Cog):
     def _reload(self, cog, search=True):
         try:
             self.bot.reload_extension(cog)
-        except ExtensionNotLoaded:
+        except (ExtensionNotLoaded, ExtensionNotFound):
             if search:
-                candidates = self._searchloaded(cog)
-                if candidates:
-                    if isinstance(candidates, list):
-                        status = (False, f'Found multiple matching cogs: >\n' +
-                                  "\n".join(candidates) +
-                                  '\n< Please be more specific!')
-                        log.info('Direct unload failed, search inconclusive.')
-                    else:
-                        return self._reload(candidates, search=False)
-                else:
-                    status = (False, f'Could not reload "{cog}", search yielded no matches!')
-                    log.info('Direct unload failed, search yielded no matches.')
-            else:
-                status = (False, f'Could not reload "{cog}", not loaded!')
-                log.warning(status[1])
-        except ExtensionNotFound:
-            if search:
-                candidates = self._searchloaded(cog)
-                if candidates:
-                    if isinstance(candidates, list):
-                        status = (False, f'Found multiple matching cogs: >\n' +
-                                  "\n".join(candidates) +
-                                  '\n< Please be more specific!')
-                        log.info('Direct unload failed, search inconclusive.')
-                    else:
-                        return self._reload(candidates, search=False)
-                else:
-                    status = (False, f'Could not reload "{cog}", search yielded no matches!')
-                    log.info('Direct unload failed, search yielded no matches.')
+                status = self._seek(cog, self._searchloaded, self._reload, 'reload')
             else:
                 status = (False, f'Could not reload "{cog}", not loaded!')
                 log.warning(status[1])
@@ -266,7 +231,7 @@ class Gearbox(commands.Cog):
         if candidates:
             if isinstance(candidates, list):
                 await ctx.sendmarkdown(
-                    f'< Found multiple matching cogs: >\n' +
+                    '< Found multiple matching cogs: >\n' +
                     "\n".join(candidates) +
                     '\n< Please be more specific! >'
                 )
@@ -288,6 +253,19 @@ class Gearbox(commands.Cog):
     async def removecog(self, ctx, cogname: str):
         """Removes a cog from being loaded on startup."""
 
+        if cogname not in self.cogfig['cogs']:
+            candidates = []
+            for cog in self.cogfig['cogs']:
+                if cogname in cog:
+                    candidates.append(cog)
+            if candidates:
+                if len(candidates) > 1:
+                    await ctx.sendmarkdown(f'< Multiple matches for {cogname}'
+                                           ' in current loading list, please be'
+                                           ' more specific! >')
+                    return
+                else:
+                    cogname = candidates[0]
         try:
             self.cogfig['cogs'].remove(cogname)
         except ValueError:
@@ -297,6 +275,72 @@ class Gearbox(commands.Cog):
             await ctx.sendmarkdown(f'# \"{cogname}\" will no longer be loaded automatically.')
         success, reply = self._unload(cogname)
         await ctx.sendmarkdown(f'# {reply}' if success else f'< {reply} >')
+
+    @cog.command(aliases=['changeloadorder'])
+    @commands.is_owner()
+    async def loadorder(self, ctx):
+        """Edit the loadorder.
+
+        For when one cog relies on another being loaded first,
+        such an inconvenience.
+
+        To change the load order you need to enter the numbers
+        of the cogs you want to rearrange in the order that you want them
+        to be in.
+
+        Given the load order of:
+        1: cog, 2: cogg, 3: coggg,
+        you might enter:
+        3 2
+        Resulting in the new load order being:
+        3: coggg, 2: cogg, 1: cog
+
+        You do not need to enter a full load order, the ones you do list
+        will simply be moved to the front of the load order, in the order
+        you have listed them.
+        """
+
+        if not self.cogfig['cogs']:
+            await ctx.sendmarkdown('> There are no cogs set to load on startup!')
+            return
+
+        cogfig = self.cogfig['cogs']
+
+        order, _, timedout = await ctx.promptconfirm_or_input(
+            '# Current load order:\n' +
+            '\n'.join([f'{i}: {cog}' for i, cog in enumerate(cogfig)]) +
+            '\n> Please note that admincogs are not included in the loadorder.\n'
+            '< Please enter the new loadorder now, or enter "no" to abort. >',
+            confirm=False
+        )
+        if timedout:
+            return
+
+        if not order:
+            await ctx.sendmarkdown('> Load order unchanged!')
+            return
+
+        order = order.split()
+        try:
+            order = list(map(int, order))
+        except ValueError:
+            await ctx.sendmarkdown('< Invalid entries, load order unchanged! >')
+            return
+
+        for num in order:
+            if num not in range(len(cogfig)):
+                await ctx.sendmarkdown('< Invalid entries, load order unchanged! >')
+                return
+
+        ordered = []
+        for num in order:
+            ordered.append(cogfig[num])
+        for cog in ordered:
+            cogfig.remove(cog)
+
+        self.cogfig['cogs'] = ordered + cogfig
+        await self.cogfig.save()
+        await ctx.sendmarkdown('# Load order changed!')
 
     @cog.command(aliases=[''])
     @commands.is_owner()

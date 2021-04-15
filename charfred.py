@@ -8,7 +8,7 @@ import aiohttp
 import os
 from pathlib import Path
 from discord.ext import commands
-from discord import ClientException
+from discord import ClientException, Intents
 from utils import Config, CharfredContext
 
 log = logging.getLogger('charfred')
@@ -42,24 +42,25 @@ def _admincogs(direc):
 def _get_prefixes(bot, msg):
     bot_id = bot.user.id
     prefixes = [f'<@{bot_id}> ', f'<@!{bot_id}> ']
-    try:
-        prefixes.extend(bot.cfg['prefixes'])
-    except KeyError:
-        pass
+    if msg.guild:
+        try:
+            prefixes.extend(bot.cfg['prefix'][str(msg.guild.id)])
+        except KeyError:
+            pass
     return prefixes
 
 
 class Charfred(commands.Bot):
     def __init__(self):
         super().__init__(command_prefix=_get_prefixes, description=description,
-                         pm_help=False)
+                         pm_help=False, intents=Intents.all())
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self.dir = Path(__file__).parent
         self.cfg = Config(f'{self.dir}/configs/botCfg.toml',
                           load=True, loop=self.loop)
-        if 'prefixes' not in self.cfg:
-            self.cfg['prefixes'] = []
+        if 'prefix' not in self.cfg:
+            self.cfg['prefix'] = {}
         if 'nodes' not in self.cfg:
             self.cfg['nodes'] = {}
         if 'hierarchy' not in self.cfg:
@@ -77,9 +78,9 @@ class Charfred(commands.Bot):
             for admincog in _admincogs('admincogs'):
                 self.load_extension(admincog.replace('/', '.').replace('\\', '.'))
         except ClientException:
-            log.critical(f'Could not load administrative cogs!')
+            log.critical('Could not load administrative cogs!')
         except ImportError:
-            log.critical(f'Administrative cogs could not be imported!')
+            log.critical('Administrative cogs could not be imported!')
             traceback.print_exc()
 
     def register_nodes(self, nodes):
@@ -143,7 +144,7 @@ class Charfred(commands.Bot):
 def run(loglvl, token):
     coloredlogs.install(level=loglvl,
                         logger=log,
-                        fmt='%(asctime)s:%(msecs)03d %(name)s[%(process)d]: %(levelname)s %(message)s')
+                        fmt='%(asctime)s:%(msecs)03d [%(name)s]: %(levelname)s %(message)s')
     log.info('Initializing Charfred!')
     char = Charfred()
     char.run(token)

@@ -4,7 +4,7 @@ import random
 from discord import Webhook, AsyncWebhookAdapter, Embed
 from discord.ext import commands
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class ErrorHandler(commands.Cog):

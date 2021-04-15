@@ -4,8 +4,8 @@ setup(
     name="Charfred",
     version="1.0beta6",
     packages=find_packages(),
+    python_requires='>=3.8',
     install_requires=[
-        'yarl<1.2',
         'discord.py',
         'coloredlogs',
         'click',

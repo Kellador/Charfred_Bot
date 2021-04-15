@@ -5,7 +5,7 @@ from humanize import naturalsize
 from discord.ext import commands
 from utils import permission_node
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class ProcessConverter(commands.Converter):
@@ -95,7 +95,7 @@ class Quartermaster(commands.Cog):
 
         pass
 
-    @qm.command(invoke_without_command=True)
+    @qm.command()
     async def profile(self, ctx, process: ProcessConverter, includeScreens: bool=False):
         """Get CPU and memory usage info on a process.
 

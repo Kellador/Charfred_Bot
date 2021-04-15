@@ -1,36 +1,23 @@
-import re
-
-formatpat = re.compile('^[`]{3}(?P<format>\w+|\s)')
-
-
 def splitup(msg, codeblocked=False):
-    msg = msg.splitlines(keepends=True)
+    lines = msg.splitlines(keepends=True)
+
     if codeblocked:
-        s = formatpat.search(msg)
-        if s.group('format'):
-            front = f'```{s.group("format")}\n'
-        back = '\n```'
+        front = lines[0]
+        back = lines[-1]
+        lines = lines[1:-1]
     else:
         front = ''
         back = ''
-    msg.reverse()
-    msgs = []
-    part = front
-    while True:
-        if len(msg) > 0:
-            next = msg.pop()
-        else:
-            if part:
-                part += back
-                msgs.append(part)
-            break
 
-        if (len(part) + len(next)) < 1990:
-            part += next
-        else:
-            part += back
-            msgs.append(part)
-            part = front + next
+    msgs = []
+    count = 1900
+    lastidx = 0
+    for idx, line in enumerate(lines):
+        if (count := count - len(line)) < 0:
+            msg = front + ''.join(lines[lastidx:idx]) + back
+            msgs.append(msg)
+            count = 1900
+            lastidx = idx
 
     return msgs
 

@@ -5,7 +5,7 @@ import logging
 from contextlib import redirect_stdout
 from discord.ext import commands
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Evaluate(commands.Cog):

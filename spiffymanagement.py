@@ -37,14 +37,39 @@ def start(cfg, server):
             return False
 
 
-def stop(cfg, server):
+def stop(cfg, server, countdown=None):
     """Stops a server immediately, if it is currently running."""
 
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
         return False
     if isUp(server):
-        log.info(f'Stopping {server}...')
+        if countdown:
+            countdownSteps = ["20m", "15m", "10m", "5m", "3m",
+                              "2m", "1m", "30s", "10s", "5s"]
+            if countdown not in countdownSteps:
+                log.error(f'{countdown} is an undefined step, aborting!')
+                availableSteps1 = ', '.join(countdownSteps[:5])
+                availableSteps2 = ', '.join(countdownSteps[5:])
+                log.info('> Available countdown steps are:\n'
+                         f'> {availableSteps1},\n'
+                         f'> {availableSteps2}')
+                return False
+            log.info(f'Stopping {server} with {countdown}-countdown.')
+            indx = countdownSteps.index(countdown)
+            cntd = countdownSteps[indx:]
+            steps = buildCountdownSteps(cntd)
+            for step in steps:
+                screenCmd(
+                    server,
+                    'title @a times 20 40 20',
+                    f'title @a subtitle {{\"text\":\"in {step[0]} {step[2]}!\",\"italic\":true}}',
+                    'title @a title {\"text\":\"Stopping\", \"bold\":true}',
+                    f'broadcast Stopping in {step[0]} {step[2]}!'
+                )
+                sleep(step[1])
+
+        log.info(f'Stopping {server} now...')
         screenCmd(
             server,
             'title @a times 20 40 20',
@@ -63,10 +88,14 @@ def stop(cfg, server):
             sleep(20)
         if isUp(server):
             log.warning(f'{server} does not appear to have stopped!')
-            return False
-        else:
-            log.info(f'{server} was stopped.')
-            return True
+
+            log.warning(f'Terminating {server} process!')
+            terminated = terminate(cfg, server)
+            if not terminated:
+                return
+
+        log.info(f'{server} was stopped.')
+        return True
     else:
         log.info(f'{server} already is not running.')
         return True
@@ -121,19 +150,24 @@ def restart(cfg, server, countdown=None):
             sleep(20)
         if isUp(server):
             log.warning(f'Restart failed, {server} appears not to have stopped!')
+
+            log.warning(f'Terminating {server} process!')
+            terminated = terminate(cfg, server)
+            if not terminated:
+                return
+
+        log.info('Restart in progress...')
+        log.info(f'Starting {server}')
+        os.chdir(cfg['serverspath'] + f'/{server}')
+        run(['screen', '-h', '5000', '-dmS', server,
+            *(cfg['servers'][server]['invocation']).split(), 'nogui'])
+        sleep(5)
+        if isUp(server):
+            log.info(f'Restart successful, {server} is now running!')
+            return True
         else:
-            log.info(f'Restart in progress, {server} was stopped.')
-            log.info(f'Starting {server}')
-            os.chdir(cfg['serverspath'] + f'/{server}')
-            run(['screen', '-h', '5000', '-dmS', server,
-                *(cfg['servers'][server]['invocation']).split(), 'nogui'])
-            sleep(5)
-            if isUp(server):
-                log.info(f'Restart successful, {server} is now running!')
-                return True
-            else:
-                log.warning(f'Restart failed, {server} does not appear to have started!')
-                return False
+            log.warning(f'Restart failed, {server} does not appear to have started!')
+            return False
     else:
         log.warning(f'Restart cancelled, {server} is offline!')
         return False
@@ -168,7 +202,7 @@ def status(cfg, server):
         return False
 
 
-def backup(cfg, server):
+def backup(cfg, server, world=None):
     """Backup a server's world directory.
 
     Also deletes backups older than a configured age.
@@ -177,71 +211,88 @@ def backup(cfg, server):
     bpath = cfg['backupspath']
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
-    elif 'worldname' not in cfg['servers'][server]:
-        log.warning(f'{server} has no world directory specified!')
-    else:
-        world = cfg['servers'][server]['worldname']
-        log.info(f'Starting backup for {server}...')
-        if isUp(server):
-            log.info(f'{server} is running, announcing backup and toggling save!')
-            screenCmd(
-                server,
-                'Starting Backup!',
-                'save-off',
-                'save-all'
-            )
-            sleep(10)
-        sbpath = f'{bpath}/{server}'
+        return
+
+    if world is None:
         try:
-            os.makedirs(sbpath, exist_ok=True)
-        except Exception as e:
-            log.error(e + '\nBackups aborted!')
-            return False
+            world = cfg['servers'][server]['worldname']
+        except KeyError:
+            log.warning(f'{server} has no main world directory specified!')
+            return
         else:
-            log.info('Created missing directories! (if they were missing)')
-        log.info('Deleting outdated backups...')
-        now = time()
-        with os.scandir(sbpath) as d:
-            for entry in d:
-                if not entry.name.startswith('.') and entry.is_file():
-                    stats = entry.stat()
-                    if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
-                        try:
-                            os.remove(entry.path)
-                        except OSError as e:
-                            log.error(e)
-                        else:
-                            log.info(f'Deleted {entry.path} for being too old!')
-        log.info('Creating backup...')
-        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}.tar.gz'
+            try:
+                moreworlds = cfg['servers'][server]['moreworlds']
+            except KeyError:
+                moreworlds = []
+
+    log.info(f'Starting backup for {server}...')
+    if isUp(server):
+        log.info(f'{server} is running, announcing backup and toggling save!')
+        screenCmd(
+            server,
+            'Starting Backup!',
+            'save-off',
+            'save-all'
+        )
+        sleep(10)
+    sbpath = f'{bpath}/{server}'
+    try:
+        os.makedirs(sbpath, exist_ok=True)
+    except Exception as e:
+        log.error(e + '\nBackups aborted!')
+        return False
+    else:
+        log.info('Created missing directories! (if they were missing)')
+    log.info('Deleting outdated backups...')
+    now = time()
+    with os.scandir(sbpath) as d:
+        for entry in d:
+            if not entry.name.startswith('.') and entry.is_file():
+                stats = entry.stat()
+                if stats.st_mtime < now - (int(cfg['oldTimer']) * 60):
+                    try:
+                        os.remove(entry.path)
+                    except OSError as e:
+                        log.error(e)
+                    else:
+                        log.info(f'Deleted {entry.path} for being too old!')
+    log.info('Creating backup(s)...')
+    for w in ([world] + moreworlds):
+        log.info(f'Backing up {w}...')
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{w}.tar.gz'
         os.chdir(sbpath)
         serverpath = cfg['serverspath']
         with tarfile.open(bname, 'w:gz') as tf:
-            tf.add(f'{serverpath}/{server}/{world}', f'{world}')
-        log.info('Backup created!')
-        if isUp(server):
-            log.info(f'{server} is running, re-enabling save!')
-            screenCmd(
-                server,
-                'save-on',
-                'say Backup complete!'
-            )
+            tf.add(f'{serverpath}/{server}/{w}', f'{w}')
+        log.info(f'{w} backed up!')
+
+    log.info('Backup(s) created!')
+    if isUp(server):
+        log.info(f'{server} is running, re-enabling save!')
+        screenCmd(
+            server,
+            'save-on',
+            'say Backup complete!'
+        )
 
 
 def questbackup(cfg, server):
     """Silly solution to a silly problem."""
 
-    bpath = cfg['backupspath']
     if server not in cfg['servers']:
         log.warning(f'{server} has been misspelled or not configured!')
     elif 'worldname' not in cfg['servers'][server]:
         log.warning(f'{server} has no world directory specified!')
+    elif 'questing' not in cfg['servers'][server]:
+        log.warning(f'{server} has is not setup for questing backup!')
     else:
+        bpath = cfg['backupspath']
         world = cfg['servers'][server]['worldname']
+        quests = cfg['servers'][server]['questing']
         log.info(f'Starting backup for {server}\'s quests...')
         if isUp(server):
-            log.info(f'{server} is running, don\'t care, just want QUESTS!')
-        sbpath = f'{bpath}/{server}/quests'
+            log.info(f'{server} is running, don\'t care, just want {quests.upper()}!')
+        sbpath = f'{bpath}/{server}/questing/{quests}'
         try:
             os.makedirs(sbpath, exist_ok=True)
         except Exception as e:
@@ -263,11 +314,11 @@ def questbackup(cfg, server):
                         else:
                             log.info(f'Deleted {entry.path} for being too old!')
         log.info('Creating quest backup...')
-        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-QUESTS.tar.gz'
+        bname = datetime.now().strftime('%Y.%m.%d-%H-%M-%S') + f'-{server}-{world}-{quests.replace("/", "_")}.tar.gz'
         os.chdir(sbpath)
         serverpath = cfg['serverspath']
         with tarfile.open(bname, 'w:gz') as tf:
-            tf.add(f'{serverpath}/{server}/{world}/betterquesting', 'betterquesting')
+            tf.add(f'{serverpath}/{server}/{world}/{quests}', quests)
         log.info('Quest backup created!')
         if isUp(server):
             log.info(f'{server} is running, STILL DON\'T CARE!')

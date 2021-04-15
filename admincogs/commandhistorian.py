@@ -8,7 +8,7 @@ from discord.errors import Forbidden, NotFound
 from discord.ext import commands
 from utils import SizedDict
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 Command = namedtuple('Command', 'msg output')
 

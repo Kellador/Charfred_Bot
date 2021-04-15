@@ -2,7 +2,7 @@ import logging
 import asyncio
 import discord
 
-log = logging.getLogger('charfred')
+log = logging.getLogger(f'charfred.{__name__}')
 
 
 class Flipbook:

@@ -1,10 +1,13 @@
 import re
 from asyncio import TimeoutError
 from discord.ext import commands
-from utils import cached_property, splitup
+from utils import splitup
 
 
 class CharfredContext(commands.Context):
+    def prompt_check(self, msg):
+        return msg.author.id == self.author.id and msg.channel.id == self.channel.id
+
     async def send(self, msg=None, deletable=True, embed=None, codeblocked=False, **kwargs):
         """Helper function to send all sorts of things!
 
@@ -45,12 +48,10 @@ class CharfredContext(commands.Context):
         Returns a tuple of acquired input,
         reply message, and boolean indicating prompt timeout.
         """
-        def check(m):
-            return m.author.id == self.author.id and m.channel.id == self.channel.id
 
         await self.sendmarkdown(prompt, deletable)
         try:
-            r = await self.bot.wait_for('message', check=check, timeout=timeout)
+            r = await self.bot.wait_for('message', check=self.prompt_check, timeout=timeout)
         except TimeoutError:
             await self.sendmarkdown('> Prompt timed out!', deletable)
             return (None, None, True)
@@ -63,12 +64,10 @@ class CharfredContext(commands.Context):
         Returns a triple of acquired confirmation,
         reply message, and boolean indicating prompt timeout.
         """
-        def check(m):
-            return m.author.id == self.author.id and m.channel.id == self.channel.id
 
         await self.sendmarkdown(prompt, deletable)
         try:
-            r = await self.bot.wait_for('message', check=check, timeout=timeout)
+            r = await self.bot.wait_for('message', check=self.prompt_check, timeout=timeout)
         except TimeoutError:
             await self.sendmarkdown('> Prompt timed out!', deletable)
             return (None, None, True)
@@ -77,3 +76,34 @@ class CharfredContext(commands.Context):
                 return (True, r, False)
             else:
                 return (False, r, False)
+
+    async def promptconfirm_or_input(self, prompt: str, timeout: int=120,
+                                     deletable=True, confirm=True):
+        """Prompt for confirmation or input at the same time.
+
+        Instead of 'yes/no' this lets your prompt for 'yes/input' or 'no/input',
+        depending on the 'confirm' kwarg.
+
+        Returns a 3 tuple of input, reply message object
+        and boolean indicating prompt timeout.
+
+        'input' will be None, if 'yes' for confirm=True (the default),
+        or 'no' for confirm=False.
+        """
+
+        await self.sendmarkdown(prompt, deletable)
+        try:
+            r = await self.bot.wait_for('message', check=self.prompt_check, timeout=timeout)
+        except TimeoutError:
+            await self.sendmarkdown('> Prompt timed out!', deletable)
+            return (None, None, True)
+        else:
+            if confirm:
+                pat = '^(y|yes)'
+            else:
+                pat = '^(n|no)'
+
+            if re.match(pat, r.content, flags=re.I):
+                return (None, r, False)
+            else:
+                return (r.content, r, False)
