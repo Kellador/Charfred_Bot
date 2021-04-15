@@ -65,7 +65,7 @@ def stop(cfg, server, countdown=None):
                     'title @a times 20 40 20',
                     f'title @a subtitle {{\"text\":\"in {step[0]} {step[2]}!\",\"italic\":true}}',
                     'title @a title {\"text\":\"Stopping\", \"bold\":true}',
-                    f'broadcast Stopping in {step[0]} {step[2]}!'
+                    f'tellraw @a {{\"text\":\"[Stopping in {step[0]} {step[2]}!]\",\"color\":\"green\"}}'
                 )
                 sleep(step[1])
 
@@ -74,7 +74,7 @@ def stop(cfg, server, countdown=None):
             server,
             'title @a times 20 40 20',
             'title @a title {\"text\":\"STOPPING SERVER NOW\", \"bold\":true, \"italic\":true}',
-            'broadcast Stopping now!',
+            f'tellraw @a {{\"text\":\"[Stopping now!]\",\"color\":\"green\"}}'
             'save-all',
         )
         sleep(5)
@@ -132,7 +132,7 @@ def restart(cfg, server, countdown=None):
                 'title @a times 20 40 20',
                 f'title @a subtitle {{\"text\":\"in {step[0]} {step[2]}!\",\"italic\":true}}',
                 'title @a title {\"text\":\"Restarting\", \"bold\":true}',
-                f'broadcast Restarting in {step[0]} {step[2]}!'
+                f'tellraw @a {{\"text\":\"[Restarting in {step[0]} {step[2]}!]\",\"color\":\"green\"}}'
             )
             sleep(step[1])
         screenCmd(
