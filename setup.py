@@ -2,11 +2,11 @@ from setuptools import setup, find_packages
 
 setup(
     name="Charfred",
-    version="1.0beta6",
+    version="2.0a1",
     packages=find_packages(),
-    python_requires='>=3.8',
+    python_requires='>=3.10',
     install_requires=[
-        'discord.py',
+        'discord.py @ git+https://github.com/Rapptz/discord.py.git',
         'coloredlogs',
         'click',
         'toml',

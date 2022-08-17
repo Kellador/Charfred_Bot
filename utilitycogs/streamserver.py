@@ -1,8 +1,10 @@
-import logging
 import asyncio
-from json import loads, JSONDecodeError
+import logging
+from json import JSONDecodeError, loads
+
 from discord.ext import commands
-from utils import permission_node
+from utils import restricted
+from utils.permissions import PermissionLevel
 
 log = logging.getLogger(f'charfred.{__name__}')
 
@@ -10,11 +12,9 @@ log = logging.getLogger(f'charfred.{__name__}')
 class StreamServer(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.loop = bot.loop
         self.server = None
         self.cfg = bot.cfg
         self.handlers = {}
-        self.loop.create_task(self._start_server())
 
     @property
     def running(self) -> bool:
@@ -32,12 +32,15 @@ class StreamServer(commands.Cog):
         else:
             return False
 
-    def cog_unload(self):
+    async def cog_load(self) -> None:
+        asyncio.get_event_loop().create_task(self._start_server())
+
+    async def cog_unload(self):
         if self.server:
             log.info('Closing server.')
             self.server.close()
 
-            self.loop.create_task(self.server.wait_closed())
+            asyncio.get_event_loop().create_task(self.server.wait_closed())
 
     async def _start_server(self):
         if self.running:
@@ -50,20 +53,17 @@ class StreamServer(commands.Cog):
                 return
 
             self.server = await asyncio.start_server(
-                self._connection_handler,
-                '127.0.0.1',
-                port,
-                loop=self.loop
+                self._connection_handler, '127.0.0.1', port
             )
             log.info('Server started.')
 
-    def _close_server(self, wait=True):
+    async def _close_server(self, wait=True):
         if self.server:
             log.info('Closing server.')
             self.server.close()
 
             if wait:
-                self.loop.create_task(self.server.wait_closed())
+                asyncio.get_event_loop().create_task(self.server.wait_closed())
 
     async def _connection_handler(self, reader, writer):
         """Handles the initial handshake upon recieving a new connection,
@@ -81,8 +81,7 @@ class StreamServer(commands.Cog):
 
         handshake = await reader.readline()
         if not handshake:
-            log.warning(f'No handshake recieved from {peer},'
-                        ' dropping connection.')
+            log.warning(f'No handshake recieved from {peer},' ' dropping connection.')
             writer.close()
             return
 
@@ -90,13 +89,13 @@ class StreamServer(commands.Cog):
             handshake = loads(handshake)
             is_handshake = handshake['type'] == 'handshake'
         except JSONDecodeError:
-            log.warning(f'Recieved non-json data from {peer},'
-                        ' dropping connection.')
+            log.warning(f'Recieved non-json data from {peer},' ' dropping connection.')
             writer.close()
             return
         except KeyError:
-            log.warning(f'Malformed handshake recieved from {peer},'
-                        ' dropping connection.')
+            log.warning(
+                f'Malformed handshake recieved from {peer},' ' dropping connection.'
+            )
             writer.close()
             return
 
@@ -104,21 +103,27 @@ class StreamServer(commands.Cog):
             try:
                 handler = handshake['handler']
             except KeyError:
-                log.warning(f'{peer} did not specify a handler,'
-                            ' dropping connection.')
+                log.warning(
+                    f'{peer} did not specify a handler,' ' dropping connection.'
+                )
                 writer.close()
                 return
 
             if handler in self.handlers:
-                self.loop.create_task(self.handlers[handler](reader, writer, handshake))
+                asyncio.get_event_loop().create_task(
+                    self.handlers[handler](reader, writer, handshake)
+                )
             else:
-                log.warning(f'Handler "{handler}" specified by {peer} is unknown,'
-                            ' dropping connection.')
+                log.warning(
+                    f'Handler "{handler}" specified by {peer} is unknown,'
+                    ' dropping connection.'
+                )
                 writer.close()
                 return
         else:
-            log.warning(f'Initial data from {peer} was not a handshake,'
-                        ' dropping connection.')
+            log.warning(
+                f'Initial data from {peer} was not a handshake,' ' dropping connection.'
+            )
             writer.close()
             return
 
@@ -158,7 +163,7 @@ class StreamServer(commands.Cog):
             return '< Stream server is down! >'
 
     @commands.group(invoke_without_command=True)
-    @permission_node(f'{__name__}')
+    @restricted()
     async def streamserver(self, ctx):
         """Stream server commands.
 
@@ -169,7 +174,7 @@ class StreamServer(commands.Cog):
         await ctx.sendmarkdown(msg)
 
     @streamserver.command()
-    @permission_node(f'{__name__}')
+    @restricted(PermissionLevel.GROUP)
     async def start(self, ctx):
         """Start the stream server."""
 
@@ -178,17 +183,17 @@ class StreamServer(commands.Cog):
         await ctx.sendmarkdown(msg)
 
     @streamserver.command()
-    @permission_node(f'{__name__}')
+    @restricted(PermissionLevel.COG)
     async def stop(self, ctx):
         """Stop the stream server."""
 
-        self._close_server(wait=False)
+        await self._close_server(wait=False)
         await self.server.wait_closed()
         msg = await self._serverstatus()
         await ctx.sendmarkdown(msg)
 
     @streamserver.command()
-    @permission_node(f'{__name__}.setport')
+    @restricted(PermissionLevel.COG)
     async def setport(self, ctx, port: int):
         """Set the port the stream server should listen on."""
 
@@ -197,7 +202,7 @@ class StreamServer(commands.Cog):
         await ctx.sendmarkdown('# Port saved!')
 
     @streamserver.command()
-    @permission_node(f'{__name__}.disable')
+    @restricted(PermissionLevel.COG)
     async def disable(self, ctx):
         """Disable the stream server by stopping it and removing
         the configured port, preventing the server from
@@ -207,16 +212,12 @@ class StreamServer(commands.Cog):
         server start up when you load it up again.
         """
 
-        self._close_server(wait=False)
+        await self._close_server(wait=False)
         del self.cfg['streamserverport']
         await self.cfg.save()
         await self.server.wait_closed()
-        await ctx.sendmarkdown('# Stream server disabled, port removed '
-                               'from config!')
+        await ctx.sendmarkdown('# Stream server disabled, port removed ' 'from config!')
 
 
-def setup(bot):
-    permission_nodes = ['', 'setport', 'disable']
-    bot.register_nodes([f'{__name__}.{node}' if node else f'{__name__}'
-                        for node in permission_nodes])
-    bot.add_cog(StreamServer(bot))
+async def setup(bot):
+    await bot.add_cog(StreamServer(bot))

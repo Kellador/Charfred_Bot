@@ -1,9 +1,10 @@
 import logging
 import psutil
+import asyncio
 from datetime import datetime as dt
 from humanize import naturalsize
 from discord.ext import commands
-from utils import permission_node
+from utils import restricted
 
 log = logging.getLogger(f'charfred.{__name__}')
 
@@ -77,7 +78,7 @@ def format_info(process, procinfo):
         f'# Memory usage: {naturalsize(memory.rss)}',
         f'# Virtual Memory Size: {naturalsize(memory.vms)}',
         f'# Unique Set Size: {naturalsize(memory.uss)}',
-        f'# Swap: {naturalsize(memory.swap)}'
+        f'# Swap: {naturalsize(memory.swap)}',
     ]
     msg = '\n'.join(msg)
     return msg
@@ -86,17 +87,18 @@ def format_info(process, procinfo):
 class Quartermaster(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.loop = bot.loop
 
     @commands.group(aliases=['quartermaster'])
-    @permission_node(f'{__name__}')
+    @restricted()
     async def qm(self, ctx):
         """System resource information commands."""
 
         pass
 
     @qm.command()
-    async def profile(self, ctx, process: ProcessConverter, includeScreens: bool=False):
+    async def profile(
+        self, ctx, process: ProcessConverter, includeScreens: bool = False
+    ):
         """Get CPU and memory usage info on a process.
 
         The process may be specified by its PID, name, substring of its
@@ -128,9 +130,9 @@ class Quartermaster(commands.Cog):
                 for num, proc in enumerate(process)
             ]
             reply, _, _ = await ctx.promptinput(
-                '< Multiple matching processes found! >\n\n' +
-                '\n'.join(listing) +
-                '\n\n< Please select which one to profile by replying with the '
+                '< Multiple matching processes found! >\n\n'
+                + '\n'.join(listing)
+                + '\n\n< Please select which one to profile by replying with the '
                 'number listed next to the process that best matches the one '
                 'you are looking for. >'
             )
@@ -147,7 +149,9 @@ class Quartermaster(commands.Cog):
             process = process[0]
 
         tmpmsg = await ctx.sendmarkdown('> Profiling...')
-        procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
+        procinfo = await asyncio.get_event_loop().run_in_executor(
+            None, getProcInfo, process
+        )
         msg = format_info(process, procinfo)
         await tmpmsg.delete()
         await ctx.sendmarkdown(msg)
@@ -167,7 +171,9 @@ class Quartermaster(commands.Cog):
         else:
 
             tmpmsg = await ctx.sendmarkdown('> Profiling...')
-            procinfo = await self.loop.run_in_executor(None, getProcInfo, process)
+            procinfo = await asyncio.get_event_loop().run_in_executor(
+                None, getProcInfo, process
+            )
             msg = format_info(process, procinfo)
             await tmpmsg.delete()
             await ctx.sendmarkdown(msg)
@@ -226,11 +232,10 @@ class Quartermaster(commands.Cog):
             '\n# Swap:',
             '>    Total     Used      %',
             f'{prefixs}{naturalsize(swp.total):>8} {naturalsize(swp.used):>8} '
-            f'{swp.percent:>5}%{suffixs}'
+            f'{swp.percent:>5}%{suffixs}',
         ]
         await ctx.sendmarkdown('\n'.join(msg))
 
 
-def setup(bot):
-    bot.register_nodes([f'{__name__}'])
-    bot.add_cog(Quartermaster(bot))
+async def setup(bot):
+    await bot.add_cog(Quartermaster(bot))

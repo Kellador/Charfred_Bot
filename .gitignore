@@ -53,8 +53,8 @@ ENV/
 !.gitignore
 !.gitmodules
 !/configs
-/configs/*.json
-/configs/*.toml
+/configs/*
+!/configs/keywords_default.json
 !/utils
 !/admincogs
 !/utilitycogs

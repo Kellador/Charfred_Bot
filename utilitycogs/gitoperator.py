@@ -10,7 +10,6 @@ class GitOperator(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.dir = bot.dir
-        self.loop = bot.loop
         self.cfg = bot.cfg
 
     async def _gitcmd(self, ctx, path, cmd):
@@ -19,7 +18,6 @@ class GitOperator(commands.Cog):
             '-C',
             f'{path}',
             cmd,
-            loop=self.loop,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
@@ -110,5 +108,5 @@ class GitOperator(commands.Cog):
         pass
 
 
-def setup(bot):
-    bot.add_cog(GitOperator(bot))
+async def setup(bot):
+    await bot.add_cog(GitOperator(bot))

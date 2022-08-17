@@ -1,9 +1,10 @@
+from pathlib import Path
 import click
 import os
 import logging
 import coloredlogs
 import spiffymanagement
-from utils import Config
+from utils import Store
 
 log = logging.getLogger('spiffymanagement')
 coloredlogs.install(level='DEBUG',
@@ -11,12 +12,31 @@ coloredlogs.install(level='DEBUG',
                     fmt='%(asctime)s:%(msecs)03d %(name)s: %(levelname)s %(message)s')
 
 dirp = os.path.dirname(os.path.realpath(__file__))
-cfg = Config(f'{dirp}/configs/serverCfgs.toml')
+_cfg = Store(Path(f'{dirp}/configs/botCfg'))
+_cfg._load()
+
+
+class Settings():
+    def __init__(
+        self,
+        parent_directory: str,
+        backup_directory: str,
+        backup_maxAge: int
+    ) -> None:
+        self.parent_directory = Path(parent_directory)
+        self.backup_directory = Path(backup_directory)
+        self.backup_maxAge = backup_maxAge
+
+cfg = Settings(
+    parent_directory=_cfg['spiffy.parentdirectory'],
+    backup_directory=_cfg['spiffy.backupdirectory'],
+    backup_maxAge=int(_cfg['spiffy.backupmaxage'])
+)
 
 
 @click.group()
 def spiffy():
-    cfg._load()
+    pass
 
 
 @spiffy.command()
@@ -29,7 +49,7 @@ def start(server):
 @click.argument('server')
 @click.option('-c', '--countdown')
 def stop(server, countdown):
-    spiffymanagement.stop(cfg, server)
+    spiffymanagement.stop(cfg, server, countdown)
 
 
 @spiffy.command()
@@ -42,7 +62,7 @@ def restart(server, countdown):
 @spiffy.command()
 @click.argument('server')
 def status(server):
-    spiffymanagement.status(cfg, server)
+    spiffymanagement.status(server)
 
 
 @spiffy.command()
@@ -56,11 +76,11 @@ def backup(servers):
 @click.argument('servers', nargs=-1)
 def terminate(servers):
     for server in servers:
-        spiffymanagement.terminate(cfg, server)
+        spiffymanagement.terminate(server)
 
 
 @spiffy.command()
-@click.argument('servers', nargs=-1)
-def questbackup(servers):
-    for server in servers:
-        spiffymanagement.questbackup(cfg, server)
+@click.argument('server')
+@click.argument('specific_path')
+def specialbackup(server, specific_path):
+    spiffymanagement.backup(cfg, server, specific_path)

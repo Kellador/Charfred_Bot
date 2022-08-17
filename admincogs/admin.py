@@ -1,7 +1,10 @@
 import logging
 import datetime
+from time import time
+import discord
 from discord.ext import commands
-from utils import Flipbook
+from utils import Flipbook, SelectionView
+from utils.permissions import PermissionLevel
 
 log = logging.getLogger(f'charfred.{__name__}')
 
@@ -48,7 +51,7 @@ class Admin(commands.Cog):
         if no subcommand was given.
         """
 
-        is_owner = self.bot.is_owner(ctx.author)
+        is_owner = await self.bot.is_owner(ctx.author)
         if is_owner:
             out = []
             for guild_id, prefixes in self.cfg['prefix'].items():
@@ -59,9 +62,14 @@ class Admin(commands.Cog):
             out = self.cfg['prefix'][str(ctx.guild.id)]
         else:
             out = []
-        out.extend(['# Bot mentions (always work):',
-                    f'<@{self.bot.user.id}> ', f'<@!{self.bot.user.id}> ',
-                    '> There\'s a space after the mentions which is part of the prefix!'])
+        out.extend(
+            [
+                '# Bot mentions (always work):',
+                f'<@{self.bot.user.id}> ',
+                f'<@!{self.bot.user.id}> ',
+                '> There\'s a space after the mentions which is part of the prefix!',
+            ]
+        )
         out = '\n'.join(out)
         await ctx.sendmarkdown(f'# Current prefixes:\n{out}')
 
@@ -107,48 +115,112 @@ class Admin(commands.Cog):
         else:
             return role
 
-    @commands.group(invoke_without_command=True, hidden=True, aliases=['perms'])
-    async def permissions(self, ctx):
-        """Permission commands.
+    @commands.command(aliases=['perms', 'node'])
+    async def permissions(self, ctx, *, command):
+        """Show information on the permission node of a given command."""
 
-        This returns a list of all current permission nodes
-        and their minimum required role, if no subcommand was given.
-        """
+        _command = self.bot.get_command(command)
 
-        log.info('Listing permission nodes.')
-        nodelist = list(self.cfg['nodes'].items())
-        nodelist.sort()
-        nodeentries = [f'{k}:\n\t{self._parserole(v)}' for k, v in nodelist]
-        nodeflip = Flipbook(ctx, nodeentries, entries_per_page=12,
-                            title='Permission Nodes', close_on_exit=True)
-        await nodeflip.flip()
-
-    @permissions.command(hidden=True)
-    @commands.is_owner()
-    async def edit(self, ctx, node: str):
-        """Edit a permission node."""
-
-        if node not in self.cfg['nodes']:
-            await ctx.sendmarkdown(f'> {node} is not registered!')
+        if _command is None:
+            await ctx.sendmarkdown(f'< Unknown command >')
             return
 
-        role, _, timedout = await ctx.promptinput('# Please enter the minimum role required'
-                                                  f' to use {node} commands.\nEnter "everyone"'
-                                                  ' to have no role restriction.\n'
-                                                  'Enter "owner_only" to restrict to bot owner.')
-        if timedout:
-            return
-        if role == 'owner_only':
-            self.cfg['nodes'][node] = None
+        cog_name = _command.cog.qualified_name
+
+        out = [f'# Permission Info for: {command}\n']
+
+        try:
+            cog_node = self.cfg['nodes'][cog_name]
+
+            for _check in _command.checks:
+                if _check.__name__ == '_node_check':
+                    level = _check.__closure__[0].cell_contents
+                    out.append(f'Permission Level: {level.name}')
+                    match level:
+                        case PermissionLevel.COMMAND:
+                            node = _command.qualified_name
+                            role = cog_node[node]
+                            out.append(f'Relevant Node: {cog_name}:{node}')
+                            break
+                        case PermissionLevel.GROUP:
+                            node = _command.full_parent_name
+                            role = cog_node[node]
+                            out.append(f'Relevant Node: {cog_name}:{node}')
+                            break
+                        case PermissionLevel.COG:
+                            node = '__core__'
+                            role = cog_node[node]
+                            out.append(f'Relevant Node: {cog_name}')
+                            break
+                        case PermissionLevel.GLOBAL:
+                            role = self.cfg['nodes']['__core__']
+                            break
+            else:
+                out.append('> No associated permission node')
+                out.append('# Command is unrestricted, hurray!')
+                await ctx.sendmarkdown('\n'.join(out))
+                return
+        except KeyError:
+            role = 'owner_only'
+            out.append(f'> Required minimum Role: ~~[REDACTED]~~')
         else:
-            if role == 'everyone' or role == 'Everyone':
-                role = '@everyone'
-            self.cfg['nodes'][node] = role
-        await self.cfg.save()
-        log.info(f'{node} was edited.')
-        await ctx.sendmarkdown(f'# Edits to {node} saved successfully!')
+            if role is None:
+                role = 'owner_only'
+                out.append(f'> Required minimum Role: ~~[REDACTED]~~')
+            else:
+                out.append(f'Required minimum Role: {role}')
 
-    @permissions.group(invoke_without_command=True, hidden=True)
+        await ctx.sendmarkdown('\n'.join(out))
+
+        is_owner = await self.bot.is_owner(ctx.author)
+        if not is_owner:
+            return
+
+        if not self.cfg['hierarchy']:
+            await ctx.sendmarkdown('< No hierarchy set up! Cannot edit node! >')
+            return
+
+        options = [
+            discord.SelectOption(label=role_name) for role_name in self.cfg['hierarchy']
+        ]
+        options.extend(
+            [
+                discord.SelectOption(label='owner_only'),
+                discord.SelectOption(label='@everyone'),
+            ]
+        )
+
+        view = SelectionView(ctx, options, placeholder=role, timeout=120)
+
+        view.msg = await ctx.sendmarkdown('# Change required minimum role: ', view=view)
+
+        await view.wait()
+        view.clear_items()
+
+        if selected := view.values:
+            if selected == 'owner_only':
+                new_role = None
+            else:
+                new_role = selected[0]
+
+            if level is PermissionLevel.GLOBAL:
+                self.cfg['nodes']['__core__'] = new_role
+            else:
+                cog_node[node] = new_role
+
+            await self.cfg.save()
+            log.info(f'Required minimum Role changed to \'{selected[0]}\'')
+            await view.msg.edit(
+                content=f'```md\n# Required minimum Role changed to \'{selected[0]}\'!\n```',
+                view=view,
+            )
+        else:
+            await view.msg.edit(
+                content='```md\n> Permissions unchanged\n```',
+                view=view,
+            )
+
+    @commands.group(invoke_without_command=True, hidden=True)
     async def hierarchy(self, ctx):
         """Role hierarchy commands.
 
@@ -212,8 +284,9 @@ class Admin(commands.Cog):
         cogcfgs = list(self.cfg['cogcfgs'].items())
         cogcfgs.sort()
         cogcfgentries = [f'{k}:\n\t{v[0]}' for k, v in cogcfgs]
-        cogcfgflip = Flipbook(ctx, cogcfgentries, entries_per_page=12,
-                              title='Cog-specific Configurations')
+        cogcfgflip = Flipbook(
+            ctx, cogcfgentries, entries_per_page=12, title='Cog-specific Configurations'
+        )
         await cogcfgflip.flip()
 
     @cogcfg.command(hidden=True, name='edit')
@@ -236,7 +309,7 @@ class Admin(commands.Cog):
 
     @commands.command(hidden=True)
     @commands.is_owner()
-    async def debughook(self, ctx, hookurl: str=None):
+    async def debughook(self, ctx, hookurl: str = None):
         """Returns and/or changes webhook url used for debugging purposes."""
 
         if 'hook' in self.cfg and self.cfg['hook'] is not None:
@@ -248,5 +321,5 @@ class Admin(commands.Cog):
             await ctx.sendmarkdown(f'> Set debug webhook to:\n> {hookurl}')
 
 
-def setup(bot):
-    bot.add_cog(Admin(bot))
+async def setup(bot):
+    await bot.add_cog(Admin(bot))

@@ -69,7 +69,7 @@ class Flipbook:
                 for (bttn, _) in self.bttns:
                     await self.msg.add_reaction(bttn)
         else:
-            await self.msg.edit(embed=self.embed)
+            self.msg = await self.msg.edit(embed=self.embed)
 
     async def flip_back(self):
         await self.draw_page(self.current_page - 1)
@@ -80,8 +80,9 @@ class Flipbook:
     async def flip_off(self):
         self.flipable = False
         if self.close_on_exit:
-            await self.msg.edit(embed=None,
-                                content='```markdown\n> FlipBook closed!\n```')
+            self.msg = await self.msg.edit(
+                embed=None, content='```markdown\n> FlipBook closed!\n```'
+            )
         await self.msg.clear_reactions()
 
     async def info(self):
@@ -103,7 +104,7 @@ class Flipbook:
             infoEmbed.title = 'Charfred Flipbook Instructions:'
             infoEmbed.description = '\n'.join(content)
             await self.msg.clear_reactions()
-            await self.msg.edit(embed=infoEmbed)
+            self.msg = await self.msg.edit(embed=infoEmbed)
             await self.msg.add_reaction('❔')
             await self.msg.add_reaction('🖕')
 
@@ -166,4 +167,4 @@ class EmbedFlipbook(Flipbook):
             for (bttn, _) in self.bttns:
                 await self.msg.add_reaction(bttn)
         else:
-            await self.msg.edit(embed=self.embed)
+            self.msg = await self.msg.edit(embed=self.embed)

@@ -1,7 +1,7 @@
 import traceback
 import logging
 import random
-from discord import Webhook, AsyncWebhookAdapter, Embed
+from discord import Webhook, Embed
 from discord.ext import commands
 
 log = logging.getLogger(f'charfred.{__name__}')
@@ -14,7 +14,7 @@ class ErrorHandler(commands.Cog):
         self.session = bot.session
         self.cfg = bot.cfg
         try:
-            self.hook = Webhook.from_url(self.cfg['hook'], adapter=AsyncWebhookAdapter(self.session))
+            self.hook = Webhook.from_url(self.cfg['hook'], session=self.session)
         except KeyError:
             self.hook = None
 
@@ -73,5 +73,5 @@ class ErrorHandler(commands.Cog):
                 await self.hook.send(embed=hook_embed)
 
 
-def setup(bot):
-    bot.add_cog(ErrorHandler(bot))
+async def setup(bot):
+    await bot.add_cog(ErrorHandler(bot))

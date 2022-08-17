@@ -17,7 +17,6 @@ class CommandHistorian(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.botCfg = bot.cfg
-        self.loop = bot.loop
         self.lock = asyncio.Lock()
         self.pprinter = pprint.PrettyPrinter()
         if not hasattr(bot, 'cmd_map'):
@@ -223,5 +222,5 @@ class CommandHistorian(commands.Cog):
                                    'even store a single command in there! >')
 
 
-def setup(bot):
-    bot.add_cog(CommandHistorian(bot))
+async def setup(bot):
+    await bot.add_cog(CommandHistorian(bot))
