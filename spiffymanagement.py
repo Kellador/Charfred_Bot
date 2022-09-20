@@ -6,11 +6,9 @@ from datetime import datetime
 from pathlib import Path
 from subprocess import run
 from time import sleep, time
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import psutil
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from spiffy import Settings
@@ -156,7 +154,7 @@ def get_invocation(serverdir: Path) -> List[str]:
     return invocation
 
 
-def get_backup(serverdir: Path) -> List[Path]:
+def get_backup(serverdir: Path) -> dict[str, List[Path]]:
     """Get all directories to backup for a given server.
 
     Parameters
@@ -166,29 +164,45 @@ def get_backup(serverdir: Path) -> List[Path]:
 
     Returns
     -------
-        a list of paths to backup
+        a dict of paths to include and exclude
     """
 
     world = serverdir / 'world'
     sb = serverdir / 'spiffy_backup'
 
-    def _read_more():
+    def _read_specification() -> dict[str, List[Path]]:
         with sb.open() as file:
-            directories = file.read().split()
-        return directories
+            entries = file.read().split()
+
+        specs = {'include': [], 'exclude': []}
+
+        for e in entries:
+            if e.startswith('-'):
+                e_path = serverdir / e[1:]
+                if e_path.exists():
+                    specs['exclude'].append(e_path)
+            else:
+                if e.startswith('+'):  # Seems logical one might do this, so why not?!
+                    e = e[1:]
+                i_path = serverdir / e
+                if i_path.exists():
+                    specs['include'].append(i_path)
+
+        return specs
 
     match world.exists(), sb.exists():
         case True, True:
-            directories = _read_more()
-            directories.append('world')
+            specification = _read_specification()
+            if world not in specification['include']:
+                specification['include'].append(world)
         case True, False:
-            directories = ['world']
+            specification = {'include': [world], 'exclude': []}
         case False, True:
-            directories = _read_more()
+            specification = _read_specification()
         case False, False:
             raise NothingToBackup(serverdir)
 
-    return filter((lambda p: p.exists()), map((lambda d: serverdir / d), directories))
+    return specification
 
 
 def isUp(server: str) -> bool:
@@ -502,7 +516,10 @@ def backup(cfg: 'Settings', server: str, specific_path: str | None = None):
     if specific_path:
         _source = server_path / specific_path
         if _source.exists():
-            directories = [_source]
+            specification = {
+                'include': [_source],
+                'exclude': [],
+            }
         else:
             try:
                 Path(specific_path).relative_to(server_path)
@@ -510,15 +527,18 @@ def backup(cfg: 'Settings', server: str, specific_path: str | None = None):
                 log.error(f'{specific_path} is not a subpath of {server_path}!')
                 return
             else:
-                directories = [specific_path]
+                specification = {
+                    'include': [specific_path],
+                    'exclude': [],
+                }
     else:
         try:
-            directories = get_backup(server_path)
+            specification = get_backup(server_path)
         except NothingToBackup as e:
             e.log_this()
             return
         else:
-            if not directories:
+            if not specification['include']:
                 log.warning(f'Back up job for {server} failed, nothing to back up!')
                 return
 
@@ -567,7 +587,7 @@ def backup(cfg: 'Settings', server: str, specific_path: str | None = None):
 
     os.chdir(target_path)
 
-    for source_path in directories:
+    for source_path in specification['include']:
         log.info(f'Backing up \'{source_path}\'...')
         try:
             filename = source_path.relative_to(server_path)
@@ -580,8 +600,23 @@ def backup(cfg: 'Settings', server: str, specific_path: str | None = None):
         else:
             filename = '.'.join(filename.parts)
 
+        exclusions = [
+            f'{p.relative_to(source_path)}'
+            for p in specification['exclude']
+            if p.is_relative_to(source_path)
+        ]
+
+        def _filter(tarinfo: tarfile.TarInfo) -> tarfile.TarInfo | None:
+            if any(tarinfo.name.startswith(ex) for ex in exclusions):
+                return None
+            else:
+                return tarinfo
+
         with tarfile.open(f'{filename}.tar.gz', 'w:gz') as tf:
-            tf.add(source_path, source_path.name)
+            if exclusions:
+                tf.add(source_path, source_path.name, filter=_filter)
+            else:
+                tf.add(source_path, source_path.name)
         log.info(f'\'{source_path}\' backed up!')
 
     log.info(f'Backup(s) created for {server}!')
